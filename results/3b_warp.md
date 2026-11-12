@@ -47,6 +47,16 @@ true minimum, at a node rather than a midpoint, is 0.0303537. The reviewer's ear
 as intended; the 2.4e-5 we had attributed to the object was this bug. Version 3 and the pair's rerun follow tonight; this note is updated
 with the measured lines when they land.
 
+<!-- v3-begin -->
+**Version 3 on the pair (MEASURED, 11-12).** The reviewer's full fix (`code/wh_warp.c` and `code/wh_prof.h` version 3: the exact dr^2,
+the mass table rounded once per node, the near-axis floor term, the S' jump self-test, each cell judged against its own floor, no bisection when
+beta0 = 0 already fails, a whole-grid re-scan at both ends of the bracket, the cavity and the exterior reported apart), run on the two machines:
+- The 0.2 m grid (r every 0.2 m (400 midpoints), 31 theta cells; started 01:52:07 AM, both machines line for line, 35 min): DEC first fails between 0.030362854005 to 0.030362930299 at r = 0.617601791436 R2 (12.35 m) on the equator; the bracket is confirmed on the whole grid; the S' jump self-test 1 unit; chain `09f6b75f837adef2` = the PC build's and the reviewer's.
+The brackets equal those of the dr^2 fix alone to every printed digit, as the review predicted; the other fixes change the verdict cells (the
+false DEC violation at beta0 = 0 and the false NEC cells on fine angular grids are gone) and the chains. The number to quote: the 0.05 m grid's
+0.030358, about 0.03036 c, 12.30 m from the centre on the equator. The raw lines of one machine: `results/3b_warp_v3_board1.txt`.
+<!-- v3-end -->
+
 
 On the pair (MEASURED; r every 0.2 m, 31 theta cells): all four conditions hold at beta0 = 0, 0.02, 0.025 and 0.03 within the floor, with
 no matter cell below it (the worst margin at 0.03 is -2.7e-10 against a floor of 3.6e-9, at r = 0.14 R2 next to the axis); at 0.035 all
