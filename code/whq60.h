@@ -103,17 +103,20 @@ static int64_t exp60n(int64_t n, int64_t f)            /* e^{n + f} in Q.60, n a
 }
 static int64_t exp60(int64_t x) { return exp60n(0, x); }   /* e^x for a Q.60 x (|x| < 7) */
 static const int64_t PI60 = 3622009729038561421ll;    /* pi 2^60 = 3622009729038561421.3 */
-static void cossin60(int64_t x, int64_t *c, int64_t *s)   /* any x: reduce to [-pi, pi] by 2 pi (one rounding of 2 pi), then Taylor */
+static void cossin60(int64_t x, int64_t *c, int64_t *s)   /* any x: reduce to [-pi, pi] by 2 pi (one rounding of 2 pi), then to [-pi/2, pi/2] by a
+                                                             sign flip (cos(x - pi) = -cos x: x^2 would pass the Q.60 ceiling at |x| > 2.83; found 6:50 AM 11-12
+                                                             by the first caller past pi/2), then Taylor */
 {
     const int64_t twopi = 2 * PI60;
     int64_t k = x / twopi; x -= k * twopi;
     if (x > PI60) x -= twopi; if (x < -PI60) x += twopi;
+    int sign = 1; if (x > PI60 / 2) { x -= PI60; sign = -1; } else if (x < -PI60 / 2) { x += PI60; sign = -1; }
     const int64_t x2 = mul60(x, x); int64_t tc = ONE60, ts = x, sc = ONE60, ss = x;
     for (int kk = 1; kk < 40; kk++) {
         tc = -rdiv64(mul60(tc, x2), (int64_t)(2 * kk - 1) * (2 * kk)); ts = -rdiv64(mul60(ts, x2), (int64_t)(2 * kk) * (2 * kk + 1));
         sc += tc; ss += ts; if (!tc && !ts) break;
     }
-    *c = sc; *s = ss;
+    *c = sign * sc; *s = sign * ss;
 }
 static int64_t parse60(const char *s)                  /* a decimal into Q.60, round(v 2^60); |v| < 7 */
 {

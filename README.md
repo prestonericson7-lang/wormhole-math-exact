@@ -48,7 +48,9 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   written where the two-core claim stood. In the third night it found the shared header's division guard a factor of two too weak in all
   seven copies (it stopped at sixteen times the divisor instead of eight; in between, a quotient with the wrong sign came back silently): every
   copy now carries two checks, and every published chain of the seven programs reruns identical from the fixed sources, so no published run
-  had passed through the range. The record of what was wrong is as public as the record of what is right.
+  had passed through the range. The same morning the shared header's cosine was found to square its argument after reducing it only to
+  [-pi, pi], so past 2.83 the square passed the format's ceiling; it now reduces to [-pi/2, pi/2] with a sign flip, and no program had
+  called it past pi/2 before. The record of what was wrong is as public as the record of what is right.
 - A result moves from "computed on a PC" to "measured" only when the two machines have run it and agreed; PC runs on this page are labelled
   as development runs.
 - The code is written to be read: every file opens with what it computes, from which equation of which paper, in what arithmetic, with
@@ -69,7 +71,9 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
     source stalls), `wh_relaxt.c` (the kernel in the geometry's own rows, uniform in t = ln(-y) from the cut to the deep end, carrying the
     reviewer's three sources in deviation variables around the AdS3 x S2 reference, whose discretization defect it measures and subtracts),
     `wh_p3.c` with `whq56.h` (the near-brane throat as an integer shot: three rescaled variables inward from the brane in a 56-bit format,
-    the shot bisected on exact event tests), and `wh_ode.c` (the flow's exact integrator for a vector state);
+    the shot bisected on exact event tests), `wh_dtk.c` (the five-field kernel for the two-dimensional problems in the Einstein-DeTurck
+    form: the variable-coefficient principal part with its cross term, per-point weights formed once, on a manufactured problem), and
+    `wh_ode.c` (the flow's exact integrator for a vector state);
     and `p2_nogo/`, the reviewer's scripts behind the first 1b result, the no-go for the paper's circle of mouths.
   - 2, the SYK teleportation protocol, seven versions kept as a lineage: `wh_syk.c` (the paper's layout), `wh_syk2.c` (the factorized
     layout that made N = 14 minutes instead of weeks), `wh_syk3.c` (the exact per-realization density matrix), `wh_syk4.c` (the same in
@@ -115,11 +119,13 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   answer and run on the two machines; the first solution of the reduced problem's simplest case, the one with no dependence along the
   circle (P0): the centre value U_c = -0.594115, -0.594579 and -0.594695 at N = 128, 256 and 512 rows, falling 4.00x per doubling toward
   -0.594734, the reviewer's independent extrapolation to six digits, and a central charge 5.3e-5 above the fixed point's where the
-  reviewer's law gives 5.26e-5; MEASURED on the two machines at N = 128 (26,011 sweeps each, 191 identical lines, the PC's chain), the
-  finer grids the PC's until the queue reaches them. And the near-brane throat (P3): the paper's log ln(L_IR/R5) as an integer shot at
+  reviewer's law gives 5.26e-5; MEASURED on the two machines at N = 128 and 256 (26,011 and 30,608 sweeps each, identical lines, the
+  PC's chains), N = 512 the PC's. And the near-brane throat (P3): the paper's log ln(L_IR/R5) as an integer shot at
   three charges, bit-identical to the reviewer's independent integer mimic in all three; at the paper's charge L_IR = 1.13679 l_B (its
   "L_IR ~ l_B" made exact) and the AdS2 radius exceeds the S2 radius at the brane by 1.77 percent; PC build, the pair runs it in the
-  eighth queue. The circle-direction problem (P1, the mouths) is next.
+  eighth queue. The circle-direction problem (P1, the mouths) is next: its kernel in the Einstein-DeTurck form, five fields with a
+  variable-coefficient principal part and a cross-derivative term, is built (`code/wh_dtk.c`) and second order on all five fields of a
+  manufactured problem, ahead of the equations.
 
 Next: the pair's remaining P0, P3, N = 18 and size-winding runs, the reviewer's cross-check of P0, then the circle-direction problem
 (P1). See `PLAN.md`.
