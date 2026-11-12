@@ -138,5 +138,7 @@ its format, its bounds and its seed. None of them builds a door, and each write-
 - 1a: DONE 2026-11-11 4:26 PM, `results/1a_flow.md`: both machines identical, 124 lines; the flow from the throat to AdS5 to 12 places.
 - 3a: DONE 2026-11-11 4:28 PM, `results/3a_alcubierre.md`: both machines identical, 18 lines; the law I = R sigma/3 + (pi^2-6)/(36 R sigma). Error bound on paper: Simpson truncation below 8e-8 absolute at R sigma = 16 (3e-10 at 4), rounding
   below 8e-8 (each term carries about 20 roundings of 2^-40 on values up to 1024, and the weights integrate to the range 4): I to 7 digits.
-- 3b: recipe written (above); program not yet started.
+- 3b part 1: `code/wh_shell.c` built (the shell without its shift: the construction as integer sums, the metric declared as the
+  interpolant of the tables, the Einstein tensor closed-form at midpoints, the six energy-condition margins per region, for both the
+  paper's cavity rule and the code's); first run pending. Part 2 (the shift, axisymmetric; the shift limit) is the next program.
 - 2, 1b: planned.

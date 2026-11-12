@@ -24,7 +24,8 @@ paper beside each program.
 - `THE_GLUE.md`: the reading that led here: what holds a traversable wormhole open in the post-2016 physics, why those wormholes
   cannot be time machines by construction, and where the energy scale meets the collider.
 - `code/`: the programs. `wh_flow.c` solves the Maldacena-Milekhin flow equations (computation 1a); `wh_alcub.c` computes the
-  Alcubierre negative-energy integral, the wall-thickness law behind the "factor of three", and the flattening check (computation 3a).
+  Alcubierre negative-energy integral, the wall-thickness law behind the "factor of three", and the flattening check (computation 3a);
+  `wh_shell.c` reproduces the 2024 warp shell's matter shell and judges its energy conditions exactly (computation 3b, part 1).
 - `results/`: each result as a plain-text table with the program's md5, the format, the step, and the two boards' agreement line.
 
 ## Status
