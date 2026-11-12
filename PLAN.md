@@ -196,4 +196,15 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   2:00 AM) relaxes three coupled fields with nonlinear sources, the Newton step over the local 3 x 3 Jacobian: on the exact test it lands
   within 3 to 172 units of 2^-60 at G = 32 to 128 in about 8 G sweeps; where the source's own derivative is a third of the Laplacian's
   diagonal, the Newton step (block or diagonal) still lands exactly while the lagged plain update stalls at a false floor with a 2e-2 error.
-  The pair runs both tonight.
+  The pair runs both tonight. The kernel in the geometry's own rows (`code/wh_relaxt.c`, 4:12 AM): rows uniform in t = ln(-y) from the cut
+  to the deep end, the operator F_tt - F_t + e^{2t} F_xx normalized by its row diagonal into per-row weights, Dirichlet at the cut, the centred
+  ghost form of Neumann on the other sides, a fixed relaxation parameter 2 - 90/N with the change guard (the reconciled sizing: never a field
+  alone). Verified on an exact polynomial test (within 4e-14 to 5e-13 of exact at N = 64 to 256) and on the AdS3 x S2 reference carrying the
+  reviewer's three P0 sources in deviation variables: with the reference's discretization defect subtracted, zero deviation is the exact discrete
+  solution (zero corrections at sweep 1) and bumps of 0.01 and 0.1 relax back to it in 3,921 sweeps at N = 128 and 5,284 at N = 256; with the
+  defect left in, the end deviation is the reference's discretization error, 4.8e-3 and 2.1e-2 (U and B) at N = 64, 1.2e-3 and 5.3e-3 at 128,
+  3.0e-4 and 1.3e-3 at 256: 4.0x per doubling on every row including the Neumann one, while V's defect is exactly zero (its bracket vanishes
+  for the reference by construction). All PC build (whrelaxt_x86 8a5322b0); the pair runs the four configurations in the sixth queue. The real
+  P0 takes this form with the brane's cut data (the reviewer's series in the conformal coordinate, with the v^4 log term) at Q2 = 6, where
+  the reference's w solves 12 w^2 - 3 w - 12 = 0, and rows in Q.56 for the deep cut (t = -11 passes the Q.60 ceiling); the reviewer's spec
+  (4:00 AM) is under its verifier.

@@ -85,10 +85,12 @@ static inline int64_t rdiv64(int64_t x, int64_t n) { return x >= 0 ? (x + n / 2)
 /* round(a 2^60 / b) for b > 0, |a| < 8 b */
 static int64_t div60(int64_t a, int64_t b)
 {
+    if (b <= 0) { printf("WHSYK4: div60 by a non-positive value -- stop\n"); exit(1); }
     int neg = a < 0; uint64_t ua = neg ? -(uint64_t)a : (uint64_t)a;
     const uint64_t hi = ua >> 4, lo = ua << 60;
     if (hi >= (uint64_t)b) { printf("WHSYK4: div60 overflow -- stop\n"); exit(1); }
     uint64_t rem; uint64_t qq = div128(hi, lo, (uint64_t)b, &rem); if (2 * rem >= (uint64_t)b) qq++;
+    if (qq > (uint64_t)INT64_MAX) { printf("WHSYK4: div60 overflow (|a| at or above 8 b) -- stop\n"); exit(1); }   /* the check above alone stops only at 16 b; between 8 b and 16 b the result came back with the wrong sign (found by the reviewer, 4:00 AM, 11-12) */
     return neg ? -(int64_t)qq : (int64_t)qq;
 }
 /* the integer square root of a 128-bit radicand (hi:lo), digit by digit; the result < 2^64 */

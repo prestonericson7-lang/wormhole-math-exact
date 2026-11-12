@@ -31,11 +31,13 @@ static inline int64_t s128_round_sh(s128 a, int sh)   /* round(a / 2^sh) to near
 }
 static inline int64_t mul60(int64_t a, int64_t b) { s128 s = {0, 0}; s128_addp(&s, a, b); return s128_round_sh(s, F60); }
 static inline int64_t rdiv64(int64_t x, int64_t n) { return x >= 0 ? (x + n / 2) / n : -((-x + n / 2) / n); }
-static int64_t div60(int64_t a, int64_t b)             /* round(a 2^60 / b), b > 0, |a| < 8 b */
+static int64_t div60(int64_t a, int64_t b)             /* round(a 2^60 / b), b > 0, |a| < 8 b; both conditions checked (the quotient must fit an int64) */
 {
+    if (b <= 0) { printf("WHQ60: div60 by a non-positive value -- stop\n"); exit(1); }
     int neg = a < 0; uint64_t ua = neg ? -(uint64_t)a : (uint64_t)a; const uint64_t hi = ua >> 4, lo = ua << 60;
     if (hi >= (uint64_t)b) { printf("WHQ60: div60 overflow -- stop\n"); exit(1); }
     uint64_t rem; uint64_t qq = div128(hi, lo, (uint64_t)b, &rem); if (2 * rem >= (uint64_t)b) qq++;
+    if (qq > (uint64_t)INT64_MAX) { printf("WHQ60: div60 overflow (|a| at or above 8 b) -- stop\n"); exit(1); }   /* the check above alone stops only at 16 b; between 8 b and 16 b the result came back with the wrong sign (found by the reviewer, 4:00 AM, 11-12) */
     return neg ? -(int64_t)qq : (int64_t)qq;
 }
 static int64_t div128s(s128 num, int64_t den)         /* round(num / den), num signed 128-bit, 0 < den < 2^63, the quotient an int64 */
@@ -94,7 +96,7 @@ static int64_t exp60n(int64_t n, int64_t f)            /* e^{n + f} in Q.60, n a
     int64_t term = ONE60, sum = ONE60; int it;
     for (it = 1; it <= 40; it++) { term = rdiv64(mul60(term, r), it); if (!term) break; sum += term; }
     if (it > EXP60_TERMS) EXP60_TERMS = it;
-    if (k >= 3) { printf("WHQ60: exp60 above the Q.60 ceiling -- stop\n"); exit(1); }   /* e^x < 8 */
+    if (k > 3 || (k == 3 && sum >= ONE60)) { printf("WHQ60: exp60 above the Q.60 ceiling -- stop (argument %lld + %lld units of 2^-60, k = %lld)\n", (long long)n, (long long)f, (long long)k); exit(1); }   /* e^x must stay below 8: k = 3 is allowed while e^r < 1 (x below 3 ln 2 = 2.079) */
     if (k <= -62) return 0;
     if (k >= 0) return sum << k;
     return (sum + ((int64_t)1 << (-k - 1))) >> (-k);

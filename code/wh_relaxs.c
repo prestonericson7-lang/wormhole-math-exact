@@ -83,11 +83,13 @@ static inline int64_t s128_round_sh(s128 a, int sh)
 }
 static inline int64_t mul60(int64_t a, int64_t b) { s128 s = {0, 0}; s128_addp(&s, a, b); return s128_round_sh(s, F60); }
 static inline int64_t rdiv64(int64_t x, int64_t n) { return x >= 0 ? (x + n / 2) / n : -((-x + n / 2) / n); }
-static int64_t div60(int64_t a, int64_t b)             /* round(a 2^60 / b), b > 0, |a| < 8 b */
+static int64_t div60(int64_t a, int64_t b)             /* round(a 2^60 / b), b > 0, |a| < 8 b; both conditions checked (the quotient must fit an int64) */
 {
+    if (b <= 0) { printf("WHRELAXS: div60 by a non-positive value -- stop\n"); exit(1); }
     int neg = a < 0; uint64_t ua = neg ? -(uint64_t)a : (uint64_t)a; const uint64_t hi = ua >> 4, lo = ua << 60;
     if (hi >= (uint64_t)b) { printf("WHRELAXS: div60 overflow -- stop\n"); exit(1); }
     uint64_t rem; uint64_t qq = div128(hi, lo, (uint64_t)b, &rem); if (2 * rem >= (uint64_t)b) qq++;
+    if (qq > (uint64_t)INT64_MAX) { printf("WHRELAXS: div60 overflow (|a| at or above 8 b) -- stop\n"); exit(1); }   /* the check above alone stops only at 16 b; between 8 b and 16 b the result came back with the wrong sign (found by the reviewer, 4:00 AM, 11-12) */
     return neg ? -(int64_t)qq : (int64_t)qq;
 }
 static int64_t parse60(const char *s)
