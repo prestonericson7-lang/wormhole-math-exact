@@ -61,6 +61,7 @@ static s128 SWre[MAXD][MAXD], SWim[MAXD][MAXD], SEre[MAXD][MAXD], SEim[MAXD][MAX
 static uint64_t chain = 0xcbf29ce484222325ull;
 static int taylor_max = 0; static int64_t unit_defect_max = 0;
 static int64_t LN2_60;
+static int EOFL[MAXD];                                   /* e(L), the phase exponent of |I>'s amplitude on |L>|~L>, kept for self-test 5 */
 
 /* ---- 128-bit ---- */
 static inline void s128_add(s128 *a, int64_t hi, uint64_t lo) { uint64_t l = a->lo + lo; a->hi += hi + (l < lo); a->lo = l; }
@@ -241,7 +242,7 @@ static void build_I(c60 Psi[MAXD][MAXD])
     for (int L = 0; L < D; L++) {
         int e = 0, pc = 0;
         for (int k = 0; k < H; k++) if ((L >> k) & 1) { e += (k & 1) ? 1 : 3; pc++; }
-        e = (e + 2 * (pc * (pc - 1) / 2)) & 3;
+        e = (e + 2 * (pc * (pc - 1) / 2)) & 3; EOFL[L] = e;
         const int R = (D - 1) ^ L;
         /* |I> NORMALIZED EXACTLY, so that |I|^2 = 1 and no sum of squares can reach 2^127 (the unnormalized D x 2^120 did at D = 128):
            H even: amplitude i^e 2^{-H/2}; H odd: i^e (1 + i) 2^{-(H+1)/2} (a global phase (1+i)/sqrt2, the review's trick, changes no expectation value) */
@@ -285,24 +286,42 @@ static void build_syk(uint64_t seed)
     }
     NM = N; { char fb[32]; fmt(first, fb); printf("WHSYK4 seed %llu: %d terms, first coefficient %s (v1, v2, v3 print the same two numbers: the same couplings)\n", (unsigned long long)seed, nt, fb); }
 }
-/* the two series from one set of powers: W = e^{-iH} and E = e^{-(beta/4) H}; bq60 = beta/4 in Q.60 */
-static void series(c60 Hm[MAXD][MAXD], int64_t bq60, c60 W[MAXD][MAXD], c60 E[MAXD][MAXD], c60 P[MAXD][MAXD], c60 u[MAXD][MAXD])
+/* MODEL 1 of the 2022 experiment (Kobrin-Schuster-Yao eq. 1: 7 Majoranas, 5 terms), the Q.40 coefficients v1-v3 declared, shifted to Q.60 */
+static void build_model1(void)
+{
+    static const int idx[5][4] = { {1, 2, 4, 5}, {1, 3, 4, 7}, {1, 3, 5, 6}, {2, 3, 4, 6}, {2, 3, 5, 7} };
+    static const double cf[5] = { -0.36, 0.19, -0.71, 0.22, 0.49 };
+    memset(HL, 0, sizeof HL); memset(HR, 0, sizeof HR);
+    for (int t = 0; t < 5; t++) {
+        const double c = cf[t] * (double)ONE / 4.0; const q cq40 = (q)(c < 0 ? c - 0.5 : c + 0.5);
+        addterm(pmul(pmul(pmul(ML[idx[t][0]], ML[idx[t][1]]), ML[idx[t][2]]), ML[idx[t][3]]), (int64_t)cq40 << 20, 0);
+        addterm(pmul(pmul(pmul(MR[idx[t][0]], MR[idx[t][1]]), MR[idx[t][2]]), MR[idx[t][3]]), (int64_t)cq40 << 20, 1);
+    }
+    NM = 7;
+    printf("WHSYK4 model 1: 5 terms on 7 Majoranas a side (coefficients -0.36, 0.19, -0.71, 0.22, 0.49 declared in Q.40 as v1 did), V normalized with N = 10\n");
+}
+/* the two series from one set of powers: W = e^{-i dt H} and E = e^{-(beta/4) H}; bq60 = beta/4, dt60 = dt in Q.60 (dt = 1 is exact) */
+static void series(c60 Hm[MAXD][MAXD], int64_t bq60, int64_t dt60, c60 W[MAXD][MAXD], c60 E[MAXD][MAXD], c60 P[MAXD][MAXD], c60 u[MAXD][MAXD])
 {
     for (int i = 0; i < D; i++) for (int j = 0; j < D; j++) {
         SWre[i][j].hi = SWre[i][j].lo = 0; SWim[i][j].hi = SWim[i][j].lo = 0; SEre[i][j].hi = SEre[i][j].lo = 0; SEim[i][j].hi = SEim[i][j].lo = 0;
         P[i][j].re = P[i][j].im = 0;
     }
     for (int i = 0; i < D; i++) { P[i][i].re = ONE60; s128_add(&SWre[i][i], 0, 0); SWre[i][i].hi = ONE60 >> 4; SWre[i][i].lo = (uint64_t)ONE60 << 60; SEre[i][i] = SWre[i][i]; }
-    int64_t bk = ONE60;                                   /* (-beta/4)^k in Q.60 */
+    /* the powers are of s H with s = max(dt, beta/4), so that W's coefficient (dt/s)^k and E's (-beta/(4s))^k are both ratios of modulus <= 1
+       and nothing overflows the Q.60 ceiling of 8 (dt^k alone passed it at k = 3 for dt = 2.8); with dt = beta/4 = 1 every scale is exactly 1 */
+    const int64_t s60 = dt60 > bq60 ? dt60 : bq60, wr60 = div60(dt60, s60), br60 = div60(bq60, s60);
+    int64_t bk = ONE60, wk = ONE60;
     int small = 0, k;
     for (k = 1; k <= 80; k++) {
         mmul(Hm, 0, P, u);                               /* u = H P_{k-1}, one rounding per entry */
-        bk = -mul60(bk, bq60);
+        bk = -mul60(bk, br60); wk = mul60(wk, wr60);
         int64_t mx = 0;
         for (int i = 0; i < D; i++) for (int j = 0; j < D; j++) {
-            const c60 p = { rdiv64(u[i][j].re, k), rdiv64(u[i][j].im, k) }; P[i][j] = p;
-            /* S_W += (-i)^k p: k mod 4 = 0: +p; 1: -i p = (p.im, -p.re); 2: -p; 3: +i p = (-p.im, p.re) */
-            int64_t wr, wi; switch (k & 3) { case 0: wr = p.re; wi = p.im; break; case 1: wr = p.im; wi = -p.re; break; case 2: wr = -p.re; wi = -p.im; break; default: wr = -p.im; wi = p.re; }
+            const c60 p = { rdiv64(mul60(u[i][j].re, s60), k), rdiv64(mul60(u[i][j].im, s60), k) }; P[i][j] = p;   /* P_k = (s H)^k / k! */
+            /* S_W += (-i)^k dt^k p: k mod 4 = 0: +p; 1: -i p = (p.im, -p.re); 2: -p; 3: +i p = (-p.im, p.re); times wk (exact when dt = 1) */
+            const int64_t pr = mul60(p.re, wk), pi = mul60(p.im, wk);
+            int64_t wr, wi; switch (k & 3) { case 0: wr = pr; wi = pi; break; case 1: wr = pi; wi = -pr; break; case 2: wr = -pr; wi = -pi; break; default: wr = -pi; wi = pr; }
             s128_add(&SWre[i][j], wr >> 4, (uint64_t)wr << 60); s128_add(&SWim[i][j], wi >> 4, (uint64_t)wi << 60);
             /* S_E += bk p (a Q.120 product; exact when bk = +-1) */
             s128_addp(&SEre[i][j], bk, p.re); s128_addp(&SEim[i][j], bk, p.im);
@@ -349,9 +368,11 @@ static int parselist(const char *s, q *out, int max) { int n = 0; char buf[256];
 
 int main(int argc, char **argv)
 {
-    N = 8; int vnormN = 0; q beta = 4 * ONE; q mus[16], ts[32], tps[32]; int nmu = 0, nt = 0, ntp = 0; uint64_t seeds[16]; int nseed = 0;
+    N = 8; int vnormN = 0, model = 0; q beta = 4 * ONE, dt = ONE; q mus[16], ts[32], tps[32]; int nmu = 0, nt = 0, ntp = 0; uint64_t seeds[16]; int nseed = 0;
     for (int i = 1; i < argc; i++) {
         if (!strncmp(argv[i], "N=", 2)) N = atoi(argv[i] + 2);
+        else if (!strncmp(argv[i], "model=", 6)) model = !strcmp(argv[i] + 6, "m1");
+        else if (!strncmp(argv[i], "dt=", 3)) dt = parseq(argv[i] + 3);          /* the time unit: W(dt) by its own series; t and t' count units */
         else if (!strncmp(argv[i], "beta=", 5)) beta = parseq(argv[i] + 5);
         else if (!strncmp(argv[i], "mu=", 3)) nmu = parselist(argv[i] + 3, mus, 16);
         else if (!strncmp(argv[i], "t=", 2)) nt = parselist(argv[i] + 2, ts, 32);
@@ -364,17 +385,20 @@ int main(int argc, char **argv)
     if (!nmu) { mus[0] = -12 * ONE; mus[1] = 12 * ONE; nmu = 2; }
     if (!nt) { ts[0] = ONE; ts[1] = 2 * ONE; ts[2] = 3 * ONE; nt = 3; }
     if (!nseed) { seeds[0] = 1; nseed = 1; }
+    if (model) { N = 8; nseed = 1; if (!vnormN) vnormN = 10; }
     if (!vnormN) vnormN = N;
+    if (dt <= 0 || dt > 4 * ONE) { printf("WHSYK4: dt must be in (0, 4]\n"); return 1; }
     if (PA < 1 || PA > N || PB < 1 || PB > N || PA == PB) { printf("WHSYK4: pair must be two different Majorana indices in 1..N\n"); return 1; }
     int tmax = 0; for (int i = 0; i < nt; i++) { int t = (int)(ts[i] / ONE); if ((q)t * ONE != ts[i] || t < 0 || t > TMAX) { printf("WHSYK4: t must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }
     for (int i = 0; i < ntp; i++) { int t = (int)(tps[i] / ONE); if ((q)t * ONE != tps[i] || t < 0 || t > TMAX) { printf("WHSYK4: tp must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }
     H = N / 2; D = 1 << H;
-    const int64_t beta60 = (int64_t)beta << 20, bq60 = rdiv64(beta60, 4);
+    const int64_t beta60 = (int64_t)beta << 20, bq60 = rdiv64(beta60, 4), dt60 = (int64_t)dt << 20;
     LN2_60 = artanh2_60(div60(ONE60, 3 * ONE60));        /* ln 2 = 2 artanh(1/3) */
     char A[48], B[48], C[48], Dd[48], E[48], F[48], G[48], S1[48], S2[48], S3[48], S4[48], S5[48], S6[48], S7[48], S8[48];
     fmt60(beta60, A); fmt60(LN2_60, B);
-    printf("WHSYK4: Q.%d end to end (int64 with 128-bit products; nothing rounded to Q.40); %s; N = %d Majoranas a side, FACTORIZED (D = %d a side); beta = %s; V normalized with N = %d; the Dirac modes chi = (psi^%d + i psi^%d)/sqrt2; W(t) and e^{-beta H/4} from one set of powers per seed; the EXACT rho_TR from its six elements (GJ (2.15)-(2.20)); K = <{A1, B1}>\n",
-           F60, "the FULL q = 4 SYK, <J^2> = 6/N^3, J = 1", N, D, A, vnormN, PA, PB);
+    fmt60(dt60, C);
+    printf("WHSYK4: Q.%d end to end (int64 with 128-bit products; nothing rounded to Q.40); %s; N = %d Majoranas a side, FACTORIZED (D = %d a side); beta = %s; V normalized with N = %d; the Dirac modes chi = (psi^%d + i psi^%d)/sqrt2; the time unit dt = %s (W(dt) by its own series, W(t) = W(dt)^t) and e^{-beta H/4} from one set of powers per seed; the EXACT rho_TR from its six elements (GJ (2.15)-(2.20)); K = <{A1, B1}>\n",
+           F60, model ? "MODEL 1 of the 2022 experiment (Kobrin-Schuster-Yao eq. 1: 7 Majoranas, 5 terms)" : "the FULL q = 4 SYK, <J^2> = 6/N^3, J = 1", N, D, A, vnormN, PA, PB, C);
     printf("WHSYK4 selftest: ln 2 = %s (0.693147180560)\n", B);
     build_majoranas();
     build_I(PsiI);
@@ -385,15 +409,34 @@ int main(int argc, char **argv)
     }
     printf("WHSYK4 selftest 1: max |(psi_l^j + i psi_r^j)|I>| = %lld units of 2^-60 (must be 0)\n", (long long)worst);
     for (int si = 0; si < nseed; si++) {
-        build_syk(seeds[si]);
+        if (model) build_model1(); else build_syk(seeds[si]);
         /* self-test 2: H_L Psi_I = Psi_I H_R^T exactly */
         mmul(HL, 0, PsiI, WA); transpose(PsiI, WX); mmul(HR, 0, WX, WB); transpose(WB, WC);
         printf("WHSYK4 seed %llu selftest 2: max |H_L Psi_I - Psi_I H_R^T| = %lld units of 2^-60 (must be 0)\n", (unsigned long long)seeds[si], (long long)maxabs_diff(WA, WC));
         hash64(maxabs_diff(WA, WC));
         /* the series: W(1) and E on each side; then W(t) = W(1) W(t-1) */
-        series(HL, bq60, WL[1], EL, WA, WB); series(HR, bq60, WR[1], ER, WA, WB);
+        series(HL, bq60, dt60, WL[1], EL, WA, WB); series(HR, bq60, dt60, WR[1], ER, WA, WB);
         for (int i = 0; i < D; i++) for (int j = 0; j < D; j++) { WL[0][i][j].re = WR[0][i][j].re = (i == j) ? ONE60 : 0; WL[0][i][j].im = WR[0][i][j].im = 0; }
         for (int t = 2; t <= tmax; t++) { mmul(WL[1], 0, WL[t - 1], WL[t]); mmul(WR[1], 0, WR[t - 1], WR[t]); }
+        /* self-test 5: THE RIGHT SIDE IS THE LEFT RE-INDEXED. H_L Psi_I = Psi_I H_R^T exactly and Psi_I is a phased permutation (one entry per row,
+           on R = ~L, phase i^e(L) up to a global factor), so H_R^T = Psi^-1 H_L Psi and the same for every function of H: W_R(t)[a][b] =
+           i^{e(~a) - e(~b)} W_L(t)[~b][~a] and E_R likewise, up to the roundings: the left series multiplies H P_{k-1} and the re-indexed
+           right series amounts to P_{k-1} H, equal in exact arithmetic (the powers commute) but rounded differently by a unit or two per
+           entry (MEASURED 11:08 PM: 1-3 units at N = 8-14, exactly 0 for the 2022 model). A left recursion written as P_{k-1} H would make
+           the identity bit-exact and the right-side series redundant: half the series work and half the stored step operators (the memory
+           that stands between this engine and N = 18); that is version 4.1's change. Not hashed: the result chain is unchanged by this test. */
+        { int64_t w5 = 0, e5 = 0;
+          for (int a = 0; a < D; a++) for (int b = 0; b < D; b++) {
+              const int na = (D - 1) ^ a, nb = (D - 1) ^ b, rot = (EOFL[na] - EOFL[nb]) & 3;
+              c60 v = WL[1][nb][na], w; c60 ve = EL[nb][na], we;
+              switch (rot) { case 0: w = v; we = ve; break; case 1: w.re = -v.im; w.im = v.re; we.re = -ve.im; we.im = ve.re; break;
+                             case 2: w.re = -v.re; w.im = -v.im; we.re = -ve.re; we.im = -ve.im; break; default: w.re = v.im; w.im = -v.re; we.re = ve.im; we.im = -ve.re; }
+              int64_t d1 = WR[1][a][b].re - w.re, d2 = WR[1][a][b].im - w.im, d3 = ER[a][b].re - we.re, d4 = ER[a][b].im - we.im;
+              if (d1 < 0) d1 = -d1; if (d2 < 0) d2 = -d2; if (d3 < 0) d3 = -d3; if (d4 < 0) d4 = -d4;
+              if (d1 > w5) w5 = d1; if (d2 > w5) w5 = d2; if (d3 > e5) e5 = d3; if (d4 > e5) e5 = d4;
+          }
+          printf("WHSYK4 seed %llu selftest 5: |W_R(1) - the re-indexed W_L(1)| = %lld units, |E_R - the re-indexed E_L| = %lld units of 2^-60 (a few units: the two series multiply in opposite orders; the identity is exact in exact arithmetic)\n",
+                 (unsigned long long)seeds[si], (long long)w5, (long long)e5); }
         /* self-test 3: the unitarity defect of W_L(1): max |W^dag W - 1| in units of 2^-60 */
         mmul(WL[1], 1, WL[1], WA); for (int i = 0; i < D; i++) WA[i][i].re -= ONE60;
         memset(WB, 0, sizeof(c60) * MAXD * MAXD); const int64_t udef = maxabs_diff(WA, WB); if (udef > unit_defect_max) unit_defect_max = udef;
@@ -449,8 +492,8 @@ int main(int argc, char **argv)
                 papply(&ML[PA], WG, WA); evolve(WA, tp, 0);                      /* a1 */
                 copy(T, WB); apply_U(WB, c, s, 1, WX); evolve(WB, t, 0); papply(&MR[PA], WB, WC); evolve(WC, t, 1); apply_U(WC, c, s, -1, WX);   /* b1 */
                 s128 kre = {0, 0}, kim = {0, 0}; inner_acc(WA, WC, 0, &kre, &kim); const int64_t K = s128_round_sh(kre, F60);
-                fmt60((int64_t)t << 60, A); fmt(mus[mi], B); fmt60(r00, C); fmt60(r11, Dd); fmt60(r22, E); fmt60(r33, F); fmt60(rr[4], G); fmt60(ri[4], S1); fmt60(rr[5], S2); fmt60(ri[5], S3);
-                fmt60(K, S7); fmt60(frac, S8); fmt60((int64_t)tp << 60, S4); fmt60(beta60, S5); fmt60(epr1, S6);
+                fmt60((int64_t)t * dt60, A); fmt(mus[mi], B); fmt60(r00, C); fmt60(r11, Dd); fmt60(r22, E); fmt60(r33, F); fmt60(rr[4], G); fmt60(ri[4], S1); fmt60(rr[5], S2); fmt60(ri[5], S3);
+                fmt60(K, S7); fmt60(frac, S8); fmt60((int64_t)tp * dt60, S4); fmt60(beta60, S5); fmt60(epr1, S6);
                 printf("WHSYK4 N=%d seed=%llu beta=%s mu=%s t=%s tp=%s: EXACT rho00 %s rho11 %s rho22 %s rho33 %s | rho03 %s %s i | rho12 %s %s i | checks (R's marginal) rho00+rho11-1/2 %s rho22+rho33-1/2 %lld units, max|Im diag| %lld units, c^2+s^2-1 %lld units of 2^-60 | K %s | I_RT/(2 ln 2) EXACT %s%s\n",
                        N, (unsigned long long)seeds[si], S5, B, A, S4, C, Dd, E, F, G, S1, S2, S3, S6, (long long)epr2, (long long)imdiag, (long long)csdef, S7, S8, clamp ? " (an eigenvalue clamped at 0)" : "");
                 hash64(r00); hash64(r11); hash64(r22); hash64(r33); hash64(rr[4]); hash64(ri[4]); hash64(rr[5]); hash64(ri[5]); hash64(K); hash64(frac);

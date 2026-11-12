@@ -73,11 +73,16 @@ static void fmt60(int64_t v, char *out)
 
 int main(int argc, char **argv)
 {
-    int G = 128; int64_t omega = 0, thr = 1; /* thr in units of 2^-60 of the residual (the residual is O(1) in size, so 1 unit = 8.7e-19) */
+    int G = 128, nl = 0; int64_t omega = 0, thr = 1; /* thr in units of 2^-60 of the residual (the residual is O(1) in size, so 1 unit = 8.7e-19) */
     for (int i = 1; i < argc; i++) {
         if (!strncmp(argv[i], "G=", 2)) G = atoi(argv[i] + 2);
         else if (!strncmp(argv[i], "thr=", 4)) thr = atoll(argv[i] + 4);
+        else if (!strncmp(argv[i], "nl=", 3)) nl = atoi(argv[i] + 3);
     }
+    /* nl=1: THE NONLINEAR TEST, the shape of 1b's equations (a Laplacian equal to a nonlinear function of the unknown): Laplacian u - u^2 = f - u_e^2
+       with the same exact solution u_e; each visit takes one Newton step of the local scalar equation 4u + h^2 u^2 - S + h^2 g = 0 (S the
+       four neighbours, g = f - u_e^2): u <- u - (4u + h^2 u^2 - S + h^2 g) / (4 + 2 h^2 u), then the same over-relaxation. The linear path
+       (nl=0) is unchanged bit for bit. */
     if (G < 4 || G > MAXG || (G & (G - 1))) { printf("WHRELAX: G must be a power of two in 4..%d\n", MAXG); return 1; }
     char A[48], B[48], C[48];
     /* the exact solution and f on the grid: x = i/G, y = j/G exactly in Q.60 (G a power of two) */
@@ -86,6 +91,7 @@ int main(int argc, char **argv)
         const int64_t x = hq * i, y = hq * j, xa = mul60(x, ONE60 - x), ya = mul60(y, ONE60 - y);   /* x(1-x), y(1-y): one rounding each */
         Ex[i][j] = mul60(xa, ya);
         Fv[i][j] = -2 * (xa + ya);
+        if (nl) Fv[i][j] -= mul60(Ex[i][j], Ex[i][j]);   /* g = f - u_e^2 for the nonlinear test */
         U[i][j] = 0;                                      /* the boundary stays 0; the interior starts at 0 */
     }
     /* omega = 2 / (1 + sin(pi/G)) */
@@ -105,7 +111,14 @@ int main(int argc, char **argv)
             for (int i = 1; i < G; i++) for (int j = 1 + ((i + color) & 1); j < G; j += 2) {
                 /* the Gauss-Seidel value: (u_N + u_S + u_E + u_W - f h^2) / 4; f h^2 = f / G^2 */
                 const int64_t fh2 = rdiv64(Fv[i][j], G2);
-                const int64_t gs = rdiv64(U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1] - fh2, 4);
+                const int64_t S = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1];
+                int64_t gs;
+                if (!nl) gs = rdiv64(S - fh2, 4);
+                else {   /* one Newton step of 4u + h^2 u^2 - S + h^2 g = 0 at the current u */
+                    const int64_t u = U[i][j], u2h2 = rdiv64(mul60(u, u), G2);
+                    const int64_t res = 4 * u + u2h2 - S + fh2, dres = 4 * ONE60 + 2 * rdiv64(u, G2);
+                    gs = u - div60(res, dres);
+                }
                 const int64_t nu = U[i][j] + mul60(omega, gs - U[i][j]);
                 int64_t ch = nu - U[i][j]; if (ch < 0) ch = -ch; if (ch > maxchg) maxchg = ch;
                 U[i][j] = nu;
@@ -115,6 +128,7 @@ int main(int argc, char **argv)
         for (int i = 1; i < G; i++) for (int j = 1; j < G; j++) {
             const int64_t lap = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1] - 4 * U[i][j];
             s128 r = {0, 0}; s128_addp(&r, lap, G2); s128_add(&r, -(Fv[i][j] >> 63) - (Fv[i][j] < 0), (uint64_t)(-Fv[i][j]));
+            if (nl) { const int64_t u2 = mul60(U[i][j], U[i][j]); s128_add(&r, -(u2 >> 63) - (u2 < 0), (uint64_t)(-u2)); }   /* - u^2 */
             /* the line above subtracts f as a 128-bit value: hi = sign extension, lo = -f */
             int64_t rv = s128_round_sh(r, 0); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
         }
