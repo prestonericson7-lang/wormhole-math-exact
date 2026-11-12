@@ -165,7 +165,7 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   chain equal to the PC build's. v3 ran on the pair at N = 8-14 (`results/2_syk_exact.md`, pushed 9:57 PM); v4 (Q.60 end to end, twelve
   digits verified against a float implementation, the time steps built once per seed) runs on the pair at N = 8-16 and the 2022 model
   tonight; v4.1 derives the right-hand operators exactly and v5 (`code/wh_syk5.c`) fits N = 18 in the machines' memory (a PC development run
-  at N = 18 is on the page, labelled). Next: the pair's N = 18 (N = 16 ran on the pair at 12:08 AM, 16.4 min for one seed, the PC's digits), the size-winding signature (derived in review; the program is being built), the N-dependence of the sign
+  at N = 18 is on the page, labelled). Next: the pair's N = 18 (N = 16 ran on the pair at 12:08 AM, 16.4 min for one seed, the PC's digits), the size-winding signature (derived in review; version 6 computes it, verified on the PC at N = 14 against the reviewer's float64, on the machines tonight; `results/2_syk_winding.md`), the N-dependence of the sign
   asymmetry written up.
 - 1a: a review note added to `results/1a_flow.md` (a rounding bias of 4-7e-8 on the UV constants from ties-away rounding, the sphere
   flow's starting mode, the gauge invariants to publish). v3 of `wh_flow.c` BUILT 10:05 PM from the reviewer's specification and
