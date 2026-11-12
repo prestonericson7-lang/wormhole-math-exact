@@ -146,7 +146,7 @@ zeros. The 18-point N = 14 set takes 8 s on one PC core (version 3: 49 s, with t
 
 **What the extra digits are for:** nothing in the physics changes at the tenth decimal; they let the two machines' bit-equality and the
 comparison with any independent integration be stated to the full printed width, and they make N = 16 a half-hour run on the pair. The
-pair's version-4 runs at N = 8, 10, 12, 14 (three seeds) and 16 (seed 1) follow below as they land, each both machines line for line.
+pair's version-4 runs at N = 8, 10, 12, 14 (three seeds) and 16 (seed 1) are below, each both machines line for line.
 
 **Toward N = 18 (a development note, not a result).** Version 4.1 derives the right-hand operators from the left-hand ones exactly (the
 right Hamiltonian is a phased re-indexing of the left, and with the left-hand series multiplied as P H and the chain as W(t-1) W(1) the
@@ -154,16 +154,18 @@ identity holds bit for bit, so no right-hand series or storage is needed), and v
 in a pool of seventeen matrices that fits N = 18 (D = 512, 68 MB) inside the machines' memory; it reproduces version 4.1 bit for bit at
 N = 8, 10 and 12. A development run of it on one PC core at N = 18, seed 1 (601 s; the identities at 0 units, the step operator's unitarity
 defect 7 units of 2^-60, mu = 0 exact zeros) gives a peak exact I_RT/(2 ln 2) of 0.1233 at t = 5 for the wormhole sign against 0.0824 at
-t = 6 for the wrong one; with the PC's N = 16 value 0.1315 (t = 4), the peak keeps falling slowly with N (0.180, 0.159, 0.144, 0.142 on the
+t = 6 for the wrong one; with the pair's N = 16 value 0.1315 (t = 4, below), the peak keeps falling slowly with N (0.180, 0.159, 0.144, 0.142 on the
 pair at N = 8 to 14 for seed 1) and the sign asymmetry stays at 1.4 to 1.6. These two numbers are the PC build's and are labelled so until
-the pair runs them (N = 16 tonight; N = 18 another night, about four hours a seed on one of the machines' cores at this precision).
+the pair runs them (N = 16 ran on the pair at 12:08 AM, below, and printed the PC's digits; N = 18 another night, about four hours a seed on one of the machines' cores at this precision).
 
 ## Version 4 on the pair (2026-11-11 night; each step both machines line for line, each chain equal to the PC build's)
 
-Runs: N = 8 at 11:59:50 PM (24 s, chain f5b7631e8db77784); N = 10 at 12:00:19 AM (29 s, c6fd6b0164a9e5c8); N = 12 at 12:01:31 AM (72 s,
-e947d9359ae0dd57; version 3 had taken nine minutes for the same points); N = 14 (three seeds), N = 16 (seed 1) and the 2022 model at
-t = 2.8 follow below as they land. The raw output of one machine: `results/2_syk_exact_v4_board1.txt`. The numbers below are the exact
-matrix's; the "averaged forms" columns are empty for version 4, which no longer computes them (version 3's tables above have them).
+Runs (the time each landed, both machines line for line, every chain equal to the PC build's): N = 8 at 11:59:50 PM (24 s, chain
+f5b7631e8db77784); N = 10 at 12:00:19 AM (29 s, c6fd6b0164a9e5c8); N = 12 at 12:01:31 AM (72 s, e947d9359ae0dd57; version 3 had taken
+nine minutes for the same points); N = 14, three seeds, at 12:08:12 AM (6.7 min, 67c068cb529dac63; version 3 had needed about half an hour
+for one seed); N = 16, seed 1, at 12:24:34 AM (16.4 min, c6032abd10ef74d6); the 2022 experiment's model at t = 2.8 at 12:25:02 AM (28 s,
+a9379694959a987b). The raw output of one machine: `results/2_syk_exact_v4_board1.txt`. The numbers below are the exact matrix's; the
+"averaged forms" columns are empty for version 4, which no longer computes them (version 3's tables above have them).
 
 ### N = 8: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
 
@@ -224,3 +226,26 @@ mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.137701
 mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.087753
 mu = 0: the exact I_RT/(2 ln 2) is at most 0.0e+00 over 18 points (the exact zero to the rounding)
 the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 0.0e+00 over every point
+
+### N = 16: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
+
+| seed | mu | t at the peak | exact I_RT/(2 ln 2) | averaged forms (2.63)-(2.66) | exact - averaged | rho00 - rho33 | abs(rho12) |
+|---|---|---|---|---|---|---|---|
+| 1 | -12 | 4 | 0.131525302861 | n/a | n/a | +0.000030040 | 0.007056335 |
+| 1 | +12 | 6 | 0.085268129072 | n/a | n/a | +0.000597384 | 0.002465491 |
+mean over 1 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.131525
+mean over 1 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.085268
+mu = 0: the exact I_RT/(2 ln 2) is at most 0.0e+00 over 6 points (the exact zero to the rounding)
+the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 0.0e+00 over every point
+
+### The 2022 experiment's model at t = 2.8 (version 4 with `model=m1 dt=2.8`, both machines line for line, chain a9379694959a987b)
+
+The learned Hamiltonian of the 2022 experiment, as defined on `2_syk.md`, at beta = 4 and the experiment's t = t' = 2.8, now in Q.60 end to
+end with the exact per-realization matrix (the model has no random couplings, so this is the one exact answer for it). The exact
+I_RT/(2 ln 2): 0.120532639717 at mu = -12 and 0.050104226326 at mu = +12; version 1's averaged forms had given 0.123572 and 0.050165 for the
+same points, so the averaged formulas are off by 2.5 percent for the right sign here. The six elements at mu = -12: rho00 = rho33 =
+0.330084437435, rho11 = rho22 = 0.169915562565, rho03 = -0.185893876352, rho12 = -0.025344460252, every imaginary part exactly zero;
+K = -0.675272946464. At mu = +12: rho00 = rho33 = 0.243452031122, rho11 = rho22 = 0.256547968878, rho03 = 0.124934526964,
+rho12 = 0.021723232433; K = 0.529263917433. The reference's marginal holds to 23 units of 2^-60 and the step operator's unitarity to the
+usual few units; the time unit dt = 2.8 is parsed through the Q.40 input format, so the point is t = 2.8 + 1.8e-13 (a review found this;
+it moves K by about 3e-14, below the printed width, and version 6 parses dt straight into Q.60).

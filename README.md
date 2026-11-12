@@ -80,13 +80,13 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   and the exact law by which the lattice approaches the continuum, 1 + (5 pi^2/24)/N^2 + 9.376/N^4 + ..., the ratio to ten decimals at
   N = 32 after two corrections from review.
 - **2, the SYK teleportation protocol** (`results/2_syk.md`, `results/2_syk_exact.md`): exact at N = 8 for three seeds and the 2022
-  experiment's model; then the exact per-realization density matrix at N = 8 to 14 on the machines (16 and 18 on the PC, labelled), where
+  experiment's model; then the exact per-realization density matrix at N = 8 to 16 on the machines (18 on the PC, labelled), where
   the paper's averaged formulas are off by 14 percent at N = 8 and 1.6 at N = 14, the wormhole sign wins over the wrong sign at every size
   by 1.4 to 1.6 at the peak, and the paper's own layout and ours agree to 7e-11 across 270 numbers at N = 10.
 - **1b, the patched five-dimensional geometry**: started. The reviewer derives the reduced Einstein-Maxwell system in verified stages; the
   relaxation kernel that will solve it is built and verified.
 
-Next: the pair's N = 16 and 18, the size-winding signature, 1b's equations into the kernel. See `PLAN.md`.
+Next: the pair's N = 18, the size-winding signature (derived in review; the program is being built), 1b's equations into the kernel. See `PLAN.md`.
 
 ## Licenses
 
