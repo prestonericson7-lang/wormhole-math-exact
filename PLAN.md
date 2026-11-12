@@ -160,8 +160,11 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   six-element matrix (GJ 2.15-2.20) beside them, verified against an independent float implementation to 1e-12. 9:36-9:43 PM: v2
   (`code/wh_syk2.c`, the factorized layout: left Majoranas on one half of the qubits, right on the other, D = 2^(N/2) a side,
   e^{-iHt} Psi = U_L Psi U_R^T) run on the pair at N = 8, 10 and 12 in 28 s, 63 s and 5.5 min, both machines identical and the N = 8
-  chain equal to the PC build's. v3 at N = 8 to 16 runs on the pair tonight. Next: the exact-matrix page, the N-dependence of the sign
-  asymmetry, the size-winding signature.
+  chain equal to the PC build's. v3 ran on the pair at N = 8-14 (`results/2_syk_exact.md`, pushed 9:57 PM); v4 (Q.60 end to end, twelve
+  digits verified against a float implementation, the time steps built once per seed) runs on the pair at N = 8-16 and the 2022 model
+  tonight; v4.1 derives the right-hand operators exactly and v5 (`code/wh_syk5.c`) fits N = 18 in the machines' memory (a PC development run
+  at N = 18 is on the page, labelled). Next: the pair's N = 16 and 18, the size-winding signature (in review), the N-dependence of the sign
+  asymmetry written up.
 - 1a: a review note added to `results/1a_flow.md` (a rounding bias of 4-7e-8 on the UV constants from ties-away rounding, the sphere
   flow's starting mode, the gauge invariants to publish). v3 of `wh_flow.c` BUILT 10:05 PM from the reviewer's specification and
   reference program: one rounding per update with the remainder carried, each flow on its own unstable manifold from hard-coded start

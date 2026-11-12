@@ -147,3 +147,13 @@ zeros. The 18-point N = 14 set takes 8 s on one PC core (version 3: 49 s, with t
 **What the extra digits are for:** nothing in the physics changes at the tenth decimal; they let the two machines' bit-equality and the
 comparison with any independent integration be stated to the full printed width, and they make N = 16 a half-hour run on the pair. The
 pair's version-4 runs at N = 8, 10, 12, 14 (three seeds) and 16 (seed 1) follow below as they land, each both machines line for line.
+
+**Toward N = 18 (a development note, not a result).** Version 4.1 derives the right-hand operators from the left-hand ones exactly (the
+right Hamiltonian is a phased re-indexing of the left, and with the left-hand series multiplied as P H and the chain as W(t-1) W(1) the
+identity holds bit for bit, so no right-hand series or storage is needed), and version 5 (`code/wh_syk5.c`) lays the same arithmetic out
+in a pool of seventeen matrices that fits N = 18 (D = 512, 68 MB) inside the machines' memory; it reproduces version 4.1 bit for bit at
+N = 8, 10 and 12. A development run of it on one PC core at N = 18, seed 1 (601 s; the identities at 0 units, the step operator's unitarity
+defect 7 units of 2^-60, mu = 0 exact zeros) gives a peak exact I_RT/(2 ln 2) of 0.1233 at t = 5 for the wormhole sign against 0.0824 at
+t = 6 for the wrong one; with the PC's N = 16 value 0.1315 (t = 4), the peak keeps falling slowly with N (0.180, 0.159, 0.144, 0.142 on the
+pair at N = 8 to 14 for seed 1) and the sign asymmetry stays at 1.4 to 1.6. These two numbers are the PC build's and are labelled so until
+the pair runs them (N = 16 tonight; N = 18 another night, about four hours a seed on one of the machines' cores at this precision).
