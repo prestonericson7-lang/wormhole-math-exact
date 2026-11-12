@@ -97,6 +97,24 @@ IR radius as an expansion in l_B; at l_B = 1 the exact fixed point is 1.0643 aga
 with the paper; it fills in what they left as "one could imagine trying to find it numerically in a more explicit form" for the flow
 itself. The patched five-dimensional geometry (their section 3.2) remains the open computation 1b.
 
+## Review note, 2026-11-11 evening (an independent review of this program; the numbers above are left as printed)
+
+A second, independent reviewer (another AI session working from copies, with its own derivations and runs) raised three points on this
+result, recorded here before the program is rerun:
+
+1. **Rounding bias.** The RK4 update rounds its increments with `rdiv`, which rounds ties away from zero; over the flow's ~60,000 steps
+   that is a one-sided bias of about 1/12 unit per step, amplified in the deep IR, and it puts a 4-7e-8 bias on the UV constants. The
+   bound on this page (1.4e-8 worst case, 1e-10 random walk) assumed symmetric rounding and is therefore too tight: the UV constants are
+   good to about 7 decimals, not 12, and the error grows as the step shrinks. A remainder-carrying update (the reviewer's estimate: 2.5e-11)
+   is the fix for v3.
+2. **The sphere flow's starting mode.** The sphere flow was started on the flat flow's growing mode; its own linearized exponent is 2.8301,
+   not 2.627. The sphere flow's UV constants shift by 0.006-0.014 when it is started on its own mode. The flat flow is unaffected.
+3. **What to publish.** The gauge-dependent combination sigma - rho should be replaced by the gauge invariants (the reviewer's values for
+   the flat flow: K_sigma 0.40780011419034, K_lambda -0.27169993536961, from its own run; ours follow with v3).
+
+None of this changes the two machines' bit-equality, which checks the arithmetic, not the bound; it changes how many of the printed digits
+are the equation's. v3 of `wh_flow.c` carries the remainder, starts the sphere flow on its own mode and prints the invariants.
+
 ## Lineage
 
 A first build (Q.28, floor rounding, amplitude 2^-20) was withdrawn before any run: its first increments in the deep IR were a sixth of
