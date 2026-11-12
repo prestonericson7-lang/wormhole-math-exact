@@ -65,7 +65,9 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   into their fit numbers. `wh_syk7.c` is the same program with every matrix product through the reviewer's three-limb kernel
   (`limb_q60.c`, `limb_tile.c`: 24-bit limbs, int64 accumulators, the exact 128-bit sums rebuilt, one rounding, bit-equal to the 128-bit
   kernel for every input), four to five times fewer instructions on the machines. `wh_relax.c` is the fixed-point relaxation kernel for the five-dimensional
-  geometry (1b), verified on a problem with a known answer before the equations arrive.
+  geometry (1b), verified on a problem with a known answer before the equations arrive; `wh_relaxs.c` is its extension to several coupled
+  nonlinear fields with a Newton step over the local Jacobian block, verified on a three-field problem with a known answer, including the
+  regime where a lagged source makes the plain update stall.
 - `results/`: each result as a page with the numbers, the error bound on paper, the comparison with the paper it checks, the program's md5,
   the chain, and the two machines' agreement line, plus the raw output of one machine.
 
