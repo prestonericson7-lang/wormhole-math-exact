@@ -163,5 +163,12 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   chain equal to the PC build's. v3 at N = 8 to 16 runs on the pair tonight. Next: the exact-matrix page, the N-dependence of the sign
   asymmetry, the size-winding signature.
 - 1a: a review note added to `results/1a_flow.md` (a rounding bias of 4-7e-8 on the UV constants from ties-away rounding, the sphere
-  flow's starting mode, the gauge invariants to publish); v3 of `wh_flow.c` to follow.
+  flow's starting mode, the gauge invariants to publish). v3 of `wh_flow.c` BUILT 10:05 PM from the reviewer's specification and
+  reference program: one rounding per update with the remainder carried, each flow on its own unstable manifold from hard-coded start
+  integers, stop at sigma > 16, the gauge invariants printed; the PC build's 160 lines are byte-identical to the reference's and its two
+  chains equal; K_sigma, K_lambda agree with an independent 40-digit integration to 2.5e-11 (the arithmetic's whole error now). The pair
+  runs it in tonight's queue; its section is on the 1a page.
+- 4a again: the reviewer certified the exact values (three routes to 25 digits) and found v4 still +1.7e-9 / +2.5e-9 at N = 32 / 24 from
+  three roundings; v5 (10:10 PM) removes them and lands within 8.6e-12 of the certified ratio on the PC build; the law's second
+  coefficient is 9.3762 (closed form on the page), not the fitted 9.6. The pair runs v5 tonight; the page's table is replaced then.
 - 1b: planned.

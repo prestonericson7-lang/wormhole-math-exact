@@ -36,7 +36,7 @@ two forms differ at the percent level. This run computes the six elements.
   first run's lines digit for digit.
 - Program: `code/wh_syk3.c` on `code/whq.h` (v2); binary md5 1c51c4a5 (ARM build).
 - Runs on the pair, both machines at once, each identical line for line and equal to the PC build's chain: N = 8 at 9:45 PM (28 s,
-  chain 9cb64d3bbcbbf2b3), N = 10 at 9:47 PM (81 s, chain 8cceeccb931b6c19), N = 12 at 09:55:32 PM (9 min, chain 3db1596b490e2767); N = 14 and 16
+  chain 9cb64d3bbcbbf2b3), N = 10 at 9:47 PM (81 s, chain 8cceeccb931b6c19), N = 12 at 09:55:32 PM (9 min, chain 3db1596b490e2767); N = 14, seed 1, at 10:16:52 PM (21 min, chain d4f859fe7106985d); N = 14 seeds 2-3 and N = 16
   follow and are added here when they land. The raw output of one machine: `results/2_syk_exact_board1.txt`.
 
 ## Error bound, on paper
@@ -107,3 +107,15 @@ mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.091028; the ave
 exact - averaged over all 36 points: from -0.003774 (seed 1, mu +12, t 6) to +0.003528 (seed 3, mu +12, t 6); the largest relative departure where I > 0.01: 4.1%
 mu = 0: the exact I_RT/(2 ln 2) is at most 5.0e-11 over 18 points (the exact zero to the rounding)
 the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 3.6e-11 over every point
+
+### N = 14: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
+
+| seed | mu | t at the peak | exact I_RT/(2 ln 2) | averaged forms (2.63)-(2.66) | exact - averaged | rho00 - rho33 | abs(rho12) |
+|---|---|---|---|---|---|---|---|
+| 1 | -12 | 4 | 0.141559308799 | 0.142215050231 | -0.000655741432 | -0.000839398 | 0.010612170 |
+| 1 | +12 | 6 | 0.086986690628 | 0.087356583623 | -0.000369892995 | +0.000561942 | 0.005864685 |
+mean over 1 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.141559; the averaged forms at the same points: 0.142215
+mean over 1 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.086987; the averaged forms at the same points: 0.087357
+exact - averaged over all 12 points: from -0.001732 (seed 1, mu -12, t 6) to +0.000062 (seed 1, mu +12, t 2); the largest relative departure where I > 0.01: 1.6%
+mu = 0: the exact I_RT/(2 ln 2) is at most 6.2e-11 over 6 points (the exact zero to the rounding)
+the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 5.8e-11 over every point
