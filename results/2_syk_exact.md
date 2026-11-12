@@ -158,6 +158,15 @@ t = 6 for the wrong one; with the pair's N = 16 value 0.1315 (t = 4, below), the
 pair at N = 8 to 14 for seed 1) and the sign asymmetry stays at 1.4 to 1.6. These two numbers are the PC build's and are labelled so until
 the pair runs them (N = 16 ran on the pair at 12:08 AM, below, and printed the PC's digits; N = 18 another night, about four hours a seed on one of the machines' cores at this precision).
 
+**Version 7, the same bits in a quarter of the instructions (11-12, 1:17 AM).** The reviewer's session wrote and proved a three-limb
+kernel for the Q.60 products (`code/limb_q60.c`): each 64-bit operand split into 24-bit limbs, the complex product by three real ones, the
+128-bit sums rebuilt exactly from int64 accumulators, one rounding per entry by the same rule, so the result is bit-equal to the 128-bit
+kernel for every input (22,059 random cases, and the whole program's output at N = 8 to 16). Version 7 (`code/wh_syk7.c`) is version 6 with
+every matrix product through it: on the PC the printed output is byte-identical to version 6 at N = 8, 10, 12 and 14 (three seeds, every
+check on) and the N = 16 chains are equal; the A9 instruction count per product falls four- to fivefold (the reviewer's qemu counts), so
+N = 18 is about 50 minutes a seed on one of the machines' cores instead of four hours. The machines run it tonight, first at N = 8 to 14
+against version 6's chains, then at N = 18 for three seeds.
+
 ## Version 4 on the pair (2026-11-11 night; each step both machines line for line, each chain equal to the PC build's)
 
 Runs (the time each landed, both machines line for line, every chain equal to the PC build's): N = 8 at 11:59:50 PM (24 s, chain

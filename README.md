@@ -62,7 +62,9 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   product across the machines' two cores (`par2.h`; on the first night the firmware gave the process one core, so those runs fell back
   to one core with the same bits, and the cause is being traced). `wh_syk6.c` adds the size-winding observable of Kobrin, Schuster and Yao,
   computed exactly from the states version 5 already holds (`results/2_syk_winding.md`); `wind_summary.py` turns its printed per-size sums
-  into their fit numbers. `wh_relax.c` is the fixed-point relaxation kernel for the five-dimensional
+  into their fit numbers. `wh_syk7.c` is the same program with every matrix product through the reviewer's three-limb kernel
+  (`limb_q60.c`, `limb_tile.c`: 24-bit limbs, int64 accumulators, the exact 128-bit sums rebuilt, one rounding, bit-equal to the 128-bit
+  kernel for every input), four to five times fewer instructions on the machines. `wh_relax.c` is the fixed-point relaxation kernel for the five-dimensional
   geometry (1b), verified on a problem with a known answer before the equations arrive.
 - `results/`: each result as a page with the numbers, the error bound on paper, the comparison with the paper it checks, the program's md5,
   the chain, and the two machines' agreement line, plus the raw output of one machine.
