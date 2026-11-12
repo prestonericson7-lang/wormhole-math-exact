@@ -94,7 +94,8 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   N = 14 (the teleporting sign reaches 99.8 percent of the best possible line, the wrong sign 62 percent), on the machines tonight.
 - **1b, the patched five-dimensional geometry**: started. The reviewer derives the reduced Einstein-Maxwell system in verified stages (its
   first stage finds that only the rotationally symmetric reductions are well-posed two-dimensional problems, and that the paper's fine-tuned
-  circle of mouths has no static solution without extra positive energy on the brane); the relaxation kernel that will solve it is built and
+  circle of mouths has no static solution without both extra positive energy and a positive cosmological constant on the brane, or
+  matter with rho + 3p below zero: `results/1b_nogo.md`, the first result of 1b, a derivation with its checking scripts); the relaxation kernel that will solve it is built and
   verified on a problem with a known answer, now with a Robin boundary option and grids stretched toward a boundary, both exact.
 
 Next: the pair's N = 18 and its size-winding runs, 1b's equations into the kernel. See `PLAN.md`.

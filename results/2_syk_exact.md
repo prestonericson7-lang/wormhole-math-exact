@@ -165,7 +165,10 @@ kernel for every input (22,059 random cases, and the whole program's output at N
 every matrix product through it: on the PC the printed output is byte-identical to version 6 at N = 8, 10, 12 and 14 (three seeds, every
 check on) and the N = 16 chains are equal; the A9 instruction count per product falls four- to fivefold (the reviewer's qemu counts), so
 N = 18 is about 50 minutes a seed on one of the machines' cores instead of four hours. The machines run it tonight, first at N = 8 to 14
-against version 6's chains, then at N = 18 for three seeds.
+against version 6's chains, then at N = 18 for three seeds. Development runs of version 7 on the PC (labelled so until the machines print
+them): seeds 2 and 3 at N = 18 (223 and 198 s) peak at 0.124205839706 and 0.124313768638 for mu = -12 (t = 4) against 0.081618950565 and
+0.082781046036 for mu = +12 (t = 6); with seed 1's 0.123301093069 and 0.082414712275, the three seeds lie within a percent of each other and
+the ratio of the two signs is 1.5, as at every N from 8.
 
 ## Version 4 on the pair (2026-11-11 night; each step both machines line for line, each chain equal to the PC build's)
 

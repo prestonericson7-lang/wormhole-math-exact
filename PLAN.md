@@ -184,7 +184,8 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   about 6 G sweeps as the spectral radius predicts, and the solution is within 4e-17, 6e-16 and 8e-15 of exact at G = 32, 128 and 512
   (PC build); the pair runs it tonight for bit-equality. Stage 1 (11-12, 1:18 AM, verified in nearly all of it by the reviewer's second builder): only
   the rotationally symmetric reductions are well-posed two-dimensional problems (the paper's flat-space pair has axial symmetry only and needs
-  three coordinates and a strut); the paper's fine-tuned circle of mouths has no static solution without extra positive energy on the brane;
+  three coordinates and a strut); the paper's fine-tuned circle of mouths has no static solution without both extra positive energy and a positive cosmological
+  constant on the brane, or matter with rho + 3p below zero (`results/1b_nogo.md`);
   the order chosen: the
   solver test, then the near-brane throat (an ODE matched to the flow of 1a; the flow has no inner end, so this is an approximation, not
   a closed boundary-value problem), then the paper's own rotationally symmetric example with antipodal mouths, which it called findable

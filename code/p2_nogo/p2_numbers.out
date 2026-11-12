@@ -1,0 +1,37 @@
+ln(re/R5) = 26.427048 ; G4 c2 = 1833.36 m^2 ; c2 = 7.018e+72 (MM:558 says ~7e72) ; ell = 2.9454e+19 m = 3113.3 ly ; gamma = 1.964e+12 ; l_B = 81.719 m
+
+[2D CFT] ratio 16 pi G4 |rho_2D| / (2/r*^2) ~ (pi/3) G4 c2 / L^2 = (4 pi^2/3) R5 re /(L^2 sqrt ln(re/R5))
+   L = re (absurdly short circle)         ratio = 8.53e-12 ; R5 re / L^2 = 3.33e-12
+   L = 0.5 ly (MM:707 smallest d)         ratio = 8.58e-29 ; R5 re / L^2 = 3.35e-29
+   L = pi ell (time of flight, MM:233)    ratio = 2.24e-37 ; R5 re / L^2 = 8.76e-38
+
+[4D CFT] (R5/r*)^2 at r* = re: 1.11e-23 ; at r* = d/pi = 1.506e+15 m (d = 0.5 ly): 1.1e-39
+[running g4, (3.24)] kappa(r*) = 1 + ln(r*/re)/ln(l_B/R5) (= 14.3068): at r* = d/pi 2.288 ; at r* = pi ell 3.059
+[running g4, (3.24)] kappa(r*) = 1 + ln(r*/re)/MM ln(re/R5)/2 (= 13.2135): at r* = d/pi 2.394 ; at r* = pi ell 3.229
+
+[masses] Me = re c^2/G = 2.02e+34 kg = 1.016e+4 Msun ; |E_Casimir| = c2 hbar/(8 ell c) = 1.048e+10 kg ; |E_bin| = 5.239e+9 kg (MM:560 ~5e9) ; |E_Casimir|/Me = 5.187e-25 ; 2/gamma^2 = 5.187e-25
+[closing at d = 0.5 ly, r* = d/pi] extra density at r* >= 2.363e-5 kg/m^3 (magnetic there: 2.345e-21 kg/m^3) ; extra mass (r*-re)^2 c^2/(2 G r*) = 1.014e+42 kg = 5.097e+11 Msun ; over |E_Casimir|: 9.676e+31
+
+[profile] r'^2 = (1 - re/r)^2 (r*^k - r^k)/(r*^k - re^k), units re = 1
+ r* = 10.0 re, k = 1.0: at r*: 3R = 0.038 = 2/r*^2 + 4|r''|/r* = 0.02 + 0.018 ; magnetic 2re^2/r*^4 = 0.0002 ; required extra Delta = 0.0378 ; bound 2(r*^2-re^2)/r*^4 = 0.0198 ; Delta/bound = 1.9091
+    2 G4 * INT 4 pi r^2 rho_x dr = 8.1 vs (r*-re)^2/r* = 8.1 ; min Delta on the grid = 0.0003134 (>= 0: extra density needed everywhere outside)
+    r/re    X* - X (re)   3R re^2      2re^2/r^4    Delta re^2   (16 pi G4 rho_x re^2)
+    1.001   28.4902       1.992        1.992        6.6445e-7   
+    1.01    26.1781       1.922        1.922        6.4492e-5   
+    1.1     23.7802       1.3709       1.366        0.004857    
+    1.5     21.7411       0.43896      0.39506      0.043896    
+    2.0     20.4961       0.19444      0.125        0.069444    
+    3.0     18.6432       0.10151      0.024691     0.076818    
+    5.0     15.3413       0.065778     0.0032       0.062578    
+    7.0     11.7093       0.050812     0.00083299   0.049979    
+    9.0     6.69315       0.041491     0.00030483   0.041186    
+    9.9     2.10897       0.038323     0.0002082    0.038114    
+    10.0    0.0           0.038        0.0002       0.0378      
+    circle length > 2 (X* - X(1.001 re)) = 56.98 re ; 2D CFT share at r* <= (pi/3) G4 c2/L^2 = 2.63e-15 (MM re, R5)
+    at MM's re = 1.5e7 m: rho_x(r*) = 4.501e+9 kg/m^3 ; extra mass = (r*-re)^2/(2 G r*) = 4.05 Me = 8.181e+34 kg
+ r* = 10.0 re, k = 2.0: at r*: 3R = 0.0527273 = 2/r*^2 + 4|r''|/r* = 0.02 + 0.0327273 ; magnetic 2re^2/r*^4 = 0.0002 ; required extra Delta = 0.0525273 ; bound 2(r*^2-re^2)/r*^4 = 0.0198 ; Delta/bound = 2.6529
+    2 G4 * INT 4 pi r^2 rho_x dr = 8.1 vs (r*-re)^2/r* = 8.1 ; min Delta on the grid = 5.784e-5 (>= 0: extra density needed everywhere outside)
+ r* = 10.0 re, k = 0.25: at r*: 3R = 0.0292538 = 2/r*^2 + 4|r''|/r* = 0.02 + 0.00925379 ; magnetic 2re^2/r*^4 = 0.0002 ; required extra Delta = 0.0290538 ; bound 2(r*^2-re^2)/r*^4 = 0.0198 ; Delta/bound = 1.4674
+    2 G4 * INT 4 pi r^2 rho_x dr = 8.1 vs (r*-re)^2/r* = 8.1 ; min Delta on the grid = 0.000896 (>= 0: extra density needed everywhere outside)
+ r* = 100.0 re, k = 1.0: at r*: 3R = 0.000398 = 2/r*^2 + 4|r''|/r* = 0.0002 + 0.000198 ; magnetic 2re^2/r*^4 = 2.0e-8 ; required extra Delta = 0.00039798 ; bound 2(r*^2-re^2)/r*^4 = 0.00019998 ; Delta/bound = 1.9901
+    2 G4 * INT 4 pi r^2 rho_x dr = 98.01 vs (r*-re)^2/r* = 98.01 ; min Delta on the grid = 0.000398 (>= 0: extra density needed everywhere outside)
