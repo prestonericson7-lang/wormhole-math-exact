@@ -35,6 +35,19 @@ not an upper limit". The upper limit is computed here.
 
 ## The numbers
 
+**CORRECTION, 2026-11-12 12:05 AM, from review (the numbers below are superseded; the page is left as it stood, with the correction on
+top).** The reviewer's three independent reviews of `wh_warp.c` v2 find its general relativity and its arithmetic right and one line wrong:
+the smoothing kernel's second derivative divides by a truncated dr^2 (707 units of 2^-40 where the exact value is 707.819), so every
+tabulated S'' is 1.0011585 times its exact value and every cell's crossing sits 3.25e-5 too low. With that line fixed (and two smaller
+defects that only a finer angular grid would show: a doubly rounded mass table that fakes a DEC violation at beta0 = 0 near the inner edge,
+and a near-axis floor term five to seven times too small), the limits become, COMPUTED by the reviewer on copies and to be printed digit for
+digit by version 3 of the program on the pair: 0.030362854005 to 0.030362930299 on the 0.2 m grid and 0.030358123781 to 0.030358200075 on
+the 0.05 m grid, at 12.32 m on the equator, where all four conditions fail together for a null observer along the shift. The object's
+true minimum, at a node rather than a midpoint, is 0.0303537. The reviewer's earlier acceptance value, 0.03035, was right for the object
+as intended; the 2.4e-5 we had attributed to the object was this bug. Version 3 and the pair's rerun follow tonight; this note is updated
+with the measured lines when they land.
+
+
 On the pair (MEASURED; r every 0.2 m, 31 theta cells): all four conditions hold at beta0 = 0, 0.02, 0.025 and 0.03 within the floor, with
 no matter cell below it (the worst margin at 0.03 is -2.7e-10 against a floor of 3.6e-9, at r = 0.14 R2 next to the axis); at 0.035 all
 four fail together in 61 cells, worst -0.006872 at r = 0.6176 R2 = 12.35 m on the equator. The bisection over the 154 candidate cells (16
