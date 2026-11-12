@@ -41,7 +41,11 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   a coefficient for the wrong field, a published Casimir table with digits lost past N = 16, a second one off by one unit in the ninth
   decimal, a flow started off its manifold, and the paper's density-matrix formulas being the ensemble-averaged forms rather than the
   per-realization ones. Every one of those is on its page, with the reviewer credited, the corrected version run again on the two
-  machines, and the lineage of versions kept. The record of what was wrong is as public as the record of what is right.
+  machines, and the lineage of versions kept. In the second night it found a truncated dr^2 in the warp kernel worth 3.25e-5 in the
+  published shift limit (the correction went up within a minute of its reading, before the fix; the fixed program then ran on the machines),
+  the paper's density-matrix formulas' sign-winding counterpart derived for our layout, and a step of the 1b plan that was a matched
+  approximation rather than a closed problem; the machines' firmware giving the process one core was found by the program's own line and is
+  written where the two-core claim stood. The record of what was wrong is as public as the record of what is right.
 - A result moves from "computed on a PC" to "measured" only when the two machines have run it and agreed; PC runs on this page are labelled
   as development runs.
 - The code is written to be read: every file opens with what it computes, from which equation of which paper, in what arithmetic, with
@@ -52,25 +56,28 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
 - `PLAN.md`: the computations, what each paper left open, what we deliver, in what order, what "exact" means here, and the status of each.
 - `THE_GLUE.md`: the reading that led here: what holds a traversable wormhole open in the post-2016 physics, why those wormholes
   cannot be time machines by construction, and where the energy scale meets the collider.
-- `code/`: the programs, all on `whq.h`, the fixed-point header. `wh_flow.c` solves the Maldacena-Milekhin flow equations (1a).
-  `wh_alcub.c` computes the Alcubierre negative-energy integral and the wall-thickness law behind the "factor of three" (3a).
-  `wh_shell.c` reproduces the 2024 warp shell and judges its energy conditions exactly (3b, part 1); `wh_warp.c` with `wh_prof.h` adds
-  the shift and finds the shift limit the paper left open (3b, part 2). `wh_casimir.c` computes the Casimir lattice sums (4a).
-  `wh_syk.c`, `wh_syk2.c`, `wh_syk3.c`, `wh_syk4.c` and `wh_syk5.c` are five versions of the SYK teleportation protocol: the paper's
-  layout; the factorized layout that made N = 14 a matter of minutes instead of weeks; the exact per-realization density matrix; the same in
-  Q.60 end to end, twelve digits verified against a float implementation; and the memory layout for N = 18, written to split every matrix
-  product across the machines' two cores (`par2.h`; on the first night the firmware gave the process one core, so those runs fell back
-  to one core with the same bits, and the cause is being traced). `wh_syk6.c` adds the size-winding observable of Kobrin, Schuster and Yao,
-  computed exactly from the states version 5 already holds (`results/2_syk_winding.md`); `wind_summary.py` turns its printed per-size sums
-  into their fit numbers. `wh_syk7.c` is the same program with every matrix product through the reviewer's three-limb kernel
-  (`limb_q60.c`, `limb_tile.c`: 24-bit limbs, int64 accumulators, the exact 128-bit sums rebuilt, one rounding, bit-equal to the 128-bit
-  kernel for every input), four to five times fewer instructions on the machines. `wh_relax.c` is the fixed-point relaxation kernel for the five-dimensional
-  geometry (1b), verified on a problem with a known answer before the equations arrive; `wh_relaxs.c` is its extension to several coupled
-  nonlinear fields with a Newton step over the local Jacobian block, verified on a three-field problem with a known answer, including the
-  regime where a lagged source makes the plain update stall. `wh_ode.c` is the flow program's exact integrator generalized to a vector state with a
-  model switch, so that 1b's near-brane throat is a right-hand side and a start there; it reproduces the flow's two chains bit for bit.
 - `results/`: each result as a page with the numbers, the error bound on paper, the comparison with the paper it checks, the program's md5,
   the chain, and the two machines' agreement line, plus the raw output of one machine.
+- `code/`: the programs, all on `whq.h`, the fixed-point header (Q.40 and Q.60, 128-bit intermediates). By computation:
+  - 1a, the Maldacena-Milekhin flow: `wh_flow.c`.
+  - 1b, the patched five-dimensional geometry: the solver kernels built ahead of the equations, each verified on a problem with a known
+    answer: `wh_relax.c` (one field: red-black SOR, a Robin boundary option, grids stretched toward a boundary with exact integer weights),
+    `wh_relaxs.c` (several coupled nonlinear fields, a Newton step over the local Jacobian block, including the regime where a lagged
+    source stalls), and `wh_ode.c` (the flow's exact integrator for a vector state, so the near-brane throat is a right-hand side there);
+    and `p2_nogo/`, the reviewer's scripts behind the first 1b result, the no-go for the paper's circle of mouths.
+  - 2, the SYK teleportation protocol, seven versions kept as a lineage: `wh_syk.c` (the paper's layout), `wh_syk2.c` (the factorized
+    layout that made N = 14 minutes instead of weeks), `wh_syk3.c` (the exact per-realization density matrix), `wh_syk4.c` (the same in
+    Q.60 end to end, twelve digits against a float implementation), `wh_syk5.c` (the memory layout for N = 18, written to split every
+    product across the machines' two cores through `par2.h`; on the first night the firmware gave the process one core, so those runs
+    fell back to one core with the same bits, and the cause is being traced), `wh_syk6.c` (the size-winding observable of Kobrin, Schuster
+    and Yao from the states version 5 already holds; `wind_summary.py` turns its printed per-size sums into their fit numbers), and
+    `wh_syk7.c` (every matrix product through the reviewer's three-limb kernel `limb_q60.c` and `limb_tile.c`: 24-bit limbs, int64
+    accumulators, the exact 128-bit sums rebuilt, one rounding, bit-equal to the 128-bit kernel for every input, four to five times fewer
+    instructions on the machines).
+  - 3a, the Alcubierre negative-energy integral and the wall-thickness law: `wh_alcub.c`.
+  - 3b, the 2024 warp shell: `wh_shell.c` (the construction and its energy conditions) and `wh_warp.c` with `wh_prof.h` (the shift and the
+    shift limit the paper left open; version 3 carries the reviewer's full fix).
+  - 4a, the Casimir lattice sums: `wh_casimir.c`.
 
 ## Status (2026-11-11, one day)
 
