@@ -20,6 +20,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "whq.h"
+#include "par2.h"                              /* v5.2 (11:44 PM): the A9's second core takes half the rows of every product (par_post / par_join); on a
+                                                  machine without it, or on the PC, both halves run here one after the other: the same bits either way */
 
 #define MAXN 18
 #define MAXD (1 << (MAXN / 2))
@@ -152,11 +154,15 @@ static inline c60 entry(c60 A[MAXD][MAXD], int mode, int i, int k)
    512 KB L2) the strided operand is read once per tile instead of once per entry. The sums are exact in 128 bits, so the order of the k
    tiles changes no bit: the result equals the untiled product exactly (checked by the chains at N = 8-12). */
 #define TILE 32
-static void mmul(c60 A[MAXD][MAXD], int mode, c60 B[MAXD][MAXD], c60 C[MAXD][MAXD])
+typedef struct { c60 (*A)[MAXD]; int mode; c60 (*B)[MAXD]; c60 (*C)[MAXD]; int i_begin, i_end; } mjob;
+/* the rows i_begin..i_end-1 of C = op(A) B, tiled; pure computation on its own stack (the accumulators are locals), so it can run on
+   core 1: it reads A, B, D and EOFL and writes only its own rows of C */
+static void mmul_rows(void *p)
 {
-    static s128 acr[TILE][TILE], aci[TILE][TILE];
+    const mjob *jb = (const mjob *)p; c60 (*A)[MAXD] = jb->A, (*B)[MAXD] = jb->B, (*C)[MAXD] = jb->C; const int mode = jb->mode;
+    s128 acr[TILE][TILE], aci[TILE][TILE];
     const int T = D < TILE ? D : TILE;
-    for (int i0 = 0; i0 < D; i0 += T) for (int j0 = 0; j0 < D; j0 += T) {
+    for (int i0 = jb->i_begin; i0 < jb->i_end; i0 += T) for (int j0 = 0; j0 < D; j0 += T) {
         memset(acr, 0, sizeof acr); memset(aci, 0, sizeof aci);
         for (int k0 = 0; k0 < D; k0 += T)
             for (int i = i0; i < i0 + T; i++) for (int k = k0; k < k0 + T; k++) {
@@ -170,6 +176,13 @@ static void mmul(c60 A[MAXD][MAXD], int mode, c60 B[MAXD][MAXD], c60 C[MAXD][MAX
             }
         for (int i = 0; i < T; i++) for (int j = 0; j < T; j++) { C[i0 + i][j0 + j].re = s128_round_sh(acr[i][j], F60); C[i0 + i][j0 + j].im = s128_round_sh(aci[i][j], F60); }
     }
+}
+/* C = op(A) B: the rows split in two halves, one per core when the machine has two (D >= 64; at D = 16, 32 one core does it all) */
+static void mmul(c60 A[MAXD][MAXD], int mode, c60 B[MAXD][MAXD], c60 C[MAXD][MAXD])
+{
+    mjob j0 = { A, mode, B, C, 0, D }, j1 = { A, mode, B, C, D / 2, D };
+    if (D >= 2 * TILE) { j0.i_end = D / 2; par2(mmul_rows, &j0, &j1); }
+    else mmul_rows(&j0);
 }
 static void transpose(c60 A[MAXD][MAXD], c60 B[MAXD][MAXD]) { for (int i = 0; i < D; i++) for (int j = 0; j < D; j++) B[j][i] = A[i][j]; }
 static void copy(c60 A[MAXD][MAXD], c60 B[MAXD][MAXD]) { for (int i = 0; i < D; i++) memcpy(B[i], A[i], sizeof(c60) * D); }
