@@ -34,7 +34,7 @@ of that pass; none changed a conclusion. The route, as implemented:
   layout gives its normalized |I> ((1 + i)/sqrt2 when the number of qubits a side is odd, so omega^-2 = -i; 1 when it is even). These are
   KSY's p(l) and q(l) for rho^{1/2} psi_i(t): the reviewer checked them against KSY's own operator to 1.9e-15 at N = 8 to 16.
   Only odd sizes occur (psi is fermion-odd), and only the diagonals with an odd number of bits in x carry anything; the others are exact
-  zeros, and the program skips them (or, with `windcheck=1`, computes them and reports the largest, which must be 0).
+  zeros, and the program skips them (or, with `windcheck=1`, computes them, reports the largest, which must be 0, and sums them into the even sizes).
 - **The link to the protocol, an exact identity.** The coupling e^{i mu V} multiplies a Majorana string of size l, applied to |I>, by exactly
   e^{i mu (l - N/2)/(4N)}, because each term W_j of V is +1 on strings containing Majorana j and -1 on the others. Therefore
 
@@ -54,7 +54,8 @@ output (a shift of 52 + n bits). Error bound on paper, worst case: 2 D^{3/2} 2^-
 with the actual error far below it because the roundings do not align (see the identity defects below). C(mu) from q(l) uses the phases
 e^{i mu l/(4N)} built as powers of the small rotation e^{i mu/(8N)}, one rounding per step, so at most a few dozen units of 2^-60.
 
-Printed with every operator and time: SUM_l P(l) - 1 in units of 2^-60 (must be a few units), the largest even-size sum (must be 0), W =
+Printed with every operator and time: SUM_l P(l) - 1 in units of 2^-60 (must be a few units), the largest even-size sum (0 by construction unless `windcheck=1`, which sums the even-popcount diagonals
+into the even sizes and so makes it a real check; it was 0 in every check), W =
 SUM_l q(l) (must be real and the same at every t: it is tr(psi rho^{1/2} psi rho^{1/2})), and, with `windcheck=1`, C(mu) computed a second
 way, from the states (<B| e^{i mu V} |A>/2 with B = e^{iHt} g_i^R e^{-iHt} T), beside C(mu) from q(l), with their difference in units.
 The two routes share nothing but the state A, so their agreement checks the permutation, the transform, the size rule, omega^-2 and the
