@@ -157,3 +157,55 @@ defect 7 units of 2^-60, mu = 0 exact zeros) gives a peak exact I_RT/(2 ln 2) of
 t = 6 for the wrong one; with the PC's N = 16 value 0.1315 (t = 4), the peak keeps falling slowly with N (0.180, 0.159, 0.144, 0.142 on the
 pair at N = 8 to 14 for seed 1) and the sign asymmetry stays at 1.4 to 1.6. These two numbers are the PC build's and are labelled so until
 the pair runs them (N = 16 tonight; N = 18 another night, about four hours a seed on one of the machines' cores at this precision).
+
+## Version 4 on the pair (2026-11-11 night; each step both machines line for line, each chain equal to the PC build's)
+
+Runs: N = 8 at 11:59:50 PM (24 s, chain f5b7631e8db77784); N = 10 at 12:00:19 AM (29 s, c6fd6b0164a9e5c8); N = 12 at 12:01:31 AM (72 s,
+e947d9359ae0dd57; version 3 had taken nine minutes for the same points); N = 14 (three seeds), N = 16 (seed 1) and the 2022 model at
+t = 2.8 follow below as they land. The raw output of one machine: `results/2_syk_exact_v4_board1.txt`. The numbers below are the exact
+matrix's; the "averaged forms" columns are empty for version 4, which no longer computes them (version 3's tables above have them).
+
+### N = 8: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
+
+| seed | mu | t at the peak | exact I_RT/(2 ln 2) | averaged forms (2.63)-(2.66) | exact - averaged | rho00 - rho33 | abs(rho12) |
+|---|---|---|---|---|---|---|---|
+| 1 | -12 | 3 | 0.146969053882 | n/a | n/a | -0.002134192 | 0.006268142 |
+| 1 | +12 | 6 | 0.115218913751 | n/a | n/a | +0.008315894 | 0.001402536 |
+| 2 | -12 | 4 | 0.217788340772 | n/a | n/a | +0.005129828 | 0.070712431 |
+| 2 | +12 | 4 | 0.156039246871 | n/a | n/a | +0.000428150 | 0.044984349 |
+| 3 | -12 | 3 | 0.174185823166 | n/a | n/a | -0.000669403 | 0.007264842 |
+| 3 | +12 | 6 | 0.103983083688 | n/a | n/a | +0.001046484 | 0.004581906 |
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.179648
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.125080
+mu = 0: the exact I_RT/(2 ln 2) is at most 0.0e+00 over 18 points (the exact zero to the rounding)
+the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 0.0e+00 over every point
+
+### N = 10: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
+
+| seed | mu | t at the peak | exact I_RT/(2 ln 2) | averaged forms (2.63)-(2.66) | exact - averaged | rho00 - rho33 | abs(rho12) |
+|---|---|---|---|---|---|---|---|
+| 1 | -12 | 4 | 0.158524590182 | n/a | n/a | +0.002549185 | 0.005754578 |
+| 1 | +12 | 6 | 0.099490708516 | n/a | n/a | -0.000814569 | 0.011295968 |
+| 2 | -12 | 4 | 0.171120669180 | n/a | n/a | -0.000640565 | 0.029056145 |
+| 2 | +12 | 4 | 0.103499517574 | n/a | n/a | -0.001274533 | 0.019436651 |
+| 3 | -12 | 4 | 0.147321127373 | n/a | n/a | +0.003942014 | 0.015266956 |
+| 3 | +12 | 6 | 0.101040449351 | n/a | n/a | -0.002027956 | 0.009449319 |
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.158989
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.101344
+mu = 0: the exact I_RT/(2 ln 2) is at most 0.0e+00 over 18 points (the exact zero to the rounding)
+the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 0.0e+00 over every point
+
+### N = 12: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
+
+| seed | mu | t at the peak | exact I_RT/(2 ln 2) | averaged forms (2.63)-(2.66) | exact - averaged | rho00 - rho33 | abs(rho12) |
+|---|---|---|---|---|---|---|---|
+| 1 | -12 | 4 | 0.146953107224 | n/a | n/a | -0.000728107 | 0.006622384 |
+| 1 | +12 | 5 | 0.092173545074 | n/a | n/a | -0.002310609 | 0.005744434 |
+| 2 | -12 | 4 | 0.140981138537 | n/a | n/a | +0.000600403 | 0.003179067 |
+| 2 | +12 | 6 | 0.092471120418 | n/a | n/a | -0.000978394 | 0.001723603 |
+| 3 | -12 | 4 | 0.143299680320 | n/a | n/a | -0.002077237 | 0.007944345 |
+| 3 | +12 | 6 | 0.088439394037 | n/a | n/a | -0.000094734 | 0.004124797 |
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.143745
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.091028
+mu = 0: the exact I_RT/(2 ln 2) is at most 0.0e+00 over 18 points (the exact zero to the rounding)
+the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 0.0e+00 over every point
