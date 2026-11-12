@@ -26,9 +26,31 @@
    the points is the convergence measure and the chain; omega = 2 / (1 + sin(pi/G)) or omega= given. Two cores as wh_relax.c version 3:
    the rows in halves through par2, the same bits either way.
 
+   VERSION 2 (2:40 AM): BOUNDARY TYPES PER SIDE, bc=<x0><x1><y0><y1> with D (Dirichlet, the value given, 0 in the tests), N (zero normal
+   derivative by the symmetric ghost u_{-1} = u_1, the row on that side an unknown like the interior: the centre's regularity and the
+   angular reflections of the 1b problems) and R (y = 0 only: the Robin condition of wh_relax.c v4, u + c u_y = c g with c = h/2, eliminated
+   into row 1 whose diagonal becomes 8; the brane's Israel condition has this form). The exact test solution follows the types: the x
+   factor is x(1-x) for DD, 1 - x^2 for ND, x(2-x) for DN, 1 for NN; the y factor the same, and y(1-y) for RD; each factor is at most
+   quadratic, so the five-point Laplacian stays exact and the discrete solution still equals u at the nodes. bc=DDDD is version 1 bit
+   for bit.
+   VERSION 3 (2:45 AM, for the 1b sizing's open points): (1) jac=onesided takes the Newton diagonal only where the source's own derivative
+   has the damping sign, J_kk = diag + max(0, 2 lam h^2 u_k), with the other fields lagged; the sizing models note that in AdS5 the warp
+   factor's source has the anti-damping sign, where a full Newton diagonal lengthens the step. (2) lam may be negative (the anti-damping
+   sign in this test). (3) The Gauss-Seidel correction, the largest |d_k| of a sweep before the over-relaxation, is printed beside the
+   residual, and tol= (in units of 2^-60) stops the sweep when it falls below that: the convergence measure the sizing recommends, in field
+   units, which the G^4-weighted residual cannot give on stretched grids. tol = 0 (the default) keeps the residual-floor rule.
+   (4) start=zero (the default) or start=near: the fields begin at the exact solution times (1 - 2^-10). FINDING (2:45 AM): with the
+   anti-damping sign the discrete system has a second solution; from zero every Newton mode converges, to the residual floor, on that
+   other branch (the same values in all modes), and from the 0.1 percent perturbation of the intended one it converges on the intended
+   one. The start decides the branch, which is one more reason for the deviation-from-a-reference variables of the 1b sizing.
+   FINDING (2:50 AM, measured at G = 64, scale 40, block): the intended solution is held only while twice the anti-damping derivative stays
+   below the domain's lowest Laplacian eigenvalue (2 pi^2 = 19.7 on the unit square): lam = -500, -1000, -1500, -2000 converge on it within
+   19-121 units in 693, 879, 1260, 2134 sweeps (the count grows as the margin closes); -2500 within 1745 units after 6564 sweeps; from
+   -3000 on the sweep lands on the second branch, from every start. Past that threshold the intended solution is a saddle of the discrete
+   problem and no relaxation holds it; the deviation variables of the 1b plan must keep the remaining anti-damping term under the margin.
    Divergence is declared when a sweep's largest change exceeds 2 (the fields are below 1); the residual measure saturates at the int64
    through the transient without stopping anything.
-   Usage: whrelaxs [G=64] [lam=1] [scale=4] [jac=block|diag|none] [omega=auto|value] [thr=1]      G a power of two, 4..512. */
+   Usage: whrelaxs [G=64] [lam=1] [scale=4] [jac=block|diag|onesided|none] [bc=DDDD] [omega=auto|value] [thr=1] [tol=0] [start=zero|near]    G a power of two, 4..512. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,7 +117,13 @@ static void fmt60(int64_t v, char *out)
     sprintf(out, "%s%llu.%012llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dg);
 }
 
-static int Gg, JAC; static int64_t G2g, OMEGA, LAM, H2;
+static int Gg, JAC; static int64_t G2g, OMEGA, LAM, H2, HQ;
+static int BX0, BX1, BY0, BY1, I0, I1, J0, J1;                   /* v2: the side types (0 D, 1 N, 2 R) and the unknowns' index ranges */
+static int64_t GX[NF][MAXG + 1];                                 /* v2: the Robin data g_k(x_i) = du_k/dy at y = 0 */
+static inline int64_t UW(int k, int i, int j) { return i > 0 ? U[k][i - 1][j] : U[k][i + 1][j]; }   /* the neighbours, mirrored on a Neumann side */
+static inline int64_t UE(int k, int i, int j) { return i < Gg ? U[k][i + 1][j] : U[k][i - 1][j]; }
+static inline int64_t US(int k, int i, int j) { return j > 0 ? U[k][i][j - 1] : U[k][i][j + 1]; }
+static inline int64_t UN(int k, int i, int j) { return j < Gg ? U[k][i][j + 1] : U[k][i][j - 1]; }
 /* the source of field k at a point from the current fields: f_k + lam u_k^2 + SUM_{m != k} u_m (Q.60, the square rounded once) */
 static inline int64_t source(int k, int i, int j)
 {
@@ -116,32 +144,37 @@ static void solve_block(int64_t J[NF][NF], int64_t R[NF], int64_t d[NF])
         d[i] = div60(s, J[i][i]);
     }
 }
-typedef struct { int color, i_begin, i_end; int64_t maxchg, maxres; } rjob;
+typedef struct { int color, i_begin, i_end; int64_t maxchg, maxres, maxcorr; } rjob;
 static void sweep_rows(void *p)
 {
-    rjob *jb = (rjob *)p; const int color = jb->color; int64_t maxchg = 0;
-    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1 + ((i + color) & 1); j < Gg; j += 2) {
-        int64_t R[NF], J[NF][NF], d[NF];
+    rjob *jb = (rjob *)p; const int color = jb->color; int64_t maxchg = 0, maxcorr = 0;
+    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = J0; j <= J1; j++) if (((i + j) & 1) == color) {
+        int64_t R[NF], J[NF][NF], d[NF], diag[NF];
         for (int k = 0; k < NF; k++) {
-            const int64_t S = U[k][i - 1][j] + U[k][i + 1][j] + U[k][i][j - 1] + U[k][i][j + 1];
-            R[k] = 4 * U[k][i][j] - S + mul60(H2, source(k, i, j));
-            for (int m = 0; m < NF; m++) J[k][m] = (m == k) ? 4 * ONE60 + 2 * LAM * mul60(H2, U[k][i][j]) : H2;
+            int64_t S;
+            if (BY0 == 2 && j == 1) { S = UW(k, i, j) + UE(k, i, j) + 2 * U[k][i][2] + mul60(2 * HQ, GX[k][i]); diag[k] = 8; }   /* the Robin row eliminated */
+            else { S = UW(k, i, j) + UE(k, i, j) + US(k, i, j) + UN(k, i, j); diag[k] = 4; }
+            R[k] = diag[k] * U[k][i][j] - S + mul60(H2, source(k, i, j));
+            const int64_t dsrc = 2 * LAM * mul60(H2, U[k][i][j]);          /* h^2 times the source's own derivative */
+            for (int m = 0; m < NF; m++) J[k][m] = (m == k) ? diag[k] * ONE60 + (JAC == 3 ? (dsrc > 0 ? dsrc : 0) : dsrc) : H2;
         }
         if (JAC == 2) solve_block(J, R, d);
-        else if (JAC == 1) { for (int k = 0; k < NF; k++) d[k] = -div60(R[k], J[k][k]); }
-        else { for (int k = 0; k < NF; k++) d[k] = -rdiv64(R[k], 4); }
+        else if (JAC == 1 || JAC == 3) { for (int k = 0; k < NF; k++) d[k] = -div60(R[k], J[k][k]); }
+        else { for (int k = 0; k < NF; k++) d[k] = -rdiv64(R[k], diag[k]); }
         for (int k = 0; k < NF; k++) {
+            { int64_t c = d[k] < 0 ? -d[k] : d[k]; if (c > maxcorr) maxcorr = c; }
             const int64_t step = mul60(OMEGA, d[k]); int64_t ch = step < 0 ? -step : step; if (ch > maxchg) maxchg = ch;
             U[k][i][j] += step;
         }
     }
-    jb->maxchg = maxchg;
+    jb->maxchg = maxchg; jb->maxcorr = maxcorr;
 }
 static void resid_rows(void *p)
 {
     rjob *jb = (rjob *)p; int64_t maxres = 0;
-    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1; j < Gg; j++) for (int k = 0; k < NF; k++) {
-        const int64_t lap = U[k][i - 1][j] + U[k][i + 1][j] + U[k][i][j - 1] + U[k][i][j + 1] - 4 * U[k][i][j];
+    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = J0; j <= J1; j++) for (int k = 0; k < NF; k++) {
+        const int64_t lap = (BY0 == 2 && j == 1) ? UW(k, i, j) + UE(k, i, j) + 2 * U[k][i][2] + mul60(2 * HQ, GX[k][i]) - 8 * U[k][i][j]
+                                                : UW(k, i, j) + UE(k, i, j) + US(k, i, j) + UN(k, i, j) - 4 * U[k][i][j];
         s128 r = {0, 0}; s128_addp(&r, lap, G2g); s128_addv(&r, -source(k, i, j));
         int64_t rv = s128_round_sh(r, 0); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
     }
@@ -150,58 +183,73 @@ static void resid_rows(void *p)
 
 int main(int argc, char **argv)
 {
-    int G = 64, jac = 2, scale = 4; int64_t lam = 1, omega_in = 0, thr = 1;
+    int G = 64, jac = 2, scale = 4, near = 0; int64_t lam = 1, omega_in = 0, thr = 1, tol = 0; const char *bc = "DDDD";
     for (int i = 1; i < argc; i++) {
         if (!strncmp(argv[i], "G=", 2)) G = atoi(argv[i] + 2);
         else if (!strncmp(argv[i], "lam=", 4)) lam = atoll(argv[i] + 4);
         else if (!strncmp(argv[i], "scale=", 6)) scale = atoi(argv[i] + 6);
+        else if (!strncmp(argv[i], "bc=", 3)) bc = argv[i] + 3;
         else if (!strncmp(argv[i], "thr=", 4)) thr = atoll(argv[i] + 4);
-        else if (!strncmp(argv[i], "jac=", 4)) jac = !strcmp(argv[i] + 4, "block") ? 2 : !strcmp(argv[i] + 4, "diag") ? 1 : 0;
+        else if (!strncmp(argv[i], "jac=", 4)) jac = !strcmp(argv[i] + 4, "block") ? 2 : !strcmp(argv[i] + 4, "diag") ? 1 : !strcmp(argv[i] + 4, "onesided") ? 3 : 0;
+        else if (!strncmp(argv[i], "tol=", 4)) tol = atoll(argv[i] + 4);
+        else if (!strncmp(argv[i], "start=", 6)) near = !strcmp(argv[i] + 6, "near");
         else if (!strncmp(argv[i], "omega=", 6)) { if (strcmp(argv[i] + 6, "auto")) omega_in = parse60(argv[i] + 6); }
     }
     if (G < 4 || G > MAXG || (G & (G - 1))) { printf("WHRELAXS: G must be a power of two in 4..%d\n", MAXG); return 1; }
+    if (strlen(bc) != 4) { printf("WHRELAXS: bc= needs four letters (x0 x1 y0 y1) from D, N, R\n"); return 1; }
+    int t[4]; for (int i = 0; i < 4; i++) { t[i] = bc[i] == 'D' ? 0 : bc[i] == 'N' ? 1 : bc[i] == 'R' ? 2 : -1; if (t[i] < 0 || (t[i] == 2 && i != 2)) { printf("WHRELAXS: bc letters are D, N, or R (y0 only)\n"); return 1; } }
+    BX0 = t[0]; BX1 = t[1]; BY0 = t[2]; BY1 = t[3]; Gg = G;
+    I0 = BX0 == 1 ? 0 : 1; I1 = BX1 == 1 ? G : G - 1; J0 = BY0 == 1 ? 0 : 1; J1 = BY1 == 1 ? G : G - 1;
     char A[48], B[48], C[48], E[48];
-    const int64_t hq = ONE60 / G; H2 = ONE60 / ((int64_t)G * G); LAM = lam;
+    const int64_t hq = ONE60 / G; H2 = ONE60 / ((int64_t)G * G); LAM = lam; HQ = hq;
+    const int xpp = (BX0 == 1 && BX1 == 1) ? 0 : -2, ypp = (BY0 == 1 && BY1 == 1) ? 0 : -2;   /* the factors' second derivatives */
     for (int k = 0; k < NF; k++) {                                   /* the exact solution and its sources on the grid */
         const int64_t ck = (ONE60 / scale) * (k + 1);
         for (int i = 0; i <= G; i++) for (int j = 0; j <= G; j++) {
-            const int64_t x = hq * i, y = hq * j, xa = mul60(x, ONE60 - x), ya = mul60(y, ONE60 - y);
+            const int64_t x = hq * i, y = hq * j;
+            const int64_t xa = (BX0 == 1 && BX1 == 1) ? ONE60 : BX0 == 1 ? ONE60 - mul60(x, x) : BX1 == 1 ? mul60(x, 2 * ONE60 - x) : mul60(x, ONE60 - x);
+            const int64_t ya = (BY0 == 1 && BY1 == 1) ? ONE60 : BY0 == 1 ? ONE60 - mul60(y, y) : BY1 == 1 ? mul60(y, 2 * ONE60 - y) : mul60(y, ONE60 - y);
             Ex[k][i][j] = mul60(ck, mul60(xa, ya)); U[k][i][j] = 0;
-            Fv[k][i][j] = -2 * mul60(ck, xa + ya);                     /* the Laplacian of u_k, exactly */
+            if (j == 0) GX[k][i] = mul60(ck, xa);                       /* du_k/dy at y = 0 for the y(1-y) factor: the Robin data */
+            Fv[k][i][j] = (xpp == -2 && ypp == -2) ? -2 * mul60(ck, xa + ya) : mul60(ck, xpp * ya + ypp * xa);   /* the Laplacian of u_k, exactly (v1's form kept for DDDD) */
         }
     }
     for (int k = 0; k < NF; k++) for (int i = 0; i <= G; i++) for (int j = 0; j <= G; j++) {   /* f_k = Lap u_k - lam u_k^2 - SUM u_m */
         Fv[k][i][j] -= LAM * mul60(Ex[k][i][j], Ex[k][i][j]);
         for (int m = 0; m < NF; m++) if (m != k) Fv[k][i][j] -= Ex[m][i][j];
     }
+    if (near) for (int k = 0; k < NF; k++) for (int i = I0; i <= I1; i++) for (int j = J0; j <= J1; j++) U[k][i][j] = Ex[k][i][j] - (Ex[k][i][j] >> 10);
     const int64_t s = sin60_small(PI60 / G);
     int64_t omega = div60(2 * ONE60, ONE60 + s); if (omega_in) omega = omega_in;
     fmt60(omega, A); sprintf(B, "%lld", (long long)lam); fmt60(H2, C);
-    printf("WHRELAXS: Q.%d fixed point; %d coupled fields on the unit square, G = %d (h^2 = %s), Laplacian u_k = f_k + lam u_k^2 + SUM_(m != k) u_m with lam = %s; red-black Newton-SOR, the Newton step over the %s, omega = %s%s; exact solution u_k = (k/%d) x(1-x) y(1-y)\n",
-           F60, NF, G, C, B, jac == 2 ? "local 3 x 3 Jacobian block" : jac == 1 ? "Jacobian's diagonal only (fields lagged)" : "plain Gauss-Seidel diagonal 4 (sources lagged)", A, omega_in ? " (given)" : "", scale);
+    printf("WHRELAXS: Q.%d fixed point; %d coupled fields on the unit square, G = %d (h^2 = %s), sides x0 x1 y0 y1 = %s, Laplacian u_k = f_k + lam u_k^2 + SUM_(m != k) u_m with lam = %s; red-black Newton-SOR, the Newton step over the %s, omega = %s%s; exact solution u_k = (k/%d) x(1-x) y(1-y)\n",
+           F60, NF, G, C, bc, B, jac == 2 ? "local 3 x 3 Jacobian block" : jac == 1 ? "Jacobian's diagonal only (fields lagged)" : jac == 3 ? "one-sided Newton diagonal (damping sign only)" : "plain Gauss-Seidel diagonal 4 (sources lagged)", A, omega_in ? " (given)" : "", scale); if (near) printf("WHRELAXS: start = the exact solution times (1 - 2^-10)\n");
     const int64_t G2 = (int64_t)G * G;
     uint64_t chain = 0xcbf29ce484222325ull;
-    int sweep; int64_t maxres = 0, maxchg = 0, best = -1; int lastimp = 0, floor_sweep = 0, blew = 0;
-    Gg = G; JAC = jac; G2g = G2; OMEGA = omega;
-    const int mid = 1 + (G - 1) / 2;
+    int sweep; int64_t maxres = 0, maxchg = 0, maxcorr = 0, best = -1; int lastimp = 0, floor_sweep = 0, blew = 0;
+    JAC = jac; G2g = G2; OMEGA = omega;
+    const int mid = I0 + (I1 - I0 + 1) / 2;                        /* the unknown rows i0..i1 in two halves */
     for (sweep = 1; sweep <= 100000; sweep++) {
-        maxchg = 0;
+        maxchg = 0; maxcorr = 0;
         for (int color = 0; color < 2; color++) {
-            rjob a = { color, 1, mid, 0, 0 }, b = { color, mid, G, 0, 0 };
+            rjob a = { color, I0, mid, 0, 0, 0 }, b = { color, mid, I1 + 1, 0, 0, 0 };
             par2(sweep_rows, &a, &b);
             if (a.maxchg > maxchg) maxchg = a.maxchg; if (b.maxchg > maxchg) maxchg = b.maxchg;
+            if (a.maxcorr > maxcorr) maxcorr = a.maxcorr; if (b.maxcorr > maxcorr) maxcorr = b.maxcorr;
         }
-        { rjob a = { 0, 1, mid, 0, 0 }, b = { 0, mid, G, 0, 0 };
+        { rjob a = { 0, I0, mid, 0, 0, 0 }, b = { 0, mid, I1 + 1, 0, 0, 0 };
           par2(resid_rows, &a, &b);
           maxres = a.maxres > b.maxres ? a.maxres : b.maxres; }
         chain = fnv(chain, &maxres, 8);
         if (best < 0 || maxres < best) { best = maxres; lastimp = sweep; floor_sweep = sweep; }
-        if ((sweep & (sweep - 1)) == 0 || sweep % 1000 == 0) printf("WHRELAXS sweep %d: max |residual| = %lld units of 2^-60 (%.3e), max change = %lld units\n", sweep, (long long)maxres, (double)maxres / 1152921504606846976.0, (long long)maxchg);
+        if ((sweep & (sweep - 1)) == 0 || sweep % 1000 == 0) printf("WHRELAXS sweep %d: max |residual| = %lld units of 2^-60 (%.3e), max change = %lld units, max correction = %lld units\n", sweep, (long long)maxres, (double)maxres / 1152921504606846976.0, (long long)maxchg, (long long)maxcorr);
         if (maxchg > 2 * ONE60) { blew = 1; break; }                         /* a change above 2 in fields below 1: diverged */
+        if (tol && maxcorr <= tol) { printf("WHRELAXS: the largest correction fell to %lld units (tol %lld) at sweep %d\n", (long long)maxcorr, (long long)tol, sweep); break; }
         if (maxres <= thr || maxchg == 0 || (sweep > 8 * G && sweep - lastimp >= G)) break;
     }
     if (blew) printf("WHRELAXS: DIVERGED (the largest change passed 2 at sweep %d)\n", sweep);
     else printf("WHRELAXS: the residual reached its floor (%lld units, about %lld x G^2) at sweep %d\n", (long long)best, (long long)(best / G2), floor_sweep);
+    if (BY0 == 2) for (int k = 0; k < NF; k++) for (int i = I0; i <= I1; i++) U[k][i][0] = U[k][i][2] - 4 * U[k][i][1] + mul60(2 * hq, GX[k][i]);   /* the Robin row from row 1 */
     int64_t maxerr[NF] = {0, 0, 0};
     for (int k = 0; k < NF; k++) for (int i = 0; i <= G; i++) for (int j = 0; j <= G; j++) { int64_t e = U[k][i][j] - Ex[k][i][j]; if (e < 0) e = -e; if (e > maxerr[k]) maxerr[k] = e; }
     fmt60(U[0][G / 2][G / 2], A); fmt60(Ex[0][G / 2][G / 2], B); fmt60(maxerr[0], C); fmt60(maxerr[1], E);
