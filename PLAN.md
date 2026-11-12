@@ -143,16 +143,25 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   1.9 percent and spreads the matter to 2.7-27 m. (The plan's earlier line calling the pressure-kept cavity "the code's variant" was a
   misreading of Warp Factory's `TOVconstDensity.m`, which multiplies by the step density: the code zeroes the cavity pressure as the paper
   does. The pressure-kept case is kept as HYPOTHETICAL.) Part 2 (`wh_warp.c`, the shift, axisymmetric; the shift limit) is written and
-  did NOT pass review: a division guard in the shared arithmetic (fixed in `whq.h` v2), a rounding floor on the sign tests, the cells
-  next to the axis, and a self-test with a constant shift are needed before its first run. The review confirmed its general relativity
-  (the Ricci convention, the Eulerian frame, the four margins) against an independent derivation.
-- 4a: DONE 2026-11-11 7:39 PM, `results/4a_casimir.md`: both machines identical, 20 lines; the lattice law 1 + 2.1/N^2 toward the
-  continuum coefficient pi^2/1440 for one scalar (the first draft of the program used the electromagnetic pi^2/720: corrected in review
-  before the run).
+  did not pass its first review (a division guard in the shared arithmetic, fixed in `whq.h` v2; a rounding floor on the sign tests; the
+  cells next to the axis; a self-test with a constant shift), was rewritten with all four, and is DONE 2026-11-11 9:21 PM,
+  `results/3b_warp.md`: both machines identical, 44 lines; the four conditions hold to beta0 = 0.03033 and fail together just above it,
+  at 12.35 m on the equator (the bracket 0.030330352784 to 0.030330429078 on the 0.2 m radial grid; the PC's 0.05 m grid lowers it by
+  4.8e-6; the pair's run on the fine grid is queued tonight). The review confirmed the general relativity (the Ricci convention, the
+  Eulerian frame, the four margins) against an independent derivation.
+- 4a: DONE 2026-11-11 7:39 PM (v2) and REDONE 9:36 PM (v4), `results/4a_casimir.md`: both machines identical, 21 lines; the lattice law
+  1 + (5 pi^2/24)/N^2 + O(1/N^4) toward the continuum coefficient pi^2/1440 for one scalar, exact to N = 32 (v2's Q.40 frequencies had
+  lost digits past N = 16 and its table said 2.1/N^2; the review caught it the same evening. The first draft had used the electromagnetic
+  pi^2/720, corrected in review before the first run.)
 - 2: FIRST RUN DONE 2026-11-11 7:46 PM, `results/2_syk.md`: the full q = 4 SYK protocol exact at N = 8 over three seeds, both signs of
   the coupling and mu = 0 (the exact zero), and the 2022 experiment's five-term model at its own parameters; both machines identical,
-  64 + 8 lines; a double-precision cross-check agrees to 1e-11. Next: N = 10-14 (a factorized evolution for the larger N), the
-  size-winding signature, the N-dependence of the sign asymmetry.
+  64 + 8 lines; a double-precision cross-check agrees to 1e-11. 9:26 PM, from review: the density-matrix formulas (2.63)-(2.66) are the
+  paper's ensemble-averaged forms; the page is labelled "evaluated per seed", and v3 of the program (`code/wh_syk3.c`) computes the exact
+  six-element matrix (GJ 2.15-2.20) beside them, verified against an independent float implementation to 1e-12. 9:36-9:43 PM: v2
+  (`code/wh_syk2.c`, the factorized layout: left Majoranas on one half of the qubits, right on the other, D = 2^(N/2) a side,
+  e^{-iHt} Psi = U_L Psi U_R^T) run on the pair at N = 8, 10 and 12 in 28 s, 63 s and 5.5 min, both machines identical and the N = 8
+  chain equal to the PC build's. v3 at N = 8 to 16 runs on the pair tonight. Next: the exact-matrix page, the N-dependence of the sign
+  asymmetry, the size-winding signature.
 - 1a: a review note added to `results/1a_flow.md` (a rounding bias of 4-7e-8 on the UV constants from ties-away rounding, the sphere
   flow's starting mode, the gauge invariants to publish); v3 of `wh_flow.c` to follow.
 - 1b: planned.

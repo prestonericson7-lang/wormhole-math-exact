@@ -1,73 +1,137 @@
-/* wh_casimir.c (11-11-2026; v2 7:35 PM after the math buddy's review) -- WORMHOLE MATH 4a: the negative energy itself, the textbook case,
- * exact on a lattice. v2: the continuum coefficient for ONE scalar field is pi^2/1440 (pi^2/720 is the electromagnetic value, two
- * polarizations); the second difference is taken in 128-bit before any shift (v1 shifted each E(N) to Q.40 first and lost digits); the
- * transverse box is M >= 6 N (the periodic box's own finite-size term goes as e^{-pi M/N}; M = 64 at N = 32 was 13% off); the ratio
- * divides by a negative number, which v1's divq could not do (whq.h v2 can).
+/* wh_casimir.c (11-11-2026; v4 9:05 PM) -- WORMHOLE MATH 4a: the negative energy itself, the textbook case, exact on a lattice.
  *
- * A massless scalar field between two perfectly reflecting plates a distance d apart has LESS zero-point energy than the open vacuum:
- * E_C / A = -pi^2 hbar c / (720 d^3) per unit area for the electromagnetic field (Casimir 1948), half that for one massless scalar. That deficit is the "negative energy" every traversable-wormhole and
- * warp-drive paper in the record leans on (Maldacena-Milekhin's glue is the fermionic version of this sum along the field lines).
- * On a cubic lattice with spacing a = 1 (units hbar = c = a = 1) the zero-point energy of the field in a slab of N spacings between the
- * plates (Dirichlet in x) and a periodic transverse box of M x M sites is a FINITE SUM:
+ * A massless field between two perfectly reflecting plates a distance d apart has LESS zero-point energy than the open vacuum:
+ * E_C / A = -pi^2 hbar c / (720 d^3) per unit area for the electromagnetic field (Casimir 1948), half that for one massless scalar.
+ * That deficit is the "negative energy" every traversable-wormhole and warp-drive paper in the record leans on (Maldacena-Milekhin's glue
+ * is the fermionic version of this sum along the field lines).
+ * On a cubic lattice with spacing a = 1 (units hbar = c = a = 1) the zero-point energy of one scalar field in a slab of N spacings between
+ * the plates (Dirichlet in x) and a periodic transverse box of M x M sites is a FINITE SUM:
  *     E(N) = (1/2) SUM_{n=1}^{N-1} SUM_{m=0}^{M-1} SUM_{l=0}^{M-1} omega,   omega^2 = 4 sin^2(pi n / 2N) + 4 sin^2(pi m / M) + 4 sin^2(pi l / M).
  * E(N) = e_bulk N + 2 e_surf + E_C(N) + ...: the bulk and the surface pieces are the same for every N, so the SECOND DIFFERENCE
  *     F2(N) = E(N+1) - 2 E(N) + E(N-1)
  * is the Casimir energy's own second difference, with no subtraction of divergent constants: in the continuum, with A = M^2,
  *     F2(N)/M^2 -> -(pi^2/1440) [ (N+1)^-3 - 2 N^-3 + (N-1)^-3 ]  ~  -pi^2 / (120 N^5)   (one scalar),
- * and the lattice's deviation from it (order 1/N^2) is itself exact and printed. Every term is a square root of sines in Q.40; the sums
- * run in 128-bit accumulators; the two boards must agree bit for bit. Rounding: sqrtq is a floor, so every term carries a bias of about
- * -1/2 unit; the bias is the same per term for every N and cancels in the second difference; what remains is the random part, about
- * 0.29 units x sqrt(terms) = 700 units at N = 32, M = 256 against F2 of 3.5e8 units: five digits of F2 at N = 32, more at small N.
- * Prints: for (M, N) = (128, 4..20) and (256, 4..32): E(N)/M^2, F2(N) (the whole box), F2(N)/M^2, the continuum value, their ratio.
- * EXACT: whq.h (Q.40, 128-bit intermediates, round to nearest). Build: cc -O2 -std=gnu11 -o whcasimir wh_casimir.c
+ * and the lattice's deviation from it is itself exact and printed as a ratio: the review derives (ratio - 1) N^2 -> 5 pi^2 / 24 = 2.0562
+ * (COMPUTED by the math buddy from the lattice dispersion's |k|^5 term, under verification) with a 1/N^4 term of about 9.6/N^4.
+ *
+ * THE ARITHMETIC, v4: F2 at N = 32 is a part in 10^10 of E, so every mode frequency must carry more than Q.40: each 4 sin^2(k/2) =
+ * 2 (1 - cos k) is computed in Q.60 (a cosine in Q.60 with 128-bit products, k reduced to [0, pi]), omega^2 is their exact Q.60 sum
+ * (below 2^64 as an unsigned), omega = its integer square root in Q.60 (a 124-bit radicand, digit by digit), the sums run in 128-bit
+ * accumulators, the second difference is taken on the raw 128-bit sums (exact), F2 is rounded once to Q.40 for printing, the continuum's
+ * second difference is formed as the exact rational Nn / D with D = N^3 (N+1)^3 (N-1)^3, and the ratio is one 128-bit division, so its
+ * only roundings are pi^2's (1e-13) and F2's single rounding. Versions 1-3 used Q.40 frequencies and lost digits past N = 16 (v2 printed
+ * 1.00262 at N = 32 against the law's 1.00201). The transverse box is M >= 6 N (the box's own term goes as e^{-pi M/N}).
+ * Prints: for (M, N) = (128, 4..20) and (256, 4..32): E(N)/M^2, F2(N) (the whole box), F2(N)/M^2, the continuum value, the ratio,
+ * (ratio - 1) N^2; a chain hash over F2 and the ratio; the SI line.
+ * EXACT: whq.h v2 for pi and the Q.40 printing; the two boards must agree bit for bit. Build: cc -O2 -std=gnu11 -o whcasimir wh_casimir.c
  */
 #include "whq.h"
 
-static q sin2half(q k)                                /* 4 sin^2(k/2) = 2 (1 - cos k), exact to rounding */
+/* ---- Q.60 ---- */
+#define F60 60
+static const uint64_t ONE60 = (uint64_t)1 << F60;
+static uint64_t mul60(uint64_t a, uint64_t b) { uint64_t hi, lo; mul128(a, b, &hi, &lo); return (lo >> F60) | (hi << (64 - F60)); }   /* floor; a b < 2^124 */
+/* pi in Q.60: floor(pi x 2^60) = 3622009729038561421 */
+static const uint64_t PI60 = 3622009729038561421ull;   /* floor(pi 2^60), from 60-digit decimal arithmetic (the first draft had a hand-typed value wrong in the 4th digit; the self-test caught it) */
+/* cos x for 0 <= x <= pi in Q.60, by Taylor to x^24 (|x|^26/26! < 2^-60 for x <= pi): exact to the floor roundings of 12 products */
+static uint64_t cos60(uint64_t x)
 {
-    return 2 * (ONE - cosq(k));
+    /* reduce to [0, pi/2] by cos(pi - x) = -cos x; the sign is returned via a flag: we return 1 + cos x in Q.60 (always >= 0), which is what 2 - 2cos needs */
+    int neg = 0; if (x > PI60 / 2) { x = PI60 - x; neg = 1; }
+    const uint64_t x2 = mul60(x, x);
+    /* Horner on cos = 1 - x^2/2 + x^4/24 - ...: t = x^2/(2k(2k-1)) alternating; with x <= pi/2 every partial sum is in (0, 1] */
+    uint64_t term = ONE60; int64_t acc = (int64_t)ONE60; int sgn = -1;
+    for (int k = 1; k <= 12; k++) {
+        term = mul60(term, x2) / (uint64_t)((2 * k) * (2 * k - 1));
+        if (!term) break;
+        acc += sgn * (int64_t)term; sgn = -sgn;
+    }
+    /* acc = cos x in Q.60 (0 <= cos <= 1 here) */
+    uint64_t c = (uint64_t)(acc < 0 ? 0 : acc);
+    return neg ? ONE60 - c : ONE60 + c;                                     /* 1 + cos(original x) */
 }
-/* E(N) for a transverse box M x M: returns the sum in a 128-bit accumulator of Q.40 units (the 1/2 applied at the end) */
+static uint64_t sin2half60(uint64_t k)                /* 4 sin^2(k/2) = 2 (1 - cos k) = 2 (2 - (1 + cos k)) in Q.60; < 4 2^60 */
+{
+    const uint64_t onepc = cos60(k);                                        /* 1 + cos k in [0, 2] */
+    return 2 * (2 * ONE60 - onepc);
+}
+/* the integer square root of a 128-bit radicand (hi:lo), digit by digit; the result < 2^64 */
+static uint64_t isqrt128(uint64_t hi, uint64_t lo)
+{
+    uint64_t rhi = 0, rlo = 0;      /* the remainder as 128 bits */
+    uint64_t root = 0;
+    for (int i = 0; i < 64; i++) {
+        /* shift two bits of the radicand into the remainder */
+        const int top = i < 32 ? (int)((hi >> (62 - 2 * i)) & 3) : (int)((lo >> (126 - 2 * i)) & 3);
+        rhi = (rhi << 2) | (rlo >> 62); rlo = (rlo << 2) | (uint64_t)top;
+        /* trial: t = (root << 2) | 1, as 128 bits (root < 2^64 -> t < 2^66) */
+        const uint64_t thi = root >> 62, tlo = (root << 2) | 1;
+        root <<= 1;
+        if (rhi > thi || (rhi == thi && rlo >= tlo)) { const uint64_t nlo = rlo - tlo; rhi = rhi - thi - (rlo < tlo); rlo = nlo; root |= 1; }
+    }
+    return root;
+}
+static uint64_t omega60(uint64_t w2)                  /* omega = sqrt(omega^2), Q.60 -> Q.60: sqrt(w2 2^60) */
+{
+    return isqrt128(w2 >> 4, w2 << 60);                                     /* w2 * 2^60 as 128 bits */
+}
+/* E(N) for a transverse box M x M: the sum of omega in Q.60 units in a 128-bit accumulator (the 1/2 applied at the end) */
 static void energy(int N, int M, acc128 *acc)
 {
-    static q tz[1024];                                /* 4 sin^2(pi m / M) for m = 0..M-1 */
-    for (int m = 0; m < M; m++) tz[m] = sin2half(divq(mulq(2 * PI, (q)m * ONE), (q)M * ONE));
+    static uint64_t tz[1024];
+    for (int m = 0; m < M; m++) tz[m] = sin2half60((uint64_t)((PI60 * 2 / (uint64_t)M) * (uint64_t)m) % (2 * PI60) <= PI60 ? (uint64_t)((PI60 * 2 / (uint64_t)M) * (uint64_t)m) : 2 * PI60 - (uint64_t)((PI60 * 2 / (uint64_t)M) * (uint64_t)m));
     acc->hi = 0; acc->lo = 0;
     for (int n = 1; n < N; n++) {
-        const q kx = sin2half(divq(mulq(PI, (q)n * ONE), (q)N * ONE));
+        const uint64_t kx = sin2half60((PI60 / (uint64_t)N) * (uint64_t)n);
         for (int m = 0; m < M; m++) {
-            const q s2 = kx + tz[m];
-            for (int l = 0; l < M; l++) acc_add(acc, (uint64_t)sqrtq(s2 + tz[l]));
+            const uint64_t s2 = kx + tz[m];
+            for (int l = 0; l < M; l++) acc_add(acc, omega60(s2 + tz[l]));
         }
     }
 }
 int main(void)
 {
-    char A[48], B[48], C[48], D[48];
+    char A[48], B[48], C[48], D[48], E[48], L[48];
     const q pi2_1440 = divq(mulq(PI, PI), 1440 * ONE);
     fmt(pi2_1440, A);
-    printf("WHCASIMIR v2: Q.%d (whq.h v2); ONE massless scalar, Dirichlet plates N apart, periodic M x M transverse box, a = hbar = c = 1; pi^2/1440 = %s (the electromagnetic coefficient pi^2/720 is twice this)\n", FB, A);
+    { /* a self-test of the Q.60 pieces: cos60(0) = 2 (1 + cos 0), cos60(pi) = 0, 4 sin^2(pi/4) = 2, sqrt(4) = 2 */
+        const uint64_t c0 = cos60(0), cp = cos60(PI60), s4 = sin2half60(PI60 / 2), r4 = omega60(4 * ONE60);
+        printf("WHCASIMIR v4 selftest: 1+cos 0 = %llu/2^60 (2), 1+cos pi = %llu (0), 4 sin^2(pi/4) = %llu/2^60 (2), sqrt(4) = %llu/2^60 (2)\n",
+               (unsigned long long)c0, (unsigned long long)cp, (unsigned long long)s4, (unsigned long long)r4);
+    }
+    printf("WHCASIMIR v4: frequencies and sums in Q.60, printing in Q.%d; ONE massless scalar, Dirichlet plates N apart, periodic M x M transverse box, a = hbar = c = 1; pi^2/1440 = %s (the electromagnetic coefficient pi^2/720 is twice this)\n", FB, A);
     uint64_t hash = 0xcbf29ce484222325ull;
-    const int Ms[2] = {128, 256}, Ns[2][8] = { {4, 6, 8, 12, 16, 20, 0, 0}, {4, 6, 8, 12, 16, 20, 24, 32} };   /* M >= 6 N throughout */
+    const int Ms[2] = {128, 256}, Ns[2][8] = { {4, 6, 8, 12, 16, 20, 0, 0}, {4, 6, 8, 12, 16, 20, 24, 32} };
     for (int mi = 0; mi < 2; mi++) {
-        const int M = Ms[mi]; const int sh = (M == 128 ? 14 : 16);   /* M^2 as a power of two */
-        printf("WHCASIMIR M = %d: N | E(N)/M^2 | F2(N) = E(N+1) - 2E(N) + E(N-1), the whole box | F2(N)/M^2 | continuum -(pi^2/1440)[(N+1)^-3 - 2N^-3 + (N-1)^-3] per unit area | ratio lattice/continuum\n", M);
+        const int M = Ms[mi]; const int sh = (M == 128 ? 14 : 16);
+        printf("WHCASIMIR M = %d: N | E(N)/M^2 | F2(N) = E(N+1) - 2E(N) + E(N-1), the whole box | F2(N)/M^2 | continuum -(pi^2/1440)[(N+1)^-3 - 2N^-3 + (N-1)^-3] per unit area | ratio lattice/continuum | (ratio - 1) N^2 (the law: 5 pi^2/24 = 2.0562 + ~9.6/N^2, the review's derivation)\n", M);
         for (int ni = 0; ni < 8 && Ns[mi][ni]; ni++) {
             const int N = Ns[mi][ni];
             acc128 e0, e1, e2; energy(N - 1, M, &e0); energy(N, M, &e1); energy(N + 1, M, &e2);
-            /* the raw sums are SUM omega in Q.40 units (the 1/2 not yet applied): below 2^63 for M <= 256, N <= 33, so the second difference is exact in int64 */
-            if (e0.hi || e1.hi || e2.hi) { printf("WHCASIMIR: a sum overflowed 64 bits at M = %d N = %d -- stop\n", M, N); return 1; }
-            const int64_t F2raw = (int64_t)e2.lo - 2 * (int64_t)e1.lo + (int64_t)e0.lo;   /* 2 F2 in Q.40 units, exact */
-            const q F2 = rdiv(F2raw, 2);                                      /* F2 for the whole box, Q.40, one rounding */
-            const q F2overM2 = rdiv(F2, 1 << sh);                             /* F2/M^2, a second rounding, for the table only */
-            const q E1 = rdiv((q)(e1.lo >> 1), 1 << sh);                      /* E(N)/M^2 for the table */
-            const q c1 = divq(ONE, (q)(N + 1) * (N + 1) * (N + 1) * ONE), c0 = divq(ONE, (q)N * N * N * ONE), cm = divq(ONE, (q)(N - 1) * (N - 1) * (N - 1) * ONE);
-            const q cont = -mulq(pi2_1440, c1 - 2 * c0 + cm);                /* per unit area */
-            const q contbox = cont * ((q)1 << sh);                            /* times M^2, exact */
-            const q ratio = divq(F2, contbox);                                /* whole-box numbers: full precision; cont < 0 is fine in whq.h v2 */
+            acc128 A2 = e2; acc_add(&A2, e0.lo); A2.hi += e0.hi;
+            acc128 B2 = e1; B2.hi = (B2.hi << 1) | (B2.lo >> 63); B2.lo <<= 1;
+            const int neg = (A2.hi < B2.hi) || (A2.hi == B2.hi && A2.lo < B2.lo);
+            acc128 mag; if (neg) { mag.lo = B2.lo - A2.lo; mag.hi = B2.hi - A2.hi - (B2.lo < A2.lo); } else { mag.lo = A2.lo - B2.lo; mag.hi = A2.hi - B2.hi - (A2.lo < B2.lo); }
+            uint64_t f2u = (mag.lo >> 21) | (mag.hi << 43); if ((mag.lo >> 20) & 1) f2u++;          /* / 2 (the half) / 2^20 (Q.60 -> Q.40), rounded */
+            const q F2 = neg ? -(q)f2u : (q)f2u;
+            const q F2overM2 = rdiv(F2, 1 << sh);
+            const q E1 = rdiv((q)((e1.lo >> 21) | (e1.hi << 43)), 1 << sh);
+            const int64_t Nc = (int64_t)N * N * N, Np = (int64_t)(N + 1) * (N + 1) * (N + 1), Nm = (int64_t)(N - 1) * (N - 1) * (N - 1);
+            const int64_t Dd = Nc * Np * Nm, Nn = Nc * Nm - 2 * Np * Nm + Nc * Np;
+            q cont;
+            { uint64_t h, l; mul128((uint64_t)pi2_1440, (uint64_t)Nn, &h, &l); uint64_t rem; const uint64_t cq = div128(h, l, (uint64_t)Dd, &rem); cont = -(q)cq; if (2 * rem >= (uint64_t)Dd) cont--; }
+            q ratio;
+            {   uint64_t h, l; mul128((uint64_t)(F2 < 0 ? -F2 : F2), (uint64_t)Dd, &h, &l);
+                const int shl = FB - sh; const uint64_t nh = (h << shl) | (l >> (64 - shl)), nl = l << shl;
+                uint64_t dh, dl; mul128((uint64_t)pi2_1440, (uint64_t)Nn, &dh, &dl); (void)dh;
+                uint64_t rem; const uint64_t rq = div128(nh, nl, dl, &rem);
+                ratio = (F2 < 0) ? (q)rq : -(q)rq;
+                if (2 * rem >= dl) ratio += ratio < 0 ? -1 : 1;
+            }
+            const q law = mulq(ratio - ONE, (q)N * N * ONE);
             hash = fnv(hash, &F2, 8); hash = fnv(hash, &ratio, 8);
-            char E[48]; fmt(E1, A); fmt(F2, B); fmt(F2overM2, E); fmt(cont, C); fmt(ratio, D);
-            printf("WHCASIMIR M = %d: %2d | %s | %s | %s | %s | %s\n", M, N, A, B, E, C, D);
+            fmt(E1, A); fmt(F2, B); fmt(F2overM2, E); fmt(cont, C); fmt(ratio, D); fmt(law, L);
+            printf("WHCASIMIR M = %d: %2d | %s | %s | %s | %s | %s | %s\n", M, N, A, B, E, C, D, L);
         }
     }
     printf("WHCASIMIR: chain %016llx\n", (unsigned long long)hash);
