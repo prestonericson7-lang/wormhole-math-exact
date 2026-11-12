@@ -14,8 +14,10 @@
      n odd, so omega^-2 = -i; 1 for n even): KSY's p(l) and q(l) for rho^{1/2} psi_i(t), checked by the review against KSY's own operator.
    ARITHMETIC: each entry of O' is rounded once from Q.60 to Q.56; the transform is int64 additions (|F| <= sqrt(D) ||f||_2 by Cauchy-
    Schwarz, below 2^61 at D = 512); T^2 and |T|^2 are exact 128-bit products summed in 128 bits; the per-size sums are rounded once to Q.60
-   at the output (shift 52 + n). FREE CHECKS, printed: the even sizes are exactly 0; SUM_l P(l) - 1 in units; W = SUM_l q(l) (real, t-
-   independent); with windcheck=1 the diagonals of even popcount(x) are computed too and must be exactly 0 (otherwise skipped).
+   at the output (shift 52 + n). FREE CHECKS, printed: the even sizes are exactly 0 (a real check only with windcheck=1, which sums the even-popcount
+   diagonals into them; without it an identity, since a string's size has the parity of popcount(x)); SUM_l P(l) - 1 in units; W = SUM_l q(l) (real, t-
+   independent); with windcheck=1 the diagonals of even popcount(x) are computed too, must be exactly 0, and feed the even sizes (otherwise
+   skipped). Reviewed line by line by the math helper (1:05 AM): the four functions right; these two text points were its findings.
    THE LINK TO THE PROTOCOL (an exact identity): C(mu) = <tfd| psi_r^i(t) e^{i mu V} psi_l^i(-t) |tfd> = -(i/2) e^{-i mu NM/(8 vnorm)}
    SUM_l q(l) e^{i mu l/(4 vnorm)}, because e^{i mu V} multiplies a size-l string by exactly e^{i mu (l - NM/2)/(4 vnorm)}. So 2|C(mu)| is
    KSY's line-fit function at m = -mu/(4 vnorm): the sign of mu that unwinds arg q(l) is the teleporting sign. v6 prints C(mu) from q(l)
@@ -25,7 +27,8 @@
    COST: the transform is D^2 log D additions and 3 D^2 products per operator and time, under 0.1 percent of a protocol point; the state A
    of the first operator is the one K already holds; each further operator costs two products (and the state check four more).
    Command line (v5's, plus): wind=0|1|2 (0 off; 1 the pair's two operators, the default; 2 all operators) windcheck=0|1.
-       whsyk6 N=14 seeds=1 beta=4 mu=-12,12 dt=0.4 t=7,10 wind=1 windcheck=1     (t = 2.8 and 4.0, KSY's times)
+       whsyk6 N=14 seeds=1 beta=4 mu=-12,12 dt=2.8 t=1 wind=1 windcheck=1     (KSY's t = 2.8; their t = 4.0 by dt=1 t=4: the pool
+       holds W(1..6), so t = 2.8 cannot be reached as seven steps of 0.4)
    THE LAYOUT (v5): one static pool of 17 matrices (68 MB at D = 512), carved by use: W_L(1..6), E_L, PsiI, T, WG, WX, Z_00..Z_11, XS[0..1];
    the winding uses Z_01 (A of the first operator, K's state), Z_10 (A of the others), XS[0] (O'), and with windcheck Z_00/XS[1] (B), Z_11
    (e^{i mu V} A). No right-hand operator is stored (mmul modes 2 and 3 read the left one through the exact re-indexing). */
@@ -456,7 +459,7 @@ static void wind_transform(c60 Op[MAXD][MAXD], int check, s128 Qre[], s128 Qim[]
         for (uint32_t z = 0; z < (uint32_t)D; z++) {
             int64_t tr = fre[z], ti = fim[z];
             switch (pop32(x & z) & 3) { case 1: { const int64_t t = tr; tr = -ti; ti = t; } break; case 2: tr = -tr; ti = -ti; break; case 3: { const int64_t t = tr; tr = ti; ti = -t; } break; default: break; }
-            if (evenx) { const int64_t a = tr < 0 ? -tr : tr, b = ti < 0 ? -ti : ti; if (a > *even_max) *even_max = a; if (b > *even_max) *even_max = b; continue; }
+            if (evenx) { const int64_t a = tr < 0 ? -tr : tr, b = ti < 0 ? -ti : ti; if (a > *even_max) *even_max = a; if (b > *even_max) *even_max = b; }   /* check mode: these strings are summed into their (even) sizes too */
             const int l = wind_size(x, z);
             s128_addp(&Qre[l], tr, tr); s128_addp(&Qre[l], -ti, ti);
             s128_addp(&Qim[l], tr, ti); s128_addp(&Qim[l], tr, ti);
@@ -492,7 +495,7 @@ static void wind_report(int op, uint64_t seed, int64_t beta60, int tp, int64_t d
         whash64(Pl[l]); whash64(qre[l]); whash64(qim[l]);
     }
     fmt60(wre, S5); fmt60(wim, S6);
-    printf("%s || sum P(l) - 1 = %lld units, even sizes at most %lld units, W = %s %s i%s\n", line, (long long)psum60, (long long)even_sizes, S5, S6,
+    printf("%s || sum P(l) - 1 = %lld units, even sizes (a check only with windcheck=1) at most %lld units, W = %s %s i%s\n", line, (long long)psum60, (long long)even_sizes, S5, S6,
            check ? (even_max ? " -- EVEN-x DIAGONALS NOT ZERO" : ", even-x diagonals exactly 0") : "");
     whash64(psum60); whash64(wre); whash64(wim);
     if (check) {                                               /* B = e^{iHt} g_i^R e^{-iHt} T into XS(1) */

@@ -1,4 +1,9 @@
-/* wh_prof.h (11-11-2026; v2 9:00 PM after the math buddy's review) -- the 2024 warp shell's radial construction (Fuchs et al.,
+/* wh_prof.h (11-11-2026; v2 9:00 PM after the math buddy's review; v3 11-12 1:00 AM) -- the 2024 warp shell's radial construction (Fuchs et al.,
+ * VERSION 3 (11-12, the reviewer's whole file, verified by three builds): two changes against v2 and nothing else. (1) The second derivative's
+ * dr^2 is kept exact in Q.80 as 2 DR^2 (v2 truncated dr^2 to 707 units of 2^-40 where its value is 707.819049, which divided every S''
+ * by a number 0.116 percent too small and lowered every crossing of the shift limit by 3.25e-5: the correction published 12:03 AM).
+ * (2) The mass table's trapezoid is kept exact in Q.80 (M2_) and m is rounded once per node, and da is formed from the exact numerator
+ * (M2_ + 2^41 X) / (2 Dn) rounded once (v2 rounded twice, enough for a false DEC violation at beta0 = 0 on the 61-cell theta grid).
  * arXiv:2405.02709, section 3, and the Warp Factory code metricGet_WarpShellComoving.m / TOVconstDensity.m / alphaNumericSolver.m /
  * compactSigmoid.m) as finite integer sums in Q.40, and the DECLARED metric functions between the grid points. Shared by wh_warp.c.
  *
@@ -92,7 +97,10 @@ static void prof_build(int variant)                   /* variant 0 = HYPOTHETICA
     SQA = sqrtq(ONE - 2 * MT);
     smooth_passes(rho_s, 7159, 4);
     for (int i = 0; i < N; i++) { const q r = (q)i * DR; f_[i] = mulq(mulq(4 * PI, mulq(r, r)), rho_s[i]); }
-    m_[0] = 0; for (int i = 1; i < N; i++) m_[i] = m_[i - 1] + rdiv(mulq(f_[i - 1] + f_[i], DR), 2);
+    static u128 M2_[N];                                                       /* 2 x the mass trapezoid in Q.80, exact (as MT above); m_ rounded once per node */
+    M2_[0].hi = 0; M2_[0].lo = 0; m_[0] = 0;
+    for (int i = 1; i < N; i++) { uint64_t hi, lo; mul128((uint64_t)(f_[i - 1] + f_[i]), (uint64_t)DR, &hi, &lo); u128 t = {hi, lo};
+        M2_[i] = u128_add(M2_[i - 1], t); m_[i] = qround_128_64(M2_[i], 0, (uint64_t)2 << FB); }
     for (int i = 0; i < N; i++) {
         const q r = (q)i * DR; q P = 0;
         if (r < R2 && !(variant && r < R1)) {
@@ -105,7 +113,8 @@ static void prof_build(int variant)                   /* variant 0 = HYPOTHETICA
     da_[0] = 0;
     for (int i = 1; i < N; i++) {
         const q r = (q)i * DR, r2 = mulq(r, r);
-        da_[i] = divq(m_[i] + mulq(mulq(4 * PI, mulq(r2, r)), P_s[i]), r2 - mulq(2 * m_[i], r));
+        { const q X = mulq(mulq(4 * PI, mulq(r2, r)), P_s[i]), Dn = r2 - mulq(2 * m_[i], r);   /* the numerator from the exact M2_: (M2_ + 2^41 X) / (2 Dn), rounded once */
+          u128 xs = {0, (uint64_t)X}; const u128 N2 = u128_add(M2_[i], u128_shl(xs, FB + 1)); da_[i] = qround_128_64(N2, 0, 2 * (uint64_t)Dn); }
     }
     a_[0] = 0; for (int i = 1; i < N; i++) a_[i] = a_[i - 1] + rdiv(mulq(da_[i - 1] + da_[i], DR), 2);
     {
@@ -146,8 +155,8 @@ static void prof_build(int variant)                   /* variant 0 = HYPOTHETICA
         }
         /* spp_i = S'' on interval i = (bp_{i+1} - bp_i) / dr taken from the EXACT sums: ((B2_{i+2} - B2_{i+1}) - (B2_i - B2_{i-1})) ONE^2 / (2 dr^2 K2)
            in two stages: first / K2 with a 128-bit quotient (exact to the remainder), then / (2 dr^2) rounded once */
-        uint64_t d2hi, d2lo; mul128((uint64_t)DR, (uint64_t)DR, &d2hi, &d2lo); const uint64_t dr2 = (d2lo >> FB) | (d2hi << (64 - FB)); /* dr^2 in Q.40 (7.8e14 units) */
-        const uint64_t den2 = 2 * dr2;
+        uint64_t d2hi, d2lo; mul128((uint64_t)DR, (uint64_t)DR, &d2hi, &d2lo); (void)d2hi; /* VERIFY FIX: DR^2 kept in Q.80 (7.78e14, d2hi = 0) */
+        const uint64_t den2 = 2 * d2lo;
         for (int i = 0; i + 1 < N; i++) {
             const int a0 = i - 1 >= 0 ? i - 1 : 0, a1 = i, a2 = i + 1, a3 = i + 2 < N ? i + 2 : N - 1;
             /* dd = (B2[a3] - B2[a2]) - (B2[a1] - B2[a0]) as a signed 128-bit */
@@ -162,7 +171,7 @@ static void prof_build(int variant)                   /* variant 0 = HYPOTHETICA
             /* S''_q = (dd / K2) * ONE / (2 dr2_q), dr2_q = dr^2 in Q.40 units: ONE factor of 2^40 (dd / K2 is the second difference of S in Q.40 units) */
             u128 num = u128_shl(dd, FB);                                      /* dd * ONE: < 2^128 since dd < 2^88 */
             uint64_t rem1; u128 q1 = udiv128_64(num, K2, &rem1);             /* stage 1: / K2, exact to the remainder (relative 1e-16 at most) */
-            spp_[i] = qround_128_64(q1, neg, den2);                           /* stage 2: / (2 dr^2), rounded once */
+            spp_[i] = qround_128_64(u128_shl(q1, FB), neg, den2);  /* VERIFY FIX: q1 2^40 / (2 DR^2) */                           /* stage 2: / (2 dr^2), rounded once */
             if (a0 == a1 || a3 == a2) spp_[i] = 0;                            /* the grid's first and last interval: S is constant there */
         }
         spp_[N - 1] = 0;

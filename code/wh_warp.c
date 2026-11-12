@@ -1,5 +1,16 @@
-/* wh_warp.c (11-11-2026; v2 9:05 PM, after the math buddy's review W1-W10) -- WORMHOLE MATH 3b, part 2: the 2024 warp shell WITH its
- * shift, judged exactly; the shift limit its authors left open.
+/* wh_warp.c (11-11-2026; v2 9:05 PM, after the math buddy's review W1-W10; v3 11-12 1:00 AM) -- WORMHOLE MATH 3b, part 2: the 2024 warp
+ * shell WITH its shift, judged exactly; the shift limit its authors left open.
+ *
+ * VERSION 3 (11-12, 1:00 AM): the reviewer's full fix after its third review of v2 (the 12:03 AM entry), written as whole files by the
+ * reviewer and verified by three independent builds; nothing else changed. (1) wh_prof.h: the second derivative's dr^2 kept exact in Q.80
+ * (v2 truncated it to 707 units, lowering every crossing by 3.25e-5 -- the published correction); (2) wh_prof.h: the mass table's
+ * trapezoid kept exact in Q.80 and m rounded once per node, and da from the exact numerator (v2 rounded twice: a false DEC violation at
+ * beta0 = 0 on the 61-cell theta grid); (3) the floor's near-axis term 0.15/(r^4 sin theta), three times v2's (false NEC cells on fine
+ * theta grids); (4) self-test 4, the S' jump across every interior node, in the chain; (5) the verdict of each cell against that cell's
+ * own floor; (6) no bisection when beta0 = 0 already fails ("none" is printed); (7) a whole-grid re-scan at both ends of the bracket,
+ * confirming it; (8) the cavity and the exterior reported on separate lines, a residual above its floor flagged. The brackets at both
+ * published grids equal those of the dr^2 fix alone to every printed digit; the chains change with the new printed values.
+ * The banner line below still says v2: it names the arithmetic (Q.40 on whq.h v2), not this file's version.
  *
  * Fuchs et al., "Constant velocity physical warp drive solution", Class. Quantum Grav. 41, 095013 (2024), arXiv:2405.02709, section 4: the
  * matter shell of section 3 (wh_prof.h reproduces its construction as integer sums) with a shift vector along x inside it, their eq. (26):
@@ -18,14 +29,17 @@
  * kept as a REFERENCE and the two are compared at off-axis points (printed: must agree to ~1e-11).
  * v2 (W4): the shift's S, S', S'' from the exact kernel sums (wh_prof.h v2): S'' noise one unit of 2^-40, not 4e-4.
  * v2 (W3): A WRITTEN FLOOR under every verdict. The curvature code's rounding envelope, from the review's measurement against 50-digit
- *   evaluations with the axis terms removed, is 2^-40 [0.1/r^4 + 10] plus 2^-40 [2/(r sin theta)] for the 1/f terms; the tables' rounding
- *   enters through a'' = (da_{i+1} - da_i)/dr: one unit of 2^-40 over dr, times u/(8 pi): 3 x 2^-41/(8 pi dr). F = twice the first plus
+ *   evaluations with the axis terms removed, is 2^-40 [0.1/r^4 + 10] plus 2^-40 [0.15/(r^4 sin theta)] for the 1/f terms; the tables' rounding
+ *   enters through a'' = (da_{i+1} - da_i)/dr: one unit of 2^-40 over dr, times u/(8 pi): 3 x 2^-41/(8 pi dr). F = three times the first plus
  *   the second. A margin is VIOLATED only below -F; between -F and 0 it is "within the floor"; vacuum cells (matter exactly zero at both
- *   nodes of the interval) are reported apart, as residuals of the declared object, never as violations (the review: the declared
- *   exterior has an exact NEC of about -4e-10 from the a'' table, independent of beta0).
+ *   nodes of the interval) are reported apart, the cavity and the exterior on separate lines, never as violations, a residual above its
+ *   floor flagged (the review: the declared cavity is exactly flat, so its residual is the program's rounding; the declared exterior has
+ *   an exact NEC of about -4e-10 from the a'' table, independent of beta0).
  * v2 (W10): THE BISECTION resolves the limit: the beta0 list is {0, 0.02, 0.025, 0.03, 0.035, 0.05, 0.1}; from the last pass and the
  *   first failure, 16 halvings over the CANDIDATE cells (every cell whose worst margin at the failing beta0 is below 20 F, plus a 5 x 5
  *   block around the minimum; the count is printed), the verdict at each halving = the minimum over k of (margin_k + F) over them.
+ *   A beta0 fails when any cell is below its own floor; if beta0 = 0 fails there is no bisection; after it the whole grid is re-scanned
+ *   at both ends of the bracket (every cell must pass at the low end, at least one must fail at the high end).
  *   The DEC's |Y| uses a 128-bit norm when |Y| is small (W5 addition).
  * THE FRAME: the Eulerian observer n^mu = -alpha g^{mu t}, alpha = 1/sqrt(-g^{tt}); the triad e1 = d_r / sqrt(B), e2 = d_theta / r,
  * e3 = d_phi / f (g_r theta = 0, so they are orthonormal and normal to n). rho = T(n,n); p_a = -T(n,e_a); P_ab = T(e_a,e_b); p_3 = P_13 = P_23 = 0.
@@ -36,7 +50,8 @@
  * descent in the angles. Values in c^4/(G R2^2) = 3.0256e41 J/m^3 (their 1e39 is 3.3e-3 here).
  * THE SELF-TESTS: (1) beta0 = 0 against the shell's closed form at five radii; (2) flat space with a CONSTANT shift (m = 0, a = 0, S = 1,
  * S' = S'' = 0): every frame component must vanish to the floor; (3) the warped-product code against the v1 four-index reference at
- * off-axis points with beta0 = 0.2.
+ * off-axis points with beta0 = 0.2; (4) the shift table: S' at each node from the interval on its left against S' from the right, at most
+ * one unit of 2^-40.
  * THE LIGHT RAYS (their section 5.1): along the axis a null ray has E (dt/dr)^2 -+ 2 beta (dt/dr) - B = 0, so the ray with the shift
  * crosses the diameter in 2 INT (S - beta)/E dr and the ray against it in 2 INT (S + beta)/E dr, S = sqrt(beta^2 + E B): the difference
  * is 4 INT beta e^{-2a} dr, printed in coordinate time and in the proper time of an emitter at rmax (times e^{a(rmax)}). The paper's
@@ -285,7 +300,7 @@ static q beta_list(int i) { static const int num[7] = {0, 20, 25, 30, 35, 50, 10
 static q floor_at(q r, q s)
 {
     const q r2 = mulq(r, r), r4 = mulq(r2, r2);
-    const q curv = divq(ONE, 10 * r4) + 10 * ONE + divq(2 * ONE, mulq(r, s));     /* 2^-40 [0.1/r^4 + 10 + 2/(r sin theta)] in units of 2^-40 (a Q.40 count) */
+    const q curv = divq(ONE, 10 * r4) + 10 * ONE + divq(divq(15 * ONE, 100 * r4), s);   /* 2^-40 [0.1/r^4 + 10 + 0.15/(r^4 sin theta)] in units of 2^-40 (a Q.40 count); 0.15/(r^4 sin theta) replaces 2/(r sin theta) */
     const q table = divq(3 * ONE, mulq(16 * PI, DR));                            /* 3 x 2^-41 / (8 pi dr) = 3/(16 pi dr) units */
     return 3 * (curv >> FB) + (table >> FB) + 2;                                  /* in Q.40 units (2^-40 each): three times the review's envelope (one vacuum cell at r = 0.1 sat at 1.35 x it with the factor 2), plus the table term, +2 for the margin's own roundings */
 }
@@ -359,6 +374,13 @@ int main(void)
         fmt(worst, A); printf("WHWARP selftest 3 (warped product vs the four-index reference, beta0 = 0.2, five radii x two angles): max |difference| = %s (must be ~1e-11)\n", A);
         hash = fnv(hash, &worst, 8);
     }
+    /* self-test 4: the shift table: S' at each node from the interval on its left (bp_i + S''_i dr) against S' from the right (bp_{i+1}); at most one unit */
+    {
+        q worst = 0;
+        for (int i = 0; i + 2 < N; i++) { q v = bp_[i] + mulq(spp_[i], DR) - bp_[i + 1]; if (v < 0) v = -v; if (v > worst) worst = v; }
+        printf("WHWARP selftest 4 (the shift table at its %d interior nodes: S' from the left, bp_i + S''_i dr, against S' from the right, bp_(i+1)): max |S'_left - S'_right| = %lld units of 2^-40 (must be at most 1)\n", N - 2, (long long)worst);
+        hash = fnv(hash, &worst, 8);
+    }
     /* the light rays along the axis */
     for (int bi = 1; bi < nb; bi++) {
         const q beta0 = beta_list(bi);
@@ -383,30 +405,36 @@ int main(void)
     for (int bi = 0; bi < nb; bi++) {
         const q beta0 = beta_list(bi);
         q gmin[4], gr[4], gth[4], gfl[4]; int gi_[4] = {0, 0, 0, 0}, gj_[4] = {0, 0, 0, 0}; for (int k = 0; k < 4; k++) { gmin[k] = (q)1 << 62; gr[k] = gth[k] = gfl[k] = 0; }
-        q vacres = 0, vacfl = 0; int nvac = 0, nviol[4] = {0, 0, 0, 0};
+        q vacres[2] = {0, 0}, vacfl[2] = {0, 0}; int nvac[2] = {0, 0}, nvabove[2] = {0, 0}, nviol[4] = {0, 0, 0, 0};   /* vacuum cells: [0] the cavity (r < R1), [1] the exterior */
         for (int j = 0; j < nth; j++) {
             const q th = divq(mulq(PI, (2 * (q)j + 1) * ONE), 2 * (q)nth * ONE), c = cosq(th), s = sinq(th);
             for (int ii = 0; ii < nr; ii++) {
                 const int i = i0 + ii * rstride; cell_t *o = &cells[(size_t)ii * nth + j]; eval_cell(i, beta0, c, s, o);
                 wh_mid p; prof_mid(i, &p);
                 for (int k = 0; k < 4; k++) hash = fnv(hash, &o->fine[k], 8);
-                if (o->vac) { nvac++; for (int k = 0; k < 4; k++) { q v = o->fine[k] < 0 ? -o->fine[k] : o->fine[k]; if (v > vacres) { vacres = v; vacfl = o->floor; } } continue; }
+                if (o->vac) { const int e = p.r > R1; int above = 0; nvac[e]++; for (int k = 0; k < 4; k++) { q v = o->fine[k] < 0 ? -o->fine[k] : o->fine[k]; if (v > o->floor) above = 1; if (v > vacres[e]) { vacres[e] = v; vacfl[e] = o->floor; } } nvabove[e] += above; continue; }
                 for (int k = 0; k < 4; k++) { if (o->fine[k] < gmin[k]) { gmin[k] = o->fine[k]; gr[k] = p.r; gth[k] = th; gfl[k] = o->floor; gi_[k] = ii; gj_[k] = j; } if (o->fine[k] < -o->floor) nviol[k]++; }
             }
         }
-        fmt(beta0, A); fmt(vacres, B); fmt(vacfl, C);
-        printf("WHWARP beta0 = %s: %d vacuum cells (the declared matter exactly zero): max |residual| = %s against their floor %s (the declared object's own, not a violation)\n", A, nvac, B, C);
+        fmt(beta0, A);
+        for (int e = 0; e < 2; e++) {
+            fmt(vacres[e], B); fmt(vacfl[e], C);
+            printf("WHWARP beta0 = %s: %d %s vacuum cells (the declared matter exactly zero; %s, not a violation): max |residual| = %s against its floor %s; %d cells above their floor%s\n", A, nvac[e], e ? "exterior" : "cavity",
+                   e ? "outside the shell: the declared exterior's own a'' table residue, independent of beta0, plus the program's rounding" : "inside the shell: the declared object is exactly flat there with a constant shift, so the residual is the program's own rounding",
+                   B, C, nvabove[e], nvabove[e] ? ": FLAGGED, a residual above its floor" : "");
+        }
         int fail = 0;
         for (int k = 0; k < 4; k++) {
             fmt(gmin[k], B); fmt(gfl[k], C); fmt(gr[k], D); fmt(gth[k], E);
-            const char *verdict = gmin[k] < -gfl[k] ? "VIOLATED" : gmin[k] < 0 ? "within the floor" : "holds";
+            const char *verdict = nviol[k] ? "VIOLATED" : gmin[k] < 0 ? "within the floor" : "holds";   /* each cell judged against its own floor */
             printf("WHWARP beta0 = %s: min %s over the matter cells = %s (floor %s) at r = %s, theta = %s: %s (%d cells below the floor)\n", A, kn[k], B, C, D, E, verdict, nviol[k]);
-            if (gmin[k] < -gfl[k] && !fail) { fail = 1; if (firstfail < 0) { firstfail = beta0; ifail = gi_[k]; jfail = gj_[k]; kfail = k; } }
+            if (nviol[k] && !fail) { fail = 1; if (firstfail < 0) { firstfail = beta0; ifail = gi_[k]; jfail = gj_[k]; kfail = k; } }
         }
         if (!fail) lastpass = beta0;
         if (firstfail >= 0) break;
     }
     if (firstfail < 0) { fmt(lastpass, A); printf("WHWARP shift limit: every condition holds on the grid up to beta0 = %s (the last value tried); extend WH_BETAS\n", A); }
+    else if (lastpass < 0) { fmt(firstfail, A); printf("WHWARP shift limit: none: the declared object fails at beta0 = %s, with no shift (%s first, below its floor: the scan line above); no bisection\n", A, kn[kfail]); }
     else {
         /* the candidates: cells whose worst (margin + floor) at the failing beta0 is below 20 floors, plus the 5 x 5 block around the first failure */
         static int cand_i[200000], cand_j[200000]; int nc = 0;
@@ -432,6 +460,26 @@ int main(void)
         fmt(lo, A); fmt(hi, B); fmt(rlim, C); fmt(thlim, D);
         printf("WHWARP shift limit: %s first fails (below its floor) between beta0 = %s and %s, at r = %s, theta = %s; this bracket, the r grid and the floor bound it (the review's resolution: about 1e-6 in beta0 each)\n", kn[klim], A, B, C, D);
         hash = fnv(hash, &lo, 8); hash = fnv(hash, &hi, 8);
+        /* the whole grid re-scanned at both ends of the bracket: every matter cell must pass at lo, and at least one must fail at hi */
+        int nbad[2] = {0, 0}, nmat = 0;
+        for (int e = 0; e < 2; e++) {
+            const q b0 = e ? hi : lo; q worst = (q)1 << 62, rw = 0, thw = 0; int kw = 0;
+            for (int j = 0; j < nth; j++) {
+                const q th = divq(mulq(PI, (2 * (q)j + 1) * ONE), 2 * (q)nth * ONE), c = cosq(th), s = sinq(th);
+                for (int ii = 0; ii < nr; ii++) {
+                    const int i = i0 + ii * rstride; cell_t o; eval_cell(i, b0, c, s, &o); wh_mid p; prof_mid(i, &p);
+                    for (int k = 0; k < 4; k++) hash = fnv(hash, &o.fine[k], 8);
+                    if (o.vac) continue;
+                    int bad = 0; if (!e) nmat++;
+                    for (int k = 0; k < 4; k++) { const q v = o.fine[k] + o.floor; if (v < 0) bad = 1; if (v < worst) { worst = v; kw = k; rw = p.r; thw = th; } }
+                    nbad[e] += bad;
+                }
+            }
+            fmt(b0, A); fmt(worst, B); fmt(rw, C); fmt(thw, D);
+            printf("WHWARP re-scan of the whole grid at the bracket's %s end, beta0 = %s: %d of %d matter cells below their floor (must be %s); min over the cells and the four conditions of (margin + floor) = %s (%s at r = %s, theta = %s)\n",
+                   e ? "high" : "low", A, nbad[e], nmat, e ? "at least 1" : "0", B, kn[kw], C, D);
+        }
+        printf("WHWARP re-scan: the bracket is %s\n", nbad[0] == 0 && nbad[1] > 0 ? "CONFIRMED on the whole grid" : "NOT CONFIRMED on the whole grid");
     }
     free(cells);
     printf("WHWARP: chain %016llx\n", (unsigned long long)hash);
