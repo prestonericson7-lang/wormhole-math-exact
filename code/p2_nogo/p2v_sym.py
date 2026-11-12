@@ -199,4 +199,51 @@ Et = [sp.simplify((Gtu[i, i] + Lam * gt_[i, i] - 8 * sp.pi * G * Tt[i, i]).subs(
 solT = sp.solve([Et[0], Et[2]], [r0, Lam], dict=True)
 out('V9 tube: solutions', solT, '; all residuals:', [[sp.simplify(e.subs(s_)) for e in Et] for s_ in solT])
 
+# ---- V10: where the trace anomaly enters. Generic L = -(1/4) s f(s), s = F^2 ----
+fF = sp.Function('f')
+TG = Tdiag_from_action(lambda s: -s * fF(s) / 4)
+rhoG = sp.simplify(-TG[0]); trG = sp.simplify(sum(TG))
+Xs = q**2 / (2 * rf**4)
+out('V10 generic f: rho - X f(X)/4 =', sp.simplify(rhoG - Xs * fF(Xs) / 4), '; rho contains a derivative of f:', rhoG.has(sp.Derivative) or rhoG.has(sp.Subs))
+out('V10 trace T - X^2 f\'(X) =', sp.simplify(trG - Xs**2 * sp.Subs(sp.Derivative(fF(sp.Symbol('u')), sp.Symbol('u')), sp.Symbol('u'), Xs).doit()))
+lt = sp.Symbol('lambda_t', positive=True)       # ln(L_IR/R5) at the field strength considered
+k5 = R5s / g5s**2
+fX = k5 * lt; fpX = -k5 / (4 * Xs)               # log model: f = k5 (ln(lam/R5) - ln(X)/4), f' = -k5/(4X)
+out('V10 log model: R4/(16 pi G rho_M) = -8 pi G T/(16 pi G rho) =', sp.simplify(-(Xs**2 * fpX) / (2 * Xs * fX / 4)))
+
+# ---- V11: throat AdS2(R_A) x S2(S) with the log-running coupling, 4D effective theory ----
+S, RA = sp.symbols('S R_A', positive=True)
+Gth = Gmix.subs({N: sp.cosh(X / RA)}).subs(rf, S).doit()
+Gth = sp.simplify(Gth)
+rho_t = Xs.subs(rf, S) * fX / 4
+pth_t = rho_t + (Xs.subs(rf, S))**2 * fpX.subs(rf, S) / 2
+eqA = sp.Eq(Gth[0, 0], -8 * sp.pi * G * rho_t)
+eqB = sp.Eq(Gth[2, 2], 8 * sp.pi * G * pth_t)
+out('V11 G^t_t, G^X_X, G^th_th of AdS2 x S2 =', Gth[0, 0], ',', Gth[1, 1], ',', Gth[2, 2])
+solS = sp.solve(eqA, S)
+re_t2 = sp.pi * G * q**2 * k5 * lt               # re^2 = pi G q^2/g4^2 with 1/g4^2 = k5 lambda_t at the throat
+out('V11 S^2 from G^t_t =', [sp.simplify(s_**2) for s_ in solS], '; minus re^2(throat coupling) =', [sp.simplify(s_**2 - re_t2) for s_ in solS])
+solRA = sp.solve(eqB.subs(S, solS[0]), RA)
+out('V11 (S/R_A)^2 =', [sp.simplify(solS[0]**2 / r_**2) for r_ in solRA], '(expect 1 - 1/(2 lambda_t))')
+out('V11 G^X_X - 8 pi G p_X residual:', sp.simplify((Gth[1, 1] + 8 * sp.pi * G * rho_t).subs(S, solS[0])))
+
+# ---- V12: the r* deficit with the running coupling: g(x) = x^2 - 1 - ln(x)/lambda, x = r*/re ----
+xx, lam2 = sp.symbols('x lambda', positive=True)
+gx = xx**2 - 1 - sp.log(xx) / lam2
+out('V12 g(1) =', gx.subs(xx, 1), "; g'(x) =", sp.diff(gx, xx), "; g'(1) =", sp.diff(gx, xx).subs(xx, 1), "; g''(x) =", sp.diff(gx, xx, 2),
+    '-> g > 0 for all x > 1 whenever lambda > 1/2')
+
+# ---- V13: running coupling in the integrated form: extra field mass INT 4 pi r^2 (kappa - 1) re^2/(8 pi G r^4) dr ----
+xs_ = sp.Symbol('x_s', positive=True)            # x* = r*/re >= 1
+dI = sp.simplify(sp.integrate(4 * sp.pi * rr**2 * (sp.log(rr / re) / lam2) * re**2 / (8 * sp.pi * G * rr**4), (rr, re, xs_ * re)))
+out('V13 running adds to the field\'s INT 4 pi r^2 rho dr:', dI, '; times 2 G lambda / re =', sp.simplify(dI * 2 * G * lam2 / re),
+    '(= 1 - (1 + ln x*)/x*, in [0, 1) for x* >= 1, so the extra per half drops by less than re/(2 G lambda))')
+out('V13 check 1 - (1 + ln x)/x at x = 1, 10, 1e8:', [sp.N(1 - (1 + sp.log(v)) / v, 6) for v in [1, 10, sp.Integer(10)**8]])
+
+# ---- V14: the tt - XX equation. G^t_t - G^X_X = (2N/r)(r'/N)' = 8 pi G (T^t_t - T^X_X) = -8 pi G (rho + p_X) ----
+out('V14 G^t_t - G^X_X - (2N/r)(r\'/N)\' =', sp.simplify(Gmix[0, 0] - Gmix[1, 1] - 2 * N / rf * sp.diff(rp / N, X)))
+out('V14 rho + p_X: field const g4 =', sp.simplify(-TMmix[0, 0] + TMmix[1, 1]), '; field running =', sp.simplify(-TR[0] + TR[1]),
+    '; generic f =', sp.simplify(-TG[0] + TG[1]), '; Lambda (T = -Lam g/(8 pi G)) = 0 identically')
+out('V14 so with only the field and Lambda: (r\'/N)\' = 0, r\' = C N with N > 0: r monotonic or constant (the tube)')
+
 print('done in %.1f s' % (time.time() - t0))

@@ -79,6 +79,11 @@ share_need = share_floor * (2 / RS**2) / Dl(RS)
 print('N7 circle length > 2 (X* - X(1.001)) =', s(Lc, 5), 're ; 2D CFT share of the floor 2/r*^2 <=', s(share_floor, 3), '; of the extra needed <=', s(share_need, 3))
 mins = min(Dl(1 + (RS - 1) * mpf(j) / 2000) for j in range(1, 2001))
 print('N7 min extra on a 2000-point grid over (re, r*]:', s(mins, 4))
+for lab, lt in [('ln(re/R5)/2', lnr / 2), ('ln(l_B/R5)', log(lB / R5))]:
+    print('N9 anomaly with %-12s: 1/(2 ln) = %s ; R_A/S - 1 = (1 - 1/(2 ln))^(-1/2) - 1 = %s ; re/(2 ln) = %s m = %s re'
+          % (lab, s(1 / (2 * lt), 4), s((1 - 1 / (2 * lt))**mpf('-0.5') - 1, 5), s(re / (2 * lt), 4), s(1 / (2 * lt), 3)))
+print('N9 MM configuration: r*/re at d = 0.5 ly =', s(rs / re, 4), '; r* - re over re/(2 ln) =', s((rs - re) / (re / (lnr)), 3), 'or more')
+print('N9 flat Casimir pi c2/(6L) at L = re over Me =', s(pi * G4c2 / (6 * re**2), 3), '; MM-form pi c2/(8L) =', s(pi * G4c2 / (8 * re**2), 3))
 for k in [mpf(2), mpf('0.25'), mpf('0.01')]:
     Fk, R3k, Dlk = prof(RS, k)
     print('N8 k = %s: extra at r* over the bound = %s ; r\'\'(r*) = %s ; per side 2G INT = %s'

@@ -25,4 +25,17 @@ V7 ESU: solution {Lambda: a**(-2), rho_d: 1/(4*pi*G*a**2)} ; theta-theta and phi
 V7 slice r = a sin(X/a): 3R = 6/a**2 ; 16 pi G rho_d + 2 Lambda = 6/a**2 ; supply over the floor 2/a^2 = 3 ; lapse 4 pi G rho_d - Lambda = 0
 V8 running: p_X/rho = -1 ; (rho + sum p)/(2 rho) - (1 - 1/(2 ln(L_IR/R5))) = 0
 V9 tube: solutions [{Lambda: 1/(4*r_e**2), r0: sqrt(2)*r_e}] ; all residuals: [[0, 0, 0, 0]]
-done in 10.8 s
+V10 generic f: rho - X f(X)/4 = 0 ; rho contains a derivative of f: False
+V10 trace T - X^2 f'(X) = 0
+V10 log model: R4/(16 pi G rho_M) = -8 pi G T/(16 pi G rho) = 1/(2*lambda_t)
+V11 G^t_t, G^X_X, G^th_th of AdS2 x S2 = -1/S**2 , -1/S**2 , R_A**(-2)
+V11 S^2 from G^t_t = [pi*G*R5*lambda_t*q**2/g5**2] ; minus re^2(throat coupling) = [0]
+V11 (S/R_A)^2 = [(lambda_t - 1/2)/lambda_t, (lambda_t - 1/2)/lambda_t] (expect 1 - 1/(2 lambda_t))
+V11 G^X_X - 8 pi G p_X residual: 0
+V12 g(1) = 0 ; g'(x) = 2*x - 1/(lambda*x) ; g'(1) = 2 - 1/lambda ; g''(x) = 2 + 1/(lambda*x**2) -> g > 0 for all x > 1 whenever lambda > 1/2
+V13 running adds to the field's INT 4 pi r^2 rho dr: r_e*(x_s - log(x_s) - 1)/(2*G*lambda*x_s) ; times 2 G lambda / re = (x_s - log(x_s) - 1)/x_s (= 1 - (1 + ln x*)/x*, in [0, 1) for x* >= 1, so the extra per half drops by less than re/(2 G lambda))
+V13 check 1 - (1 + ln x)/x at x = 1, 10, 1e8: [0, 0.669742, 1.00000]
+V14 G^t_t - G^X_X - (2N/r)(r'/N)' = 0
+V14 rho + p_X: field const g4 = 0 ; field running = 0 ; generic f = 0 ; Lambda (T = -Lam g/(8 pi G)) = 0 identically
+V14 so with only the field and Lambda: (r'/N)' = 0, r' = C N with N > 0: r monotonic or constant (the tube)
+done in 12.9 s
