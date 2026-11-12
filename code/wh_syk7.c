@@ -27,7 +27,7 @@
    at the output (shift 52 + n). FREE CHECKS, printed: the even sizes are exactly 0 (a real check only with windcheck=1, which sums the even-popcount
    diagonals into them; without it an identity, since a string's size has the parity of popcount(x)); SUM_l P(l) - 1 in units; W = SUM_l q(l) (real, t-
    independent); with windcheck=1 the diagonals of even popcount(x) are computed too, must be exactly 0, and feed the even sizes (otherwise
-   skipped). Reviewed line by line by the math helper (1:05 AM): the four functions right; these two text points were its findings.
+   skipped). Reviewed line by line by the reviewer (1:05 AM): the four functions right; these two text points were its findings.
    THE LINK TO THE PROTOCOL (an exact identity): C(mu) = <tfd| psi_r^i(t) e^{i mu V} psi_l^i(-t) |tfd> = -(i/2) e^{-i mu NM/(8 vnorm)}
    SUM_l q(l) e^{i mu l/(4 vnorm)}, because e^{i mu V} multiplies a size-l string by exactly e^{i mu (l - NM/2)/(4 vnorm)}. So 2|C(mu)| is
    KSY's line-fit function at m = -mu/(4 vnorm): the sign of mu that unwinds arg q(l) is the teleporting sign. v6 prints C(mu) from q(l)
