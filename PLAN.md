@@ -222,5 +222,9 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   circle coordinate by a depth coordinate, the principal part h^ab d_a d_b with the reference metric's inverse per point (the weights and
   the row scale formed once), the cross-derivative term over the four diagonal neighbours, red-black with all fields from one state; on a
   manufactured problem with a non-diagonal reference metric the errors fall 3.97x to 4.15x per doubling on every field at Ge = N = 16 to
-  128 (PC build), with and without the cross term and with a lagged coupling. The equations, the reference metric and the data wait on the
+  128 (PC build), with and without the cross term and with a lagged coupling; its production edges pass too (7:29 AM): deviation variables
+  from a reference table that is not a solution, with the reference's own discrete defect optionally subtracted (the zero start then stops
+  at sweep 1), two reflection lines with a parity per field (Neumann for the even fields, zero for the odd), and a Neumann deep end by the
+  mirror ghost, each 4.0x per doubling alone and together. Two more Q.60 ceiling crossings were found in the tests on the way (the cosine
+  past pi/2 and a test curvature of exactly 8), neither in the kernel. The equations, the reference metric and the data wait on the
   reviewer's P1 specification (requested 6:37 AM).
