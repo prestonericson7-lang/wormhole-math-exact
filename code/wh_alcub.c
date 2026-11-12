@@ -1,4 +1,4 @@
-/* wh_alcub.c (11-11-2026) -- WORMHOLE MATH 3a: the Alcubierre negative-energy integral, exact.
+/* wh_alcub.c (11-11-2026; v2 on whq.h) -- WORMHOLE MATH 3a: the Alcubierre negative-energy integral, exact.
  *
  * Bobrick & Martire, "Introducing physical warp drives", arXiv:2102.06824 (Class. Quantum Grav. 38, 105009, 2021), in G = c = 1 units:
  *   eq. (3)    T^00 = -(1/8pi) (rho^2 v^2 / 4 r^2) f'(r)^2          (negative wherever f' != 0)
@@ -15,66 +15,12 @@
  *   the 2D check J(a) = INT_0^{4/a} dx INT_0^4 rho (df/drho)^2 drho for a = 1, 2, 8 (df/drho = f'(r) rho / r), which must give J(a) a = J(1)
  *   and J(1) = (2/3) I (their E = -(v^2/16) INT dx INT rho drho (df/drho)^2 over all x equals -(v^2/12) I, so the half space gives 2/3 I).
  *
- * EXACT: every quantity an int64 in Q.28 (28 fractional bits); products by mulq() (a 64x64 -> 64 product in two halves, round to nearest);
- * exp by range reduction on ln 2 and a 24-term Taylor series; sqrt by integer Newton (floor); Simpson's rule with N = 2^14 intervals on
- * [0, 4] (h = 2^-12 exactly) in 1D and 2^10 x 2^10 in 2D (steps 2^-8, 2^-9, 2^-11 by 2^-8, all exact powers of two, so every product by a
- * step is a shift). No floating point anywhere, no libm: the same bits on every machine and every run. The result IS the printed digits.
- * Build:  cc -O2 -std=gnu11 -o whalcub wh_alcub.c
+ * EXACT: the Q.40 arithmetic of whq.h (int64 with 128-bit intermediates, products and divisions rounded to nearest, exp by ln2 reduction
+ * and 24 Taylor terms, sqrt exact to the floor). Simpson's rule with N = 2^14 intervals on [0, 4] (h = 2^-12 exactly) in 1D and 2^10 x 2^10
+ * in 2D (steps 2^-8, 2^-9, 2^-11 by 2^-8, all powers of two, so every product by a step is a shift); the 1D sums in a 128-bit accumulator.
+ * Build:  cc -O2 -std=gnu11 -o whalcub wh_alcub.c      (whq.h beside it)
  */
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#define FB 28
-#define ONE ((int64_t)1 << FB)
-#define HALF ((int64_t)1 << (FB - 1))
-#define MASK (ONE - 1)
-typedef int64_t q;
-
-static q mulq(q a, q b)                               /* round(a*b / 2^FB) to nearest (half up), exact in two halves; needs |a| < 2^35 */
-{
-    const q bh = b >> FB, bl = b & MASK;
-    return a * bh + ((a * bl + HALF) >> FB);
-}
-static q divq(q a, q b)                               /* round(a*2^FB / b) to nearest for b > 0; needs |a| < 2^35 */
-{
-    const q n = a << FB;
-    return n >= 0 ? (n + b / 2) / b : -((-n + b / 2) / b);
-}
-static const q LN2 = 186065279;                       /* ln 2 * 2^28 = 186065279.36... */
-static q expq(q x)                                    /* e^x in Q.FB for x in about [-40, 20]: 2^k * e^r, |r| <= ln2/2, Taylor 24 terms */
-{
-    int64_t k = x / LN2;
-    q r = x - k * LN2;
-    if (r > LN2 / 2) { r -= LN2; k++; }
-    if (r < -LN2 / 2) { r += LN2; k--; }
-    q term = ONE, sum = ONE;
-    for (int n = 1; n <= 24; n++) { term = mulq(term, r) / n; sum += term; }
-    if (k >= 34) return (q)1 << 62;
-    if (k <= -62) return 0;
-    if (k >= 0) return sum << k;
-    return sum >> (-k);
-}
-static q sqrtq(q x)                                   /* floor(sqrt(x)) in Q.FB: Newton on the integer sqrt of x*2^FB, from a bit-length guess */
-{
-    if (x <= 0) return 0;
-    uint64_t n = (uint64_t)x << FB;
-    int bits = 0; for (uint64_t t = n; t; t >>= 1) bits++;
-    uint64_t r = (uint64_t)1 << ((bits + 1) / 2);
-    for (int i = 0; i < 64; i++) { uint64_t nr = (r + n / r) >> 1; if (nr >= r) break; r = nr; }
-    while (r * r > n) r--;
-    while ((r + 1) * (r + 1) <= n) r++;
-    return (q)r;
-}
-static void fmt(q v, char *out)                       /* a Q.FB value as a decimal with 9 places, exact (no float) */
-{
-    const int neg = v < 0;
-    uint64_t a = (uint64_t)(neg ? -v : v);
-    uint64_t ip = a >> FB, fp = a & MASK;
-    uint64_t dec = (fp * 1000000000ull) >> FB;
-    sprintf(out, "%s%llu.%09llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dec);
-}
-static uint64_t fnv(uint64_t h, const void *p, size_t n) { const uint8_t *b = p; for (size_t i = 0; i < n; i++) { h ^= b[i]; h *= 0x100000001b3ull; } return h; }
+#include "whq.h"
 
 /* sech^2(x) = 4 e^{-2|x|} / (1 + e^{-2|x|})^2, written so that the exponent is never positive */
 static q sech2(q x)
@@ -98,21 +44,23 @@ static q fprime(q r, q s, q two_tanh_s)
 
 int main(void)
 {
-    char A[40], B[40], C[40], D[40], E[40];
+    char A[48], B[48], C[48], D[48];
     uint64_t hash = 0xcbf29ce484222325ull;
-    printf("WHALCUB: Q.%d fixed point, int64, products rounded to nearest, exp by ln2 reduction + 24 Taylor terms, Simpson N = 2^14 on [0, 4] (1D), 2^10 x 2^10 (2D); R = 1, v = 1\n", FB);
+    printf("WHALCUB: Q.%d fixed point (whq.h), int64 with 128-bit intermediates, round to nearest; exp by ln2 reduction + 24 Taylor terms; Simpson N = 2^14 on [0, 4] (1D), 2^10 x 2^10 (2D); R = 1, v = 1\n", FB);
+    fmt(tanhq(ONE), A); fmt(sech2(0), B); fmt(sech2(ONE), C); fmt(sqrtq(2 * ONE), D);
+    printf("WHALCUB selftest: tanh 1 = %s (0.761594155956), sech^2 0 = %s (1), sech^2 1 = %s (0.419974341614), sqrt2 = %s (1.414213562373)\n", A, B, C, D);
 
     /* the optimal wall over [1, 4]: INT 1/r^2 dr = 1 - 1/4 exactly; the tail to infinity is 1/4 */
     {
-        const int N = 1 << 14; const q h = (3 * ONE) / N;            /* 3/16384 is not a power of two: the step is this integer, declared */
-        q sum = 0;
+        const int N = 1 << 14; const q h = (3 * ONE) / N;            /* 3 * 2^26 exactly */
+        acc128 sum = {0, 0};
         for (int i = 0; i <= N; i++) {
             const q r = ONE + (q)i * h;
             const q t = divq(ONE, mulq(r, r));                         /* r^2 (r0/r^2)^2 = 1/r^2 */
             const int w = (i == 0 || i == N) ? 1 : (i & 1) ? 4 : 2;
-            sum += w * t;
+            acc_add(&sum, (uint64_t)(w * t));
         }
-        const q I = sum >> 14;                                          /* sum * h / 3 with h = 3 * 2^14 in Q.28: (sum * 3 * 2^14 / 3) >> 28 = sum >> 14, exact */
+        const q I = (q)acc_shr(&sum, 14);                               /* sum h / 3 = sum 3 2^26 / (3 2^40) = sum >> 14, exact */
         fmt(I, A); fmt(ONE - ONE / 4, B);
         printf("WHALCUB optimal wall f = min(1/r, 1): Simpson INT_1^4 r^2 f'^2 dr = %s (exact 1 - 1/4 = %s; the tail INT_4^inf = 1/4; so I_opt = 1 exactly)\n", A, B);
     }
@@ -124,16 +72,16 @@ int main(void)
     for (int si = 0; si < 7; si++) {
         const q s = (q)SV[si] * ONE, tt = 2 * tanhq(s);
         const int N = 1 << 14; const q h = ONE >> 12;                 /* 4 / 2^14 = 2^-12 exactly */
-        q sum = 0;
+        acc128 sum = {0, 0};
         for (int i = 0; i <= N; i++) {
             const q r = (q)i * h;
             const q g = mulq(r, fprime(r, s, tt));                     /* r f' , |g| <= 32 */
             const q t = mulq(g, g);                                    /* r^2 f'^2 <= 1024 */
             const int w = (i == 0 || i == N) ? 1 : (i & 1) ? 4 : 2;
-            sum += w * t;
+            acc_add(&sum, (uint64_t)(w * t));
             hash = fnv(hash, &t, 8);
         }
-        const q I = (sum >> 12) / 3;                                   /* sum * h / 3 with h = 2^-12: a shift, then the division */
+        const q I = rdiv((q)acc_shr(&sum, 12), 3);                     /* sum h / 3 with h = 2^-12: a shift, then the rounded division */
         Ival[si] = I;
         const q third = s / 3, rem = mulq(s, I - third);
         fmt(I, A); fmt(I, B); fmt(third, C); fmt(rem, D);
@@ -149,11 +97,11 @@ int main(void)
         printf("WHALCUB flattening (sR = 8): a | J(a) | a J(a) | J(1) | (2/3) I(8)\n");
         for (int ai = 0; ai < 3; ai++) {
             const q hx = ONE >> SH[ai], hr = ONE >> 8;
-            int64_t S = 0;                                              /* sum of wi wj rho (df/drho)^2, in Q.28 units: < 2^60 */
+            acc128 S = {0, 0};                                          /* sum of wi (sum of wj rho (df/drho)^2 >> 8) */
             for (int i = 0; i <= N; i++) {
                 const q x = (q)i * hx, ax = (q)AV[ai] * x;
                 const int wi = (i == 0 || i == N) ? 1 : (i & 1) ? 4 : 2;
-                int64_t Sr = 0;
+                acc128 Sr = {0, 0};
                 for (int j = 0; j <= N; j++) {
                     const q rho = (q)j * hr;
                     q t = 0;
@@ -165,18 +113,18 @@ int main(void)
                         t = mulq(rho, mulq(dfr, dfr));                    /* rho (df/drho)^2 <= 4 * 16 */
                     }
                     const int wj = (j == 0 || j == N) ? 1 : (j & 1) ? 4 : 2;
-                    Sr += wj * t;
+                    acc_add(&Sr, (uint64_t)(wj * t));
                 }
-                S += wi * (Sr >> 8);                                    /* times hrho = 2^-8 */
-                hash = fnv(hash, &Sr, 8);
+                const uint64_t row = acc_shr(&Sr, 8);                   /* times hrho = 2^-8 */
+                acc_add(&S, (uint64_t)wi * row);
+                hash = fnv(hash, &row, 8);
             }
-            const q J = (S >> SH[ai]) / 9;                              /* times hx, over 9 */
+            const q J = rdiv((q)acc_shr(&S, SH[ai]), 9);                /* times hx, over 9 */
             if (ai == 0) J1 = J;
-            fmt(J, A); fmt(J * AV[ai], B); fmt(J1, C); fmt((2 * Ival[2]) / 3, D);
+            fmt(J, A); fmt(J * AV[ai], B); fmt(J1, C); fmt(rdiv(2 * Ival[2], 3), D);
             printf("WHALCUB flattening (sR = 8): %d | %s | %s | %s | %s\n", AV[ai], A, B, C, D);
         }
     }
-    (void)E;
     printf("WHALCUB: chain %016llx\n", (unsigned long long)hash);
     printf("WHALCUB: SI: E = -(v^2/12) I R c^4/G with c = 299792458 m/s exactly and G = 6.67430e-11 m^3 kg^-1 s^-2 (CODATA 2018): c^4/G = 1.2104e44 J per meter of I R\n");
     printf("WHALCUB: done\n");

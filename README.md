@@ -11,8 +11,8 @@ every result reproducible bit for bit on any machine.
 
 ## Why exact
 
-Every program here uses only 64-bit integers in a declared fixed-point format (for example Q.28: 28 fractional bits). No floating
-point, no math library. Exponentials come from a range reduction on ln 2 and a Taylor series with a declared number of terms; square
+Every program here uses only 64-bit integers in a declared fixed-point format (Q.40: 40 fractional bits, with 128-bit intermediates
+built from 32-bit halves; `code/whq.h`). No floating point, no math library. Exponentials come from a range reduction on ln 2 and a Taylor series with a declared number of terms; square
 roots from integer Newton iteration; differential equations from a fixed-step Runge-Kutta scheme. The same source compiled anywhere
 prints the same digits, so a result is a fact about the equations, not about one machine's rounding. We run every program on two
 separate ARM boards and require the two outputs to agree line for line before a result is written down. Error bounds are derived on
