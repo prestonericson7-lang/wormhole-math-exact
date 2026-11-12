@@ -11,8 +11,8 @@
  *
  * XI (added 3:00 AM, the reviewer's definition, checked by it independently): on the flat flow, J(rho) = INT_{-inf}^{rho} e^{2(lambda - sigma)} drho'
  * and Xi = lim_{rho -> inf} [sigma - e^{2(sigma - lambda)} J], invariant under lambda -> lambda + c and under translations in rho: a constant
- * of the flat flow defined by the reviewer; its meaning for the paper's parameters (the reviewer's claim that it fixes the constant inside
- * their eq. 3.24, with kappa_flat = 1/4 - Xi) is under independent verification and is not asserted here. Here J is the fourth integrated variable (the same RK4 and the same carried-remainder update),
+ * of the flat flow defined by the reviewer. It fixes the constant inside Maldacena-Milekhin's eq. (3.24): on their fine-tuned brane
+ * re^2/Q2 = ln(re/S0) + 1/4 - Xi with S0 = (Q2 L^2/6)^(1/4), kappa_flat = 1/4 - Xi = 0.128210970524 (verified 3:37 AM by four routes). Here J is the fourth integrated variable (the same RK4 and the same carried-remainder update),
  * started on the IR tail J(rho0) = e^{2(lambda0 - sigma0)}/(2 sqrt3) (the next correction is below a unit at x = 2^-10), in the gauge
  * lambda + 10, chosen because e^{2(lambda - sigma)} is 1e-12 to 2e-9 along the flow, below Q.40's resolution, while in the shifted gauge
  * the integrand and J are of order one; the shift cancels exactly in sigma - e^{2(sigma - lambda)} J. The three flow variables are
