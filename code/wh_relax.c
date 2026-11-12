@@ -42,7 +42,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "whq.h"
-#include "../par2.h"                           /* v3 (11:47 PM): the second A9 core takes half the rows of every sweep and of every residual pass;
+#include "par2.h"                           /* v3 (11:47 PM): the second A9 core takes half the rows of every sweep and of every residual pass;
                                                   without it (the PC, or a machine with one core) both halves run here: the same bits */
 
 #define MAXG 1024

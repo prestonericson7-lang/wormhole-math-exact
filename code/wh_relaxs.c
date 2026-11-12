@@ -34,7 +34,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "whq.h"
-#include "../par2.h"
+#include "par2.h"
 
 #define MAXG 512
 #define NF 3
