@@ -182,4 +182,11 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   and verified ahead of the equations: `code/wh_relax.c`, a Q.60 red-black SOR with 128-bit residuals, tested on Poisson with an exact
   quartic solution (for which the five-point Laplacian is exact): the residual reaches its rounding floor, a few G^2 units of 2^-60, in
   about 6 G sweeps as the spectral radius predicts, and the solution is within 4e-17, 6e-16 and 8e-15 of exact at G = 32, 128 and 512
-  (PC build); the pair runs it tonight for bit-equality.
+  (PC build); the pair runs it tonight for bit-equality. Stage 1 (11-12, 1:18 AM, verified in nearly all of it by the reviewer's second builder): only
+  the rotationally symmetric reductions are well-posed two-dimensional problems (the paper's flat-space pair has axial symmetry only and needs
+  three coordinates and a strut); the paper's fine-tuned circle of mouths has no static solution without extra positive energy on the brane;
+  the order chosen: the solver test, then the throat on the brane (an ODE), then the paper's own rotationally symmetric example with antipodal
+  mouths, which it called findable numerically. The kernel is at version 4: a Robin boundary option eliminated into the first interior row
+  and grids stretched toward a boundary with exact integer stencil weights, both landing on the known solution to tens of units of 2^-60;
+  an adaptive relaxation parameter was tried and dropped (it misreads SOR's early transient). The pair ran version 3 at G = 128 and 256
+  and the nonlinear G = 128 (12:28-12:32 AM, chains equal to the PC's) and runs version 4 tonight.
