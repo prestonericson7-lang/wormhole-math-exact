@@ -9,6 +9,16 @@
  * flat 24d2f870a2abea59, sphere 85a3df31c75d8935. model=decay is y' = -y from y(0) = 1 to t = 8: the integrator's global error at h = 2^-12 is
  * below a unit of 2^-40, so y(8) must equal the header's expq(-8) to a few units (a check of the frame that owes nothing to the flow).
  *
+ * XI (added 3:00 AM, the reviewer's definition, checked by it independently): on the flat flow, J(rho) = INT_{-inf}^{rho} e^{2(lambda - sigma)} drho'
+ * and Xi = lim_{rho -> inf} [sigma - e^{2(sigma - lambda)} J], invariant under lambda -> lambda + c and under translations in rho: a constant
+ * of the flat flow defined by the reviewer; its meaning for the paper's parameters (the reviewer's claim that it fixes the constant inside
+ * their eq. 3.24, with kappa_flat = 1/4 - Xi) is under independent verification and is not asserted here. Here J is the fourth integrated variable (the same RK4 and the same carried-remainder update),
+ * started on the IR tail J(rho0) = e^{2(lambda0 - sigma0)}/(2 sqrt3) (the next correction is below a unit at x = 2^-10), in the gauge
+ * lambda + 10, chosen because e^{2(lambda - sigma)} is 1e-12 to 2e-9 along the flow, below Q.40's resolution, while in the shifted gauge
+ * the integrand and J are of order one; the shift cancels exactly in sigma - e^{2(sigma - lambda)} J. The three flow variables are
+ * untouched (J feeds nothing back), so the flat chain stays 24d2f870a2abea59; J has its own chain. The reviewer's 30-digit value:
+ * Xi = 0.121789029475803; at the stop (sigma about 16, the product about 15.9) two digits cancel, and the integration carries the K's
+ * rounding, so the Q.40 acceptance is within 5e-11; twelve digits need the flow in Q.60.
  * Usage: whode model=flow|decay [h=12]      (the step is 2^-h; h = 12 is the flow's)
  * Build: cc -O2 -std=gnu11 -o whode wh_ode.c      (whq.h beside it) */
 #include <stdio.h>
@@ -55,9 +65,11 @@ static q spp(q s, q sp, int sphere)
     const q lp = Lprime(s, sp, sphere);
     return 4 * ONE + e2 - 4 * e4 - 2 * mulq(lp, sp) - 2 * mulq(sp, sp);
 }
-static void flow_rhs(const q *y, q *dy, int sphere)   /* y = (sigma, sigma', lambda) */
+#define XI_SHIFT (10 * ONE)                              /* the gauge shift of lambda for J's integrand (Xi is invariant under it) */
+static void flow_rhs(const q *y, q *dy, int sphere)   /* y = (sigma, sigma', lambda, J) */
 {
     dy[0] = y[1]; dy[1] = spp(y[0], y[1], sphere); dy[2] = Lprime(y[0], y[1], sphere);
+    dy[3] = expq(2 * (y[2] + XI_SHIFT - y[0]));         /* J' = e^{2(lambda - sigma)} in the shifted gauge */
 }
 static const q START[2][3] = { { 1072463084LL, 2813843829LL, -15236010697140LL }, { -67469346530LL, 3031326166LL, -15938931920661LL } };
 static const q GAMMA[2][2] = { { -5894808496714LL, 4315299320483LL }, { -6103177591682LL, 4955530204813LL } };
@@ -78,22 +90,34 @@ int main(int argc, char **argv)
     printf("WHODE: Q.%d fixed point (int64, 128-bit intermediates, round to nearest); RK4 with the step 2^-%d, each component's update rounded once with its remainder carried; model = %s\n", FB, HS, model);
     if (!strcmp(model, "flow")) {
         for (int sphere = 0; sphere < 2; sphere++) {
-            uint64_t hash = 0xcbf29ce484222325ull;
-            q y[3] = { START[sphere][0], START[sphere][1], START[sphere][2] }, rho = -8 * ONE;
+            uint64_t hash = 0xcbf29ce484222325ull, jhash = 0xcbf29ce484222325ull;
+            const q sqrt3 = sqrtq(3 * ONE);
+            q y[4] = { START[sphere][0], START[sphere][1], START[sphere][2], 0 }, rho = -8 * ONE;
+            y[3] = 141633791LL;                      /* J0 in the gauge lambda + 10 at the v3 start: THE EXACT TAIL, the reviewer's 32-digit value
+                                                       0.00012881518243246204588 as a Q.40 integer (3:08 AM; its manifold point at rho = -8 reproduces
+                                                       the START integers digit for digit). The leading tail e^{2(l + 10 - s)}/(2 sqrt3) is 1.82e-7 low
+                                                       (Xi came out 1.7e-7 high with it), and the first-order series with the amplitude 2^-10 instead
+                                                       of sigma0 left 2.1e-10; the exact integer ends the question. */
             memset(REM, 0, sizeof REM);
             const char *name = sphere ? "sphere" : "flat";
             fmt(y[0], a); fmt(y[1], b); fmt(y[2], c);
             printf("WHODE %s: start on the unstable manifold at rho = -8: sigma = %s, sigma' = %s, lambda = %s\n", name, a, b, c);
             int steps = 0;
             while (rho < 12 * ONE) {
-                rk4v(y, 3, h, flow_rhs, sphere);
-                hash = fnv(hash, &y[0], 8); hash = fnv(hash, &y[1], 8); hash = fnv(hash, &y[2], 8);
+                rk4v(y, 4, h, flow_rhs, sphere);
+                hash = fnv(hash, &y[0], 8); hash = fnv(hash, &y[1], 8); hash = fnv(hash, &y[2], 8); jhash = fnv(jhash, &y[3], 8);
                 rho += h; steps++;
                 if (y[0] > 16 * ONE) break;
             }
             fmt(rho, a); fmt(y[1], b); fmt(Lprime(y[0], y[1], sphere), c); fmt(y[0] - rho, d); fmt(y[2] - rho, e); fmt(y[2] - y[0], f);
             printf("WHODE %s: END at rho = %s after %d steps: sigma' = %s (UV: 1), lambda' = %s (UV: 1), sigma - rho = %s, lambda - rho = %s, lambda - sigma = %s; chain %016llx (wh_flow.c v3: %s)\n",
                    name, a, steps, b, c, d, e, f, (unsigned long long)hash, sphere ? "85a3df31c75d8935" : "24d2f870a2abea59");
+            if (!sphere) {
+                const q xi = y[0] - mulq(expq(2 * (y[0] - y[2] - XI_SHIFT)), y[3]);
+                fmt(xi, a); fmt(y[3], b); fmt((ONE / 4) - xi, c);
+                printf("WHODE flat: Xi = sigma - e^{2(sigma - lambda)} J = %s (the reviewer's 30-digit value 0.121789029475803; Q.40 acceptance 5e-11), J (gauge lambda + 10) = %s, kappa_flat = 1/4 - Xi = %s; J's chain %016llx\n",
+                       a, b, c, (unsigned long long)jhash);
+            }
             fmt(y[0] - rho + GAMMA[sphere][0], a); fmt(y[2] - rho + GAMMA[sphere][1], b);
             printf("WHODE %s: invariants K_sigma = %s (%s), K_lambda = %s (%s)\n", name, a, sphere ? "0.377362726342" : "0.407800114190", b, sphere ? "-0.297030895775" : "-0.271699935370");
         }
