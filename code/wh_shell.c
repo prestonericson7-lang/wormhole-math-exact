@@ -14,8 +14,12 @@
  *   1. r_i = i dr, i = 0..N-1, N = 100000, dr = rmax/(N-1), rmax = 1.2 sqrt(29.9^2 + 29.9^2 + 0.4^2) m / 20 m = 2.537212643828 (their grid).
  *   2. rho_i = 1/(7 pi) for R1 < r_i < R2 (strict, as their code), else 0.
  *   3. P_i = TOVconstDensity's closed form with the total mass, for r_i < R2:  P/rho = [sqrt(2/3) - sqrt(1 - r^2/3)] / [sqrt(1 - r^2/3) - 3 sqrt(2/3)]
- *      variant CODE : for every r_i < 1 (what metricGet_WarpShellComoving.m does: nothing zeroes it inside R1);
- *      variant PAPER: additionally P_i = 0 for r_i < R1 (the paper's step (ii): "this pressure is set to zero for r < R1 to enforce a vacuum interior").
+ *      variant AS PUBLISHED: P_i = 0 for r_i < R1 -- the paper's step (ii) ("this pressure is set to zero for r < R1 to enforce a vacuum
+ *                            interior") AND what the public code does: TOVconstDensity.m multiplies by the step density array, which is zero
+ *                            for r <= R1 (the math buddy read the file, 11-11 7:05 PM; v1 of this comment misread it as keeping the pressure);
+ *      variant HYPOTHETICAL: P_i kept for every r_i < 1 (neither the paper nor its code: kept only to show what the cavity pressure does).
+ *      KNOWN DEVIATION (v2 will fix): TOVconstDensity uses M(end), the cumulative trapezoid of the UNSMOOTHED step density, not the exact
+ *      1/6 used here (the sqrt(1 - r^2/3) form): about 4e-5 relative in the pressure (ESTIMATE, the buddy's).
  *   4. MATLAB smooth(y, span) = the centred moving average with span rounded down to odd and symmetric shrinking windows at the ends
  *      (y~_i = mean of y_j over |j - i| <= w_i, w_i = min(w, i, N-1-i)); FOUR passes; density span 7159 (1.79 x 4000 as the code), pressure
  *      span 3999 (4000); each mean rounded to nearest in Q.40.
@@ -80,7 +84,7 @@ int main(void)
 
     uint64_t hash = 0xcbf29ce484222325ull;
     for (int var = 0; var < 2; var++) {
-        const char *name = var ? "PAPER (P = 0 inside R1)" : "CODE (P kept inside R1)";
+        const char *name = var ? "AS-PUBLISHED (P = 0 inside R1: the paper and its code)" : "HYPOTHETICAL (P kept inside R1: neither)";
         /* the pressure */
         for (int i = 0; i < N; i++) {
             const q r = (q)i * dr; q P = 0;
@@ -127,7 +131,7 @@ int main(void)
             const q marg[6] = { rhoT + Pr, rhoT + Pt, rhoT, rhoT + Pr + 2 * Pt, rhoT - absPr, rhoT - absPt };
             const int g = r < R1 ? 0 : (r <= R2 ? 1 : 2);
             for (int k = 0; k < 6; k++) upd(&mn[g][k], marg[k], r);
-            if (var && i < 5000 && absPr > maxres_cav) maxres_cav = absPr;                     /* deep cavity r < 0.127: vacuum in the PAPER variant */
+            if (var && i < 5000 && absPr > maxres_cav) maxres_cav = absPr;                     /* deep cavity r < 0.127: vacuum in the AS-PUBLISHED variant */
             if (i > 60000 && (absPr > maxres_ext || absPt > maxres_ext)) maxres_ext = absPr > absPt ? absPr : absPt;   /* r > 1.52: Schwarzschild vacuum */
             hash = fnv(hash, &rhoT, 8); hash = fnv(hash, &Pr, 8); hash = fnv(hash, &Pt, 8);
             const int bin = (int)((r * 20) >> FB);                                           /* every 0.05 */
@@ -146,7 +150,7 @@ int main(void)
             printf("WHSHELL %s: min over the %s of %s = %s at r = %s %s\n", name, gn[g], kn[k], A, B, mn[g][k].v < 0 ? "VIOLATED" : "holds");
         }
         fmt(maxres_ext, A); fmt(maxres_cav, B);
-        printf("WHSHELL %s: vacuum residuals: max |P_r|, |P_t| for r > 1.52 (Schwarzschild, must be 0) = %s; max |P_r| for r < 0.127 (flat cavity in PAPER, must be 0) = %s\n", name, A, B);
+        printf("WHSHELL %s: vacuum residuals: max |P_r|, |P_t| for r > 1.52 (Schwarzschild, must be 0) = %s; max |P_r| for r < 0.127 (flat cavity AS PUBLISHED, must be 0) = %s\n", name, A, B);
     }
     printf("WHSHELL: chain %016llx\n", (unsigned long long)hash);
     printf("WHSHELL: done\n");

@@ -51,8 +51,10 @@ static uint64_t div128(uint64_t hi, uint64_t lo, uint64_t b, uint64_t *rem)   /*
     }
     *rem = hi; return qt;
 }
-static q divq(q a, q b)
+static q divq(q a, q b)                                 /* a / b rounded to nearest; b of either sign (v2 11-11 7:35 PM: v1 assumed b > 0 and
+                                                           returned a/2^24-sized garbage for b < 0; 1a, 3a and the shell never divided by a negative) */
 {
+    if (b < 0) { a = -a; b = -b; }
     const int neg = a < 0;
     const uint64_t ua = neg ? -(uint64_t)a : (uint64_t)a;
     uint64_t rem;
@@ -96,6 +98,39 @@ static q expq(q x)
     if (k <= -62) return 0;
     if (k >= 0) return sum << k;
     return (sum + ((q)1 << (-k - 1))) >> (-k);
+}
+static const q PI = 3454217652358;                    /* pi * 2^40 = 3454217652357.64 */
+static q lnq(q x)                                     /* ln x for x > 0: x = 2^k y with y in [1, 2); ln y = 2 artanh((y-1)/(y+1)), 30 terms */
+{
+    if (x <= 0) return -((q)1 << 62);
+    int k = 0; q y = x;
+    while (y >= 2 * ONE) { y >>= 1; k++; }
+    while (y < ONE) { y <<= 1; k--; }
+    const q t = divq(y - ONE, y + ONE), t2 = mulq(t, t);
+    q term = t, sum = 0;
+    for (int n = 1; n <= 59; n += 2) { sum += rdiv(term, n); term = mulq(term, t2); }
+    return (q)k * LN2 + 2 * sum;
+}
+static q cosq(q x);
+static q sinq(q x)                                    /* sin x: reduce to [-pi, pi], Taylor to the 21st power (|x|^23/23! < 2^-40 for |x| <= pi) */
+{
+    const q twopi = 2 * PI;
+    q k = x / twopi; x -= k * twopi;
+    if (x > PI) x -= twopi; if (x < -PI) x += twopi;
+    const q x2 = mulq(x, x);
+    q term = x, sum = x;
+    for (int n = 1; n <= 11; n++) { term = -rdiv(mulq(term, x2), (2 * n) * (2 * n + 1)); sum += term; }
+    return sum;
+}
+static q cosq(q x)
+{
+    const q twopi = 2 * PI;
+    q k = x / twopi; x -= k * twopi;
+    if (x > PI) x -= twopi; if (x < -PI) x += twopi;
+    const q x2 = mulq(x, x);
+    q term = ONE, sum = ONE;
+    for (int n = 1; n <= 11; n++) { term = -rdiv(mulq(term, x2), (2 * n - 1) * (2 * n)); sum += term; }
+    return sum;
 }
 static void fmt(q v, char *out)
 {

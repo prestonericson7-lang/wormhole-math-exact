@@ -133,12 +133,26 @@ problems"). What we add is exactness, numbers they left open, and a public check
 not), then 2 (the biggest, a live dispute), then 1b (the research project). Each result is a number others can check, written up with
 its format, its bounds and its seed. None of them builds a door, and each write-up says so in its first line.
 
-## Status (2026-11-11)
+## Status (2026-11-11, updated in the evening)
 
 - 1a: DONE 2026-11-11 4:26 PM, `results/1a_flow.md`: both machines identical, 124 lines; the flow from the throat to AdS5 to 12 places.
 - 3a: DONE 2026-11-11 4:28 PM, `results/3a_alcubierre.md`: both machines identical, 18 lines; the law I = R sigma/3 + (pi^2-6)/(36 R sigma). Error bound on paper: Simpson truncation below 8e-8 absolute at R sigma = 16 (3e-10 at 4), rounding
   below 8e-8 (each term carries about 20 roundings of 2^-40 on values up to 1024, and the weights integrate to the range 4): I to 7 digits.
-- 3b part 1: `code/wh_shell.c` built (the shell without its shift: the construction as integer sums, the metric declared as the
-  interpolant of the tables, the Einstein tensor closed-form at midpoints, the six energy-condition margins per region, for both the
-  paper's cavity rule and the code's); first run pending. Part 2 (the shift, axisymmetric; the shift limit) is the next program.
-- 2, 1b: planned.
+- 3b part 1: DONE 2026-11-11 7:36 PM, `results/3b_shell.md`: both machines identical, 148 lines; the shell as published passes all four
+  energy conditions (margins 0.014-0.023 inside the matter; zeros to the arithmetic's floor outside); its smoothing raises the mass by
+  1.9 percent and spreads the matter to 2.7-27 m. (The plan's earlier line calling the pressure-kept cavity "the code's variant" was a
+  misreading of Warp Factory's `TOVconstDensity.m`, which multiplies by the step density: the code zeroes the cavity pressure as the paper
+  does. The pressure-kept case is kept as HYPOTHETICAL.) Part 2 (`wh_warp.c`, the shift, axisymmetric; the shift limit) is written and
+  did NOT pass review: a division guard in the shared arithmetic (fixed in `whq.h` v2), a rounding floor on the sign tests, the cells
+  next to the axis, and a self-test with a constant shift are needed before its first run. The review confirmed its general relativity
+  (the Ricci convention, the Eulerian frame, the four margins) against an independent derivation.
+- 4a: DONE 2026-11-11 7:39 PM, `results/4a_casimir.md`: both machines identical, 20 lines; the lattice law 1 + 2.1/N^2 toward the
+  continuum coefficient pi^2/1440 for one scalar (the first draft of the program used the electromagnetic pi^2/720: corrected in review
+  before the run).
+- 2: FIRST RUN DONE 2026-11-11 7:46 PM, `results/2_syk.md`: the full q = 4 SYK protocol exact at N = 8 over three seeds, both signs of
+  the coupling and mu = 0 (the exact zero), and the 2022 experiment's five-term model at its own parameters; both machines identical,
+  64 + 8 lines; a double-precision cross-check agrees to 1e-11. Next: N = 10-14 (a factorized evolution for the larger N), the
+  size-winding signature, the N-dependence of the sign asymmetry.
+- 1a: a review note added to `results/1a_flow.md` (a rounding bias of 4-7e-8 on the UV constants from ties-away rounding, the sphere
+  flow's starting mode, the gauge invariants to publish); v3 of `wh_flow.c` to follow.
+- 1b: planned.
