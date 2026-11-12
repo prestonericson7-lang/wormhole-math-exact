@@ -59,7 +59,7 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
 - `results/`: each result as a page with the numbers, the error bound on paper, the comparison with the paper it checks, the program's md5,
   the chain, and the two machines' agreement line, plus the raw output of one machine.
 - `code/`: the programs, all on `whq.h`, the fixed-point header (Q.40 and Q.60, 128-bit intermediates). By computation:
-  - 1a, the Maldacena-Milekhin flow: `wh_flow.c`.
+  - 1a, the Maldacena-Milekhin flow: `wh_flow.c` (Q.40) and `wh_flow60.c` (the same in a 56-bit format on `whq60.h`, twelve digits).
   - 1b, the patched five-dimensional geometry: the solver kernels built ahead of the equations, each verified on a problem with a known
     answer: `wh_relax.c` (one field: red-black SOR, a Robin boundary option, grids stretched toward a boundary with exact integer weights),
     `wh_relaxs.c` (several coupled nonlinear fields, a Newton step over the local Jacobian block, including the regime where a lagged
@@ -83,7 +83,9 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
 
 - **1a, the Maldacena-Milekhin flow** (`results/1a_flow.md`): their eq. (3.19) and (A.30) integrated exactly from the AdS3 x R2 throat
   to AdS5, their Figure 3 as a table; then, after review, a third version with one rounding per step, each flow on its own unstable
-  manifold, and the gauge invariants, which agree with an independent 40-digit integration to 2.5e-11.
+  manifold, and the gauge invariants, which agree with an independent 40-digit integration to 2.5e-11; then a fourth version in a
+  56-bit format that carries the invariants to fourteen digits and prints a new gauge-invariant constant of the flat flow, Xi =
+  0.121789029475802, whose meaning for the paper's parameters is under the reviewer's verification.
 - **3a, the Alcubierre negative-energy integral** (`results/3a_alcubierre.md`): the exact integral for seven wall thicknesses and the law
   behind "a factor of about three": I = R sigma / 3 + (pi^2 - 6)/(36 R sigma) plus exponentially small terms.
 - **3b, the 2024 warp shell** (`results/3b_shell.md`, `results/3b_warp.md`): the construction reproduced as integer sums, its four energy

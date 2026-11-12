@@ -5,9 +5,12 @@
  * nearest; the exponentials e^{-4 sigma}, e^{-2 sigma} and e^{2(lambda - sigma)} come from whq60.h's exp60n (ln 2 reduction, Taylor to a
  * unit of 2^-60, an integer-plus-fraction entry since the exponents reach -64) and are rounded once to Q.56; the square root in Lprime is the
  * 128-bit digit-by-digit root of the Q.112 radicand; RK4 with the step 2^-12, each component's update h (k1 + 2 k2 + 2 k3 + k4)/6 formed in
- * 128 bits and rounded once with its remainder carried (wh_flow.c v3's rule). The start: wh_flow.c v3's manifold integers at rho = -8
- * (Q.40, the review's) scaled to Q.56, and J's exact tail integer (the review's, 3:08 AM) likewise, until the review supplies Q.56-exact ones;
- * with the Q.40-exact start the K's inherit its 2^-40 error, Xi (translation- and gauge-invariant) does not.
+ * 128 bits and rounded once with its remainder carried (wh_flow.c v3's rule). The flat flow's start (3:14 AM): the reviewer's exact
+ * manifold point at rho = -8 (x = 2^-10) as Q.56 integers, and J's exact tail likewise, with the gauge constants in their closed forms
+ * Gamma_sigma = -8 + 10 ln2/k and Gamma_lambda = (1 - sqrt3) Gamma_sigma as Q.56 integers (mpmath at 45 digits, the constraint residual
+ * 1e-45); the sphere flow keeps v3's Q.40 start and constants scaled (its invariants already print to twelve digits). With the Q.40 start
+ * the flat invariants came out to eleven and twelve digits (3:10 AM, the start's error being a translation of the flow); with the exact
+ * start they are printed to fifteen decimals against the reviewer's thirty.
  * ACCEPTANCE: the review's 30-digit values K_sigma = 0.4078001141903564, K_lambda = -0.2716999353696263 (flat), 0.377362726342 /
  * -0.297030895775 (sphere), Xi = 0.12178902947580307791; the Q.40 flow's values are reproduced to its ten digits.
  * Usage: whflow60 [h=12]      Build: cc -O2 -std=gnu11 -o whflow60 wh_flow60.c   (whq.h and whq60.h beside it) */
@@ -88,6 +91,18 @@ static void rk4(int64_t *y, int64_t h, int sphere)
 static const int64_t START40[2][3] = { { 1072463084LL, 2813843829LL, -15236010697140LL }, { -67469346530LL, 3031326166LL, -15938931920661LL } };
 static const int64_t J0_40 = 141633791LL;
 static const int64_t GAMMA40[2][2] = { { -5894808496714LL, 4315299320483LL }, { -6103177591682LL, 4955530204813LL } };
+/* the flat flow's exact start and constants in Q.56 (the reviewer's, 3:14 AM): sigma, sigma', lambda_w, J_s (gauge lambda + 10); Gamma_sigma, Gamma_lambda */
+static const int64_t START56F[4] = { 70284940657658LL, 184408069193008LL, -998507197047776383LL, 9282112121640LL };
+static const int64_t GAMMA56F[2] = { -386322169637146599LL, 282807456264633975LL };
+static void fmt56_15(int64_t v, char *out)              /* fifteen decimals of a Q.56 value (2^-56 = 1.4e-17) */
+{
+    int neg = v < 0; uint64_t u = neg ? -(uint64_t)v : (uint64_t)v;
+    uint64_t ip = u >> FS, frac = u & ((((uint64_t)1) << FS) - 1), h, l;
+    mul128(frac, 1000000000000000ull, &h, &l);
+    uint64_t dg = (l >> FS) | (h << (64 - FS)); if ((l >> (FS - 1)) & 1) dg++;
+    if (dg >= 1000000000000000ull) { dg -= 1000000000000000ull; ip++; }
+    sprintf(out, "%s%llu.%015llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dg);
+}
 static void fmt56(int64_t v, char *out)                 /* twelve decimals of a Q.56 value */
 {
     int neg = v < 0; uint64_t u = neg ? -(uint64_t)v : (uint64_t)v;
@@ -108,6 +123,7 @@ int main(int argc, char **argv)
     for (int sphere = 0; sphere < 2; sphere++) {
         uint64_t hash = 0xcbf29ce484222325ull;
         int64_t y[4] = { START40[sphere][0] << 16, START40[sphere][1] << 16, START40[sphere][2] << 16, J0_40 << 16 }, rho = -8 * ONE56;
+        if (!sphere) for (int i = 0; i < 4; i++) y[i] = START56F[i];   /* the exact Q.56 start */
         memset(REM, 0, sizeof REM);
         const char *name = sphere ? "sphere" : "flat";
         int steps = 0;
@@ -120,13 +136,17 @@ int main(int argc, char **argv)
         fmt56(rho, a); fmt56(y[1], b); fmt56(Lprime(y[0], y[1], sphere), c); fmt56(y[0] - rho, d); fmt56(y[2] - rho, e); fmt56(y[2] - y[0], f);
         printf("WHFLOW60 %s: END at rho = %s after %d steps: sigma' = %s (UV: 1), lambda' = %s (UV: 1), sigma - rho = %s, lambda - rho = %s, lambda - sigma = %s; chain %016llx\n",
                name, a, steps, b, c, d, e, f, (unsigned long long)hash);
-        fmt56(y[0] - rho + (GAMMA40[sphere][0] << 16), a); fmt56(y[2] - rho + (GAMMA40[sphere][1] << 16), b);
-        printf("WHFLOW60 %s: invariants K_sigma = %s (%s), K_lambda = %s (%s)   [the GAMMA constants and the start are Q.40-exact until the review's Q.56 ones arrive]\n",
-               name, a, sphere ? "0.377362726342" : "0.407800114190", b, sphere ? "-0.297030895775" : "-0.271699935370");
+        if (sphere) {
+            fmt56(y[0] - rho + (GAMMA40[sphere][0] << 16), a); fmt56(y[2] - rho + (GAMMA40[sphere][1] << 16), b);
+            printf("WHFLOW60 %s: invariants K_sigma = %s (0.377362726342), K_lambda = %s (-0.297030895775)   [v3's Q.40 start and constants scaled]\n", name, a, b);
+        } else {
+            fmt56_15(y[0] - rho + GAMMA56F[0], a); fmt56_15(y[2] - rho + GAMMA56F[1], b);
+            printf("WHFLOW60 %s: invariants K_sigma = %s (0.407800114190356327), K_lambda = %s (-0.271699935369626228)   [the exact Q.56 start and constants]\n", name, a, b);
+        }
         if (!sphere) {
             const int64_t xi = y[0] - mul56(exp56_of(2, y[0] - y[2] - XI_SHIFT), y[3]);
-            fmt56(xi, a); fmt56(y[3], b); fmt56((ONE56 / 4) - xi, c);
-            printf("WHFLOW60 flat: Xi = %s (the review's 30-digit value 0.121789029475803), J (gauge lambda + 10) = %s, kappa_flat = 1/4 - Xi = %s (0.128210970524)\n", a, b, c);
+            fmt56_15(xi, a); fmt56(y[3], b); fmt56_15((ONE56 / 4) - xi, c);
+            printf("WHFLOW60 flat: Xi = %s (the review's 30-digit value 0.121789029475803078), J (gauge lambda + 10) = %s, kappa_flat = 1/4 - Xi = %s (0.128210970524196922)\n", a, b, c);
         }
     }
     printf("WHFLOW60: exp60 took at most %d Taylor terms\n", EXP60_TERMS);
