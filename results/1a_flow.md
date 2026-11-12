@@ -164,3 +164,15 @@ leaves at most 3.7e-11 in the UV constants and the error no longer depends on th
 A first build (Q.28, floor rounding, amplitude 2^-20) was withdrawn before any run: its first increments in the deep IR were a sixth of
 a unit and floored to zero, so it would have printed a flat table. The first attempt to run this build failed because the target's
 file store was full; the run script now clears it first and refuses to compare empty outputs. Both are in the commit history.
+
+## Version 4 (11-12, 3:10 AM): the flow in Q.56, the invariants to twelve digits
+
+The same two flows and the same RK4 (`code/wh_flow60.c` on `code/whq60.h`), with the state in a fixed-point format of 56 fraction bits instead
+of 40, the exponentials and roots from the Q.60 header rounded once, and every update rounded once with its remainder carried. From version
+3's start integers (exact to 2^-40; the start's error is a translation of the flow, which the invariants ignore), the PC build prints
+(MEASURED) K_sigma = 0.407800114190 and K_lambda = -0.271699935369 for the flat flow and 0.377362726342 and -0.297030895775 for the sphere,
+against the reviewer's 30-digit integration 0.4078001141903564, -0.2716999353696263, 0.377362726342, -0.297030895775: eleven to twelve digits
+where version 3 had ten. The same program integrates a fourth variable J along the flat flow and prints the gauge-invariant constant
+Xi = lim [sigma - e^{2(sigma - lambda)} J] = 0.121789029476, the reviewer's 0.12178902947580307791 to twelve digits (`code/wh_ode.c` holds the
+Q.40 version, which reaches 0.121789029377, the format's floor). What Xi means for the paper's parameters is the reviewer's claim and is under
+independent verification; it is not asserted on this page until it has passed. The machines run version 4 tonight.
