@@ -58,8 +58,11 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   the shift and finds the shift limit the paper left open (3b, part 2). `wh_casimir.c` computes the Casimir lattice sums (4a).
   `wh_syk.c`, `wh_syk2.c`, `wh_syk3.c`, `wh_syk4.c` and `wh_syk5.c` are five versions of the SYK teleportation protocol: the paper's
   layout; the factorized layout that made N = 14 a matter of minutes instead of weeks; the exact per-realization density matrix; the same in
-  Q.60 end to end, twelve digits verified against a float implementation; and the memory layout that reaches N = 18 on the machines, with
-  every matrix product split across their two cores (`par2.h`). `wh_relax.c` is the fixed-point relaxation kernel for the five-dimensional
+  Q.60 end to end, twelve digits verified against a float implementation; and the memory layout for N = 18, written to split every matrix
+  product across the machines' two cores (`par2.h`; on the first night the firmware gave the process one core, so those runs fell back
+  to one core with the same bits, and the cause is being traced). `wh_syk6.c` adds the size-winding observable of Kobrin, Schuster and Yao,
+  computed exactly from the states version 5 already holds (`results/2_syk_winding.md`); `wind_summary.py` turns its printed per-size sums
+  into their fit numbers. `wh_relax.c` is the fixed-point relaxation kernel for the five-dimensional
   geometry (1b), verified on a problem with a known answer before the equations arrive.
 - `results/`: each result as a page with the numbers, the error bound on paper, the comparison with the paper it checks, the program's md5,
   the chain, and the two machines' agreement line, plus the raw output of one machine.
@@ -82,11 +85,13 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
 - **2, the SYK teleportation protocol** (`results/2_syk.md`, `results/2_syk_exact.md`): exact at N = 8 for three seeds and the 2022
   experiment's model; then the exact per-realization density matrix at N = 8 to 16 on the machines (18 on the PC, labelled), where
   the paper's averaged formulas are off by 14 percent at N = 8 and 1.6 at N = 14, the wormhole sign wins over the wrong sign at every size
-  by 1.4 to 1.6 at the peak, and the paper's own layout and ours agree to 7e-11 across 270 numbers at N = 10.
+  by 1.4 to 1.6 at the peak, and the paper's own layout and ours agree to 7e-11 across 270 numbers at N = 10; then the size-winding signature (part 3,
+  `results/2_syk_winding.md`), computed exactly from the same states and verified on the PC against the reviewer's independent float64 at
+  N = 14 (the teleporting sign reaches 99.8 percent of the best possible line, the wrong sign 62 percent), on the machines tonight.
 - **1b, the patched five-dimensional geometry**: started. The reviewer derives the reduced Einstein-Maxwell system in verified stages; the
   relaxation kernel that will solve it is built and verified.
 
-Next: the pair's N = 18, the size-winding signature (derived in review; the program is being built), 1b's equations into the kernel. See `PLAN.md`.
+Next: the pair's N = 18 and its size-winding runs, 1b's equations into the kernel. See `PLAN.md`.
 
 ## Licenses
 
