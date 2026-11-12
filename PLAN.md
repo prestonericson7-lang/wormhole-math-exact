@@ -171,4 +171,10 @@ its format, its bounds and its seed. None of them builds a door, and each write-
 - 4a again: the reviewer certified the exact values (three routes to 25 digits) and found v4 still +1.7e-9 / +2.5e-9 at N = 32 / 24 from
   three roundings; v5 (10:10 PM) removes them and lands within 8.6e-12 of the certified ratio on the PC build; the law's second
   coefficient is 9.3762 (closed form on the page), not the fitted 9.6. The pair runs v5 tonight; the page's table is replaced then.
-- 1b: planned.
+- 1b: STARTED 2026-11-11 10:50 PM. The reviewer derives the reduced system in two verified stages (the ansatz and gauge, the 5D
+  Einstein-Maxwell equations as a 2D elliptic system with the constraints separate, the residuals, the boundary conditions edge by edge;
+  then the (3.27) parameters as formulas in the solved functions, the sizing, the 1a checks). The fixed-point relaxation kernel is built
+  and verified ahead of the equations: `code/wh_relax.c`, a Q.60 red-black SOR with 128-bit residuals, tested on Poisson with an exact
+  quartic solution (for which the five-point Laplacian is exact): the residual reaches its rounding floor, a few G^2 units of 2^-60, in
+  about 6 G sweeps as the spectral radius predicts, and the solution is within 4e-17, 6e-16 and 8e-15 of exact at G = 32, 128 and 512
+  (PC build); the pair runs it tonight for bit-equality.

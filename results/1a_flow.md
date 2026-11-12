@@ -150,6 +150,9 @@ so three builds of the arithmetic on two architectures agree bit for bit. The ra
 | K_sigma, K_lambda (the reviewer, 40 digits) | 0.40780011419036, -0.27169993536963 | 0.37736272634195, -0.29703089577475 |
 | this program minus the 40-digit value | -2.5e-11, +1.4e-11 | -1.6e-11, +0.4e-11 |
 
+For a direct comparison with the paper's Figure 3: the reviewer read the figure's gauge off the plot and finds this repository's rho equal
+to the figure's rho minus 5.3619 (COMPUTED), so the first run's table can be laid over the figure with that shift.
+
 The differences from the first run's table are the gauge and the mode, not errors: the flat flow's sigma - rho moves by -5.9e-4 because
 the first run's start was off the manifold at second order by that much in rho, and the sphere's constants move by +0.0073 (sigma - rho),
 -0.0067 (lambda - rho) and -0.0139 (lambda - sigma) because it now starts on its own mode. The invariants are the numbers to quote: they

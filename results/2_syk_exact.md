@@ -119,3 +119,31 @@ mean over 1 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.086987; the ave
 exact - averaged over all 12 points: from -0.001732 (seed 1, mu -12, t 6) to +0.000062 (seed 1, mu +12, t 2); the largest relative departure where I > 0.01: 1.6%
 mu = 0: the exact I_RT/(2 ln 2) is at most 6.2e-11 over 6 points (the exact zero to the rounding)
 the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 5.8e-11 over every point
+
+## Version 4, 2026-11-11 night: the same six elements in Q.60 end to end, and six times faster
+
+The reviewer's bit-exact emulation of version 3's arithmetic (10:20 PM) showed that its twelve printed decimals were good to ten: the Q.40
+chain of products U(1)^t left up to 21 units of 2^-40 in the evolved states at t = 6, and the Q.40 cosine and sine of the coupling (whose
+squares summed to 1 minus 2.4 units) moved K by up to 27 units. Version 4 (`code/wh_syk4.c`) follows the reviewer's route and rounds nothing
+to Q.40 at all:
+
+- every matrix and state carries 60 fraction bits (int64 entries, 128-bit products, one rounding per entry per product);
+- one set of Hamiltonian powers per seed gives both the time step W(1) = e^{-iH} (summed with the exact phases (-i)^k) and the thermal
+  factor e^{-beta H/4} (exact for beta = 4), about 18-19 terms to below one unit of 2^-60; W(t) = W(1) W(t-1) once per seed, so an
+  evolution by any t is one pair of products, and e^{+iHt} is the conjugate transpose of W(t) with no new rounding;
+- the coupling's cosine and sine, the eigenvalues' square root and the entropies' logarithm are all Q.60 (ln 2 is computed the same way and
+  printed as a self-test); the entangled state |I> is built normalized exactly, with a global phase (1 + i)/sqrt2 when N/2 is odd, so that
+  no sum of squares can approach the 128-bit limit (the first build had kept |I> unnormalized, whose squared norm is exactly 2^127 at
+  D = 128: caught at N = 14 before any run);
+- products skip exact zeros, which is the fermion-parity block structure of H, W and e^{-beta H/4} without bookkeeping.
+
+**Checks (MEASURED, PC build):** at N = 8 and N = 10 every one of the twelve printed decimals of every element and of I_RT equals the
+independent double-precision implementation of the same elements on the same couplings (version 3 had differed in the last one or two);
+the identities rho00 + rho11 = rho22 + rho33 = 1/2 hold to 0-2 units of 2^-60 at every point; c^2 + s^2 - 1 is 0 to -2 units; the
+unitarity defect of W(1), max |W^dag W - 1|, is 5-7 units; e^{-beta H_L/4} Psi_I = Psi_I (e^{-beta H_R/4})^T to 1-3 units; the thermal
+norm Z_beta/Z_inf = 1.419913512654 at N = 8, seed 1 agrees with two double-precision routes (1.419913512653848 by both); mu = 0 prints exact
+zeros. The 18-point N = 14 set takes 8 s on one PC core (version 3: 49 s, with the averaged forms beside), N = 16 about a minute.
+
+**What the extra digits are for:** nothing in the physics changes at the tenth decimal; they let the two machines' bit-equality and the
+comparison with any independent integration be stated to the full printed width, and they make N = 16 a half-hour run on the pair. The
+pair's version-4 runs at N = 8, 10, 12, 14 (three seeds) and 16 (seed 1) follow below as they land, each both machines line for line.
