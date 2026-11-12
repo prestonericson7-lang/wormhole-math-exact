@@ -1,4 +1,4 @@
-/* wh_flow.c (11-11-2026) -- WORMHOLE MATH 1a: the Maldacena-Milekhin flow, exact.
+/* wh_flow.c (11-11-2026; v2 4:10 PM) -- WORMHOLE MATH 1a: the Maldacena-Milekhin flow, exact.
  *
  * Maldacena & Milekhin, "Humanly traversable wormholes", arXiv:2008.06618, eq. (3.19) with l_B = 1 (their Appendix A, eq. A.28-A.29):
  *   0 = -6 + 3 e^{-4s} + L'^2 + 4 L' s' + s'^2            (so  L' = -2 s' + sqrt(3 s'^2 + 6 - 3 e^{-4s}),  the root with L' = sqrt3 at s = s' = 0)
@@ -10,62 +10,115 @@
  *   0 = -6 - e^{-2s} + 3 e^{-4s} + L'^2 + 4 L' s' + s'^2 ;  0 = 4 + e^{-2s} - 4 e^{-4s} - 2 L' s' - 2 s'^2 - s''
  * whose IR fixed point solves 4 + u - 4 u^2 = 0, u = e^{-2s}; their (A.31) says e^{-s} = l + l^3/16 + ... (l = 1: 1.0625).
  *
- * EXACT: every quantity is an int64 in Q.28 (28 fractional bits); products by mulq() (a 64x64 -> 64 product in two halves, floor);
- * exp by range reduction on ln2 and a 24-term Taylor series in Q.28; sqrt by integer Newton (floor); RK4 with a fixed step h = 2^-12.
- * No floating point anywhere, no libm: the same bits on every machine and every run. The result IS the printed digits.
- * Build:  cc -O2 -std=gnu11 -o whflow wh_flow.c   (any C compiler, any machine: only 64-bit integers are used, so the output is the same everywhere)
+ * THE GAUGE: rho is defined so that the linear mode has amplitude eps = 2^-10 at rho = -8 (s - s* = eps e^{k (rho + 8)}). Any other amplitude
+ * gives the same curve shifted in rho; the decaying mode excited by starting with s' = k (s - s*) dies as e^{-(sqrt19 + sqrt3) rho}.
+ *
+ * EXACT: every quantity is an int64 in Q.40 (40 fractional bits, 2^-40 = 9.1e-13); products by mulq() (the full 128-bit product from four
+ * 32x32 halves, shifted right by 40 with round-to-nearest); divisions by divq() (a 128-bit numerator over a 64-bit divisor, long division,
+ * round-to-nearest); exp by range reduction on ln2 and a 24-term Taylor series; sqrt exact to the floor (integer Newton with a 128-bit check);
+ * RK4 with a fixed step h = 2^-12, its sixths rounded to nearest. No floating point anywhere, no libm: the same bits on every machine and
+ * every run. The result IS the printed digits. v1 (Q.28, floor) is withdrawn: its first increments in the deep IR were a sixth of a unit,
+ * floored to zero, so the flow would have stood still; found 4:08 PM before any run.
+ * Build:  cc -O2 -std=gnu11 -o whflow wh_flow.c
  */
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#define FB 28
+#define FB 40
 #define ONE ((int64_t)1 << FB)
 #define MASK (ONE - 1)
 typedef int64_t q;
 
-static q mulq(q a, q b)                               /* floor(a*b / 2^FB), exact in two halves (no 128-bit type on the A9) */
+/* the full 128-bit product of two unsigned 64-bit numbers, from four 32x32 halves */
+static void mul128(uint64_t a, uint64_t b, uint64_t *hi, uint64_t *lo)
 {
-    const q bh = b >> FB, bl = b & MASK;              /* b = bh*2^FB + bl, bl in [0, 2^FB) */
-    const q p1 = a * bh;                              /* |a| < 2^40 and |bh| < 2^12 here: fits */
-    const q p2 = a * bl;                              /* |a| < 2^35 needed: all our magnitudes are below 2^12 (4096.0) */
-    return p1 + (p2 >> FB);                           /* >> on a negative value floors: deterministic */
+    const uint64_t a1 = a >> 32, a0 = a & 0xffffffffull, b1 = b >> 32, b0 = b & 0xffffffffull;
+    const uint64_t p00 = a0 * b0, p01 = a0 * b1, p10 = a1 * b0, p11 = a1 * b1;
+    uint64_t mid = p01 + p10;
+    const uint64_t c1 = mid < p01;                    /* carry out of the middle sum */
+    const uint64_t l = p00 + (mid << 32);
+    const uint64_t c2 = l < p00;
+    *lo = l;
+    *hi = p11 + (mid >> 32) + (c1 << 32) + c2;
 }
-static q divq(q a, q b)                               /* floor(a*2^FB / b) with a, b in Q.FB; |a| < 2^35 */
+static q mulq(q a, q b)                               /* round(a*b / 2^FB) to nearest, ties away from zero; |a*b| < 2^103 */
 {
-    return (a << FB) / b;                             /* C division truncates toward zero; fine for our positive divisors */
+    const int neg = (a < 0) != (b < 0);
+    const uint64_t ua = a < 0 ? -(uint64_t)a : (uint64_t)a, ub = b < 0 ? -(uint64_t)b : (uint64_t)b;
+    uint64_t hi, lo; mul128(ua, ub, &hi, &lo);
+    uint64_t r = (lo >> FB) | (hi << (64 - FB));
+    if ((lo & MASK) >= ((uint64_t)1 << (FB - 1))) r++;
+    return neg ? -(q)r : (q)r;
 }
-static const q LN2 = 186065279;                       /* ln 2 * 2^28 = 186065279.36... */
-static q expq(q x)                                    /* e^x in Q.FB for x in about [-40, 20]: 2^k * e^r, |r| <= ln2/2, Taylor 24 terms */
+static uint64_t div128(uint64_t hi, uint64_t lo, uint64_t b, uint64_t *rem)   /* (hi:lo) / b, needs hi < b; restoring long division */
 {
-    int64_t k = x / LN2;                              /* truncates toward zero */
+    uint64_t qt = 0;
+    for (int i = 63; i >= 0; i--) {
+        const uint64_t top = hi >> 63;
+        hi = (hi << 1) | (lo >> 63); lo <<= 1;
+        if (top || hi >= b) { hi -= b; qt |= (uint64_t)1 << i; }
+    }
+    *rem = hi; return qt;
+}
+static q divq(q a, q b)                               /* round(a * 2^FB / b) to nearest for b > 0; |a/b| < 2^23 */
+{
+    const int neg = a < 0;
+    const uint64_t ua = neg ? -(uint64_t)a : (uint64_t)a;
+    uint64_t rem;
+    uint64_t r = div128(ua >> (64 - FB), ua << FB, (uint64_t)b, &rem);
+    if (2 * rem >= (uint64_t)b) r++;
+    return neg ? -(q)r : (q)r;
+}
+static q sqrtq(q x)                                   /* floor(sqrt(x)) in Q.FB exactly: R = floor(sqrt(X 2^FB)) with a 128-bit check */
+{
+    if (x <= 0) return 0;
+    const uint64_t X = (uint64_t)x;
+    /* integer sqrt of X, then Newton on the 128-bit radicand X << FB */
+    uint64_t s = 0; for (int bit = 31; bit >= 0; bit--) { const uint64_t t = s | ((uint64_t)1 << bit); if (t * t <= X) s = t; }
+    uint64_t R = (s + 1) << (FB / 2);                 /* an upper start: (s+1)^2 > X */
+    for (int i = 0; i < 8; i++) {
+        uint64_t rem; const uint64_t qq = div128(X >> (64 - FB), X << FB, R, &rem);
+        const uint64_t nR = (R + qq) >> 1;
+        if (nR >= R) break;
+        R = nR;
+    }
+    for (;;) {                                        /* fix-up: R^2 <= X 2^FB < (R+1)^2, compared in 128 bits */
+        uint64_t hi, lo; mul128(R, R, &hi, &lo);
+        const uint64_t Xhi = X >> (64 - FB), Xlo = X << FB;
+        if (hi > Xhi || (hi == Xhi && lo > Xlo)) { R--; continue; }
+        mul128(R + 1, R + 1, &hi, &lo);
+        if (hi < Xhi || (hi == Xhi && lo <= Xlo)) { R++; continue; }
+        break;
+    }
+    return (q)R;
+}
+static q rdiv(q x, int n)                             /* round(x / n) to nearest, ties away from zero, for a small positive n */
+{
+    return x >= 0 ? (x + n / 2) / n : -((-x + n / 2) / n);
+}
+static const q LN2 = 762123384786;                    /* ln 2 * 2^40 = 762123384786.05... */
+static q expq(q x)                                    /* e^x in Q.FB: 2^k * e^r, |r| <= ln2/2, Taylor 24 terms; our arguments stay in [-48, 1] */
+{
+    int64_t k = x / LN2;
     q r = x - k * LN2;
     if (r > LN2 / 2) { r -= LN2; k++; }
     if (r < -LN2 / 2) { r += LN2; k--; }
     q term = ONE, sum = ONE;
-    for (int n = 1; n <= 24; n++) { term = mulq(term, r) / n; sum += term; }
-    if (k >= 34) return (q)1 << 62;                   /* out of our range: never reached (our arguments stay in [-48, 1]) */
-    if (k <= -62) return 0;                           /* e^x below 2^-62 of one: zero in Q.28 (a shift by 63 or more is undefined in C) */
+    for (int n = 1; n <= 24; n++) { term = rdiv(mulq(term, r), n); sum += term; }
+    if (k >= 63 - FB - 1) return (q)1 << 62;          /* out of our range: never reached */
+    if (k <= -62) return 0;
     if (k >= 0) return sum << k;
-    return sum >> (-k);
+    return (sum + ((q)1 << (-k - 1))) >> (-k);        /* round to nearest */
 }
-static q sqrtq(q x)                                   /* floor(sqrt(x)) in Q.FB: Newton on the integer sqrt of x*2^FB */
-{
-    if (x <= 0) return 0;
-    uint64_t n = (uint64_t)x << FB;                   /* x < 2^35 so n < 2^63 */
-    uint64_t r = (uint64_t)1 << 31;
-    for (int i = 0; i < 64; i++) { uint64_t nr = (r + n / r) >> 1; if (nr >= r) { if (nr - r <= 1) break; } r = nr; }
-    while (r * r > n) r--;
-    while ((r + 1) * (r + 1) <= n) r++;
-    return (q)r;
-}
-static void fmt(q v, char *out)                       /* a Q.FB value as a decimal with 9 places, exact (no float) */
+static void fmt(q v, char *out)                       /* a Q.FB value as a decimal with 12 places, exact (no float; two 6-digit stages) */
 {
     const int neg = v < 0;
-    uint64_t a = (uint64_t)(neg ? -v : v);
-    uint64_t ip = a >> FB, fp = a & MASK;
-    uint64_t dec = (fp * 1000000000ull) >> FB;        /* fp < 2^28, times 1e9 < 2^58: fits */
-    sprintf(out, "%s%llu.%09llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dec);
+    const uint64_t a = (uint64_t)(neg ? -v : v);
+    const uint64_t ip = a >> FB, fp = a & MASK;
+    const uint64_t t1 = fp * 1000000ull;              /* fp < 2^40, times 1e6 < 2^60 */
+    const uint64_t d1 = t1 >> FB, t2 = (t1 & MASK) * 1000000ull, d2 = t2 >> FB;
+    sprintf(out, "%s%llu.%06llu%06llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)d1, (unsigned long long)d2);
 }
 
 /* the two flows: sphere = 0 is (3.19)/(A.28-29), sphere = 1 is (A.30) */
@@ -91,20 +144,24 @@ static void rk4(q *s, q *sp, q *L, q h, int sphere)   /* one step of (s, s', L) 
     const q k3s = p3, k3p = spp(s3, p3, sphere), k3L = Lprime(s3, p3, sphere);
     const q s4 = *s + mulq(h, k3s), p4 = *sp + mulq(h, k3p);
     const q k4s = p4, k4p = spp(s4, p4, sphere), k4L = Lprime(s4, p4, sphere);
-    *s += mulq(h, k1s + 2 * k2s + 2 * k3s + k4s) / 6;
-    *sp += mulq(h, k1p + 2 * k2p + 2 * k3p + k4p) / 6;
-    *L += mulq(h, k1L + 2 * k2L + 2 * k3L + k4L) / 6;
+    *s += rdiv(mulq(h, k1s + 2 * k2s + 2 * k3s + k4s), 6);
+    *sp += rdiv(mulq(h, k1p + 2 * k2p + 2 * k3p + k4p), 6);
+    *L += rdiv(mulq(h, k1L + 2 * k2L + 2 * k3L + k4L), 6);
 }
 
 static uint64_t fnv(uint64_t h, const void *p, size_t n) { const uint8_t *b = p; for (size_t i = 0; i < n; i++) { h ^= b[i]; h *= 0x100000001b3ull; } return h; }
 
 int main(void)
 {
-    char a[40], b[40], c[40], d[40];
+    char a[48], b[48], c[48], d[48], e[48], f[48];
     const q h = ONE >> 12;                            /* rho step 2^-12 */
     const q sqrt3 = sqrtq(3 * ONE), sqrt19 = sqrtq(19 * ONE), k = sqrt19 - sqrt3;
-    fmt(sqrt3, a); fmt(k, b);
-    printf("WHFLOW: Q.%d fixed point, int64, exp by ln2 reduction + 24 Taylor terms, sqrt by Newton, RK4 h = 2^-12; sqrt3 = %s, k = sqrt19 - sqrt3 = %s\n", FB, a, b);
+    printf("WHFLOW: Q.%d fixed point, int64 with 128-bit intermediates, round to nearest; exp by ln2 reduction + 24 Taylor terms; sqrt exact; RK4 h = 2^-12; gauge eps = 2^-10 at rho = -8\n", FB);
+    /* self-test, printed so the run log carries it: the arithmetic on known values */
+    fmt(sqrt3, a); fmt(sqrt19, b); fmt(k, c); fmt(expq(LN2), d); fmt(expq(-LN2), e); fmt(divq(ONE, 3 * ONE), f);
+    printf("WHFLOW selftest: sqrt3 = %s (1.732050807569), sqrt19 = %s (4.358898943541), k = %s (2.626848135972), e^ln2 = %s, e^-ln2 = %s, 1/3 = %s\n", a, b, c, d, e, f);
+    fmt(mulq(3 * ONE, 5 * ONE), a); fmt(sqrtq(4 * ONE), b); fmt(expq(0), c); fmt(mulq(sqrt3, sqrt3), d); fmt(expq(-48 * ONE), e);
+    printf("WHFLOW selftest: 3*5 = %s, sqrt4 = %s, e^0 = %s, sqrt3^2 = %s (3 - at most 2^-38), e^-48 = %s\n", a, b, c, d, e);
     for (int sphere = 0; sphere < 2; sphere++) {
         uint64_t hash = 0xcbf29ce484222325ull;
         /* the IR fixed point: sphere 0: s* = 0 (e^-4s = 1); sphere 1: u = e^-2s solves 4 + u - 4u^2 = 0, u = (1 + sqrt65)/8 */
@@ -112,27 +169,24 @@ int main(void)
         if (sphere) {
             const q u = divq(ONE + sqrtq(65 * ONE), 8 * ONE);     /* e^{-2 s*} */
             const q ems = sqrtq(u);                                /* e^{-s*} */
-            /* s* = -ln(ems): Newton on exp */
-            q s0 = 0; for (int i = 0; i < 60; i++) { const q e = expq(-s0); s0 += divq(e - ems, e); }
+            q s0 = 0; for (int i = 0; i < 60; i++) { const q ex = expq(-s0); s0 += divq(ex - ems, ex); }   /* s* = -ln(ems) by Newton */
             sstar = s0;
-            fmt(ems, a); fmt(sstar, b); fmt(Lprime(sstar, 0, 1), c);
-            printf("WHFLOW sphere: IR fixed point e^-s* = %s (their A.31 expansion 1 + 1/16 = 1.0625), s* = %s, L' there = %s\n", a, b, c);
+            fmt(ems, a); fmt(sstar, b); fmt(Lprime(sstar, 0, 1), c); fmt(spp(sstar, 0, 1), d);
+            printf("WHFLOW sphere: IR fixed point e^-s* = %s (their A.31 expansion 1 + 1/16 = 1.0625), s* = %s, L' there = %s, s'' there = %s (0)\n", a, b, c, d);
         } else {
-            fmt(Lprime(0, 0, 0), a);
-            printf("WHFLOW flat: IR fixed point s* = 0, L' there = %s (sqrt3)\n", a);
+            fmt(Lprime(0, 0, 0), a); fmt(spp(0, 0, 0), b);
+            printf("WHFLOW flat: IR fixed point s* = 0, L' there = %s (sqrt3), s'' there = %s (0)\n", a, b);
         }
-        /* start deep in the IR on the growing linearized mode: s - s* = eps e^{k rho}, s' = k (s - s*), with eps = 2^-20 at rho0 = -8 */
-        q rho = -8 * ONE, s = sstar + (ONE >> 20), sp = mulq(k, ONE >> 20), L = mulq(Lprime(sstar, 0, sphere), rho);
-        int steps = 0, printed = 0;
+        /* start deep in the IR on the growing linearized mode: s - s* = eps e^{k (rho + 8)}, s' = k (s - s*), eps = 2^-10 */
+        q rho = -8 * ONE, s = sstar + (ONE >> 10), sp = mulq(k, ONE >> 10), L = mulq(Lprime(sstar, 0, sphere), rho);
+        int steps = 0;
         const char *name = sphere ? "sphere" : "flat";
         printf("WHFLOW %s: rho | sigma | sigma' | lambda' | lambda - rho | sigma - rho\n", name);
-        while (rho < 10 * ONE) {
+        while (rho < 12 * ONE) {
             if ((steps & 1023) == 0) {                /* every 0.25 in rho */
                 const q lp = Lprime(s, sp, sphere);
-                fmt(rho, a); fmt(s, b); fmt(sp, c); fmt(lp, d);
-                char e[40], f[40]; fmt(L - rho, e); fmt(s - rho, f);
+                fmt(rho, a); fmt(s, b); fmt(sp, c); fmt(lp, d); fmt(L - rho, e); fmt(s - rho, f);
                 printf("WHFLOW %s: %s | %s | %s | %s | %s | %s\n", name, a, b, c, d, e, f);
-                printed++;
             }
             rk4(&s, &sp, &L, h, sphere);
             hash = fnv(hash, &s, 8); hash = fnv(hash, &sp, 8); hash = fnv(hash, &L, 8);

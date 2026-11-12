@@ -34,9 +34,12 @@ explicit form." Two parts, honestly sized:
   1 with q flux units (the extra -e^{-2 sigma} and +e^{-2 sigma} terms), whose IR radius is e^{-sigma} = l_B + l_B^3/16 + ... (A.31).
   DELIVERABLE: both flows integrated bit-exact, the IR constants to the printed digits, (A.31) checked against the numerics, Figure 3
   reproduced as a table. This is the warm-up and the check that the arithmetic reaches their equations.
-  PROGRAM: `code/wh_flow.c`. Q.28 fixed point in int64; exp by range reduction on ln 2 and 24 Taylor terms; sqrt by integer Newton;
-  RK4 with step h = 2^-12; both flows started on the IR growing mode at rho = -8 with amplitude 2^-20; tables every 0.25 in rho; the
-  UV asymptotes; a chain hash of every step. Checked on paper before the first run: the UV fixed point has sigma' = 1 and lambda' =
+  PROGRAM: `code/wh_flow.c` (v2). Q.40 fixed point in int64 with 128-bit intermediates, products and divisions rounded to nearest; exp by
+  range reduction on ln 2 and 24 Taylor terms; sqrt exact to the floor; RK4 with step h = 2^-12; both flows started on the IR growing
+  mode at rho = -8 with amplitude 2^-10 (a gauge: any other amplitude gives the same curve shifted in rho); tables every 0.25 in rho;
+  the UV asymptotes; a printed self-test; a chain hash of every step. The first version (Q.28, floor rounding, amplitude 2^-20) was
+  withdrawn before any run: its first increments in the deep IR were a sixth of one unit, which the floor made zero, so the flow would
+  have stood still. Sizing the first step on paper caught it; the fixed-point checks alone had not. Checked on paper before the first run: the UV fixed point has sigma' = 1 and lambda' =
   -2 + sqrt 9 = 1 (their lambda = sigma = rho + const); the sphere flow's IR fixed point solves 4 + u - 4u^2 = 0 with u = e^{-2 sigma},
   u = (1 + sqrt 65)/8 = 1.1328, so e^{-sigma} = 1.0643 against (A.31)'s 1.0625 at l_B = 1 (their expansion is for small l_B).
 
