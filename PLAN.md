@@ -133,5 +133,6 @@ its format, its bounds and its seed. None of them builds a door, and each write-
 ## Status (2026-11-11)
 
 - 1a: `code/wh_flow.c` built; first run pending; its table and the two machines' agreement line will appear in `results/`.
-- 3: recipe written (above); program not yet started.
+- 3a: `code/wh_alcub.c` built (the Alcubierre integral, the wall-thickness law and the flattening check); first run pending, after 1a.
+- 3b: recipe written (above); program not yet started.
 - 2, 1b: planned.

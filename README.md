@@ -23,7 +23,8 @@ paper beside each program.
 - `PLAN.md`: the three computations, what each paper left open, what we deliver, in what order, and what "exact" means here.
 - `THE_GLUE.md`: the reading that led here: what holds a traversable wormhole open in the post-2016 physics, why those wormholes
   cannot be time machines by construction, and where the energy scale meets the collider.
-- `code/`: the programs. `wh_flow.c` solves the Maldacena-Milekhin flow equations (computation 1a).
+- `code/`: the programs. `wh_flow.c` solves the Maldacena-Milekhin flow equations (computation 1a); `wh_alcub.c` computes the
+  Alcubierre negative-energy integral, the wall-thickness law behind the "factor of three", and the flattening check (computation 3a).
 - `results/`: each result as a plain-text table with the program's md5, the format, the step, and the two boards' agreement line.
 
 ## Status
