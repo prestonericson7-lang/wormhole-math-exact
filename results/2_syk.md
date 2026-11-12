@@ -44,6 +44,16 @@ beta = 4, t = t' = 2.8, mu = -12 and +12 with V normalized as if N were 10 (thei
 - Runs: 7:40-7:46 PM (the full SYK, 54 points) and 7:46 PM (Model 1, 2 points), both machines at once; 64 and 8 output lines each;
   **identical line for line**, chains 2c70424b9fa1aca3 and 9899c884ff17ebb5. The raw output: `2_syk_board1.txt` (board 2 byte-identical).
 
+**A correction from review, 11-11 evening, before the numbers.** The formulas (2.63)-(2.66) above are the paper's ensemble-averaged
+forms: the SO(N) symmetry of the disorder average sets rho22 = rho33 = 1 - rho11 and rho23 = 0, and the paper derives them for the
+average over couplings. For one realization of the couplings, which is what every line on this page is, the exact rho_TR has six
+independent elements, the paper's (2.15)-(2.20): the four diagonal ones, rho14 and rho23. An independent review (another AI session,
+with its own float implementation) finds that I_RT from the averaged forms differs from the exact per-seed value by -12.9% to +5.2% over
+four seeds of its own at N = 8 (COMPUTED by the reviewer). Every number below is therefore "(2.63)-(2.66) evaluated per seed", exact as
+arithmetic and labelled as the quantity it is; the sign comparison (mu < 0 against mu > 0) and the identity checks stand as stated.
+Version 3 of the program computes the exact six-element matrix on the same seeds, side by side with these forms, and its results land
+on their own page with the same labels.
+
 ## The numbers
 
 I_RT / (2 ln 2) for the full q = 4 SYK, N = 8, beta = 4, t = t' (the mean of the three seeds, then each seed):

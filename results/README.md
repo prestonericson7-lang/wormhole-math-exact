@@ -9,7 +9,11 @@ output of one machine (`*_board1.txt`); the second machine's output was byte-ide
 - `3b_shell.md`, `3b_shell_board1.txt`: the 2024 warp shell without its shift, the construction reproduced as integer sums, the energy
   conditions judged exactly with their floor (arXiv:2405.02709 section 3), 2026-11-11.
 - `4a_casimir.md`, `4a_casimir_board1.txt`: the Casimir energy of one scalar field as a finite lattice sum, no divergent subtraction,
-  and the lattice law 1 + 2.1/N^2, 2026-11-11.
+  and the lattice law 1 + (5 pi^2/24)/N^2 + O(1/N^4), exact to N = 32 (version 4 of the program; the version-2 table it replaces had
+  lost digits past N = 16), 2026-11-11.
 - `2_syk.md`, `2_syk_board1.txt`: the SYK traversable-wormhole teleportation protocol exact at N = 8 (three seeds, both signs of the
   coupling, mu = 0 as the exact zero) and the 2022 experiment's five-term model at its own parameters (arXiv:1911.07416, 2302.07897),
-  2026-11-11.
+  2026-11-11; its density-matrix formulas are the paper's ensemble-averaged forms evaluated per seed (labelled so after review); the
+  exact per-seed matrix follows as a page of its own.
+- `3b_warp.md`, `3b_warp_board1.txt`: the 2024 warp shell with its shift, the shift limit the paper left open (about 0.0303 c, at 12.3 m on
+  the equator), computed exactly with a written floor under every verdict (arXiv:2405.02709 section 4), 2026-11-11.
