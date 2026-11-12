@@ -97,8 +97,8 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
 - **3b, the 2024 warp shell** (`results/3b_shell.md`, `results/3b_warp.md`): the construction reproduced as integer sums, its four energy
   conditions judged exactly with a written floor under every verdict; then its shift added and the limit the paper left open computed:
   the conditions hold to a shift of about 0.0304 c and fail together just above it, 12.3 m from the centre on the equator (the pair's
-  two radial grids printed 0.03033; a review found a truncated dr^2 in the kernel worth 3.25e-5, so the corrected value is 0.03036, and
-  version 3 reruns on the pair tonight; the correction is on the page).
+  two radial grids first printed 0.03033; a review found a truncated dr^2 in the kernel worth 3.25e-5; version 3 with the reviewer's full fix
+  ran on the pair the same night and printed 0.03036 on both grids, the PC's chains; the correction and the rerun are on the page).
 - **4a, the Casimir sum** (`results/4a_casimir.md`): one scalar field between plates as a finite lattice sum with no divergent subtraction,
   and the exact law by which the lattice approaches the continuum, 1 + (5 pi^2/24)/N^2 + 9.376/N^4 + ..., the ratio to ten decimals at
   N = 32 after two corrections from review.
@@ -115,9 +115,15 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   verified on a problem with a known answer, now with a Robin boundary option and grids stretched toward a boundary, both exact; the
   kernel in the geometry's own rows (`code/wh_relaxt.c`) holds the AdS3 x S2 reference with the three sources exactly (zero corrections from
   the exact start; perturbations relax back in 3,921 sweeps at N = 128) and measures the reference's own discretization error falling 4.0x
-  per doubling of the rows at N = 64, 128 and 256 (PC build, 4:12 AM; the pair runs it in the sixth queue).
+  per doubling of the rows at N = 64, 128 and 256 (PC build, 4:12 AM; the pair runs it in the sixth queue); and the first solution of the
+  reduced problem's simplest case, the one with no dependence on the circle direction (`results/1b_p0.md`, 4:41 AM): the brane's data from
+  the Fefferman-Graham series at the cut, the deep end free, the brane radius ramped in ten doublings because the direct start leaves the
+  basin; the centre value U_c = -0.594115, -0.594579 and -0.594695 at N = 128, 256 and 512 (4.00x per doubling), extrapolating to
+  -0.594734, which is the reviewer's own independent extrapolation to six digits; the N = 128 solution is MEASURED on the two machines
+  (26,011 sweeps each, 191 identical lines, the PC's chain), the finer grids are the PC's until the queue reaches them.
 
-Next: the pair's N = 18 and its size-winding runs, 1b's equations into the kernel. See `PLAN.md`.
+Next: the pair's P0, N = 18 and size-winding runs (the sixth queue), the reviewer's cross-check of P0, then the circle-direction problem
+(P1) and the near-brane throat (P3). See `PLAN.md`.
 
 ## Licenses
 

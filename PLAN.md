@@ -207,4 +207,9 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   for the reference by construction). All PC build (whrelaxt_x86 8a5322b0); the pair runs the four configurations in the sixth queue. The real
   P0 takes this form with the brane's cut data (the reviewer's series in the conformal coordinate, with the v^4 log term) at Q2 = 6, where
   the reference's w solves 12 w^2 - 3 w - 12 = 0, and rows in Q.56 for the deep cut (t = -11 passes the Q.60 ceiling); the reviewer's spec
-  (4:00 AM) is under its verifier.
+  (4:00 AM) is under its verifier. DONE on the PC at 4:41 AM (`results/1b_p0.md`): the data cannot be imposed at once (every direct start
+  leaves the basin inside 63 to 128 sweeps while a quarter of the data converges), so the brane radius is ramped in ten doublings; every stage
+  converges in 2,559 to 3,274 sweeps; the centre value U_c = -0.594115 (N = 128), -0.594579 (N = 256), extrapolating to -0.594734 =
+  the reviewer's independent plain-row extrapolation; the error falls 4.00x per doubling (N = 512: U_c = -0.594695). MEASURED on the pair
+  at N = 128 at 6:12 AM (191 identical lines, the PC's chain 46e8b5ae9ae59aa2); N = 256 waits in the queue;
+  the reviewer's own defect-corrected run and a direct check at alpha = 1/8 against its specification's continuum values follow.
