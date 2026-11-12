@@ -185,8 +185,10 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   (PC build); the pair runs it tonight for bit-equality. Stage 1 (11-12, 1:18 AM, verified in nearly all of it by the reviewer's second builder): only
   the rotationally symmetric reductions are well-posed two-dimensional problems (the paper's flat-space pair has axial symmetry only and needs
   three coordinates and a strut); the paper's fine-tuned circle of mouths has no static solution without extra positive energy on the brane;
-  the order chosen: the solver test, then the throat on the brane (an ODE), then the paper's own rotationally symmetric example with antipodal
-  mouths, which it called findable numerically. The kernel is at version 4: a Robin boundary option eliminated into the first interior row
+  the order chosen: the
+  solver test, then the near-brane throat (an ODE matched to the flow of 1a; the flow has no inner end, so this is an approximation, not
+  a closed boundary-value problem), then the paper's own rotationally symmetric example with antipodal mouths, which it called findable
+  numerically; the no-go for the fine-tuned circle holds where the mouths' spacing is large against re/(2 ln(L_IR/R5)). The kernel is at version 4: a Robin boundary option eliminated into the first interior row
   and grids stretched toward a boundary with exact integer stencil weights, both landing on the known solution to tens of units of 2^-60;
   an adaptive relaxation parameter was tried and dropped (it misreads SOR's early transient). The pair ran version 3 at G = 128 and 256
   and the nonlinear G = 128 (12:28-12:32 AM, chains equal to the PC's) and runs version 4 tonight. The system kernel (`code/wh_relaxs.c`,
