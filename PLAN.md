@@ -135,9 +135,8 @@ its format, its bounds and its seed. None of them builds a door, and each write-
 
 ## Status (2026-11-11)
 
-- 1a: `code/wh_flow.c` built; first run pending; its table and the two machines' agreement line will appear in `results/`.
-- 3a: `code/wh_alcub.c` built on the shared arithmetic `code/whq.h` (the Alcubierre integral, the wall-thickness law and the flattening
-  check); first run pending, after 1a. Error bound on paper: Simpson truncation below 8e-8 absolute at R sigma = 16 (3e-10 at 4), rounding
+- 1a: DONE 2026-11-11 4:26 PM, `results/1a_flow.md`: both machines identical, 124 lines; the flow from the throat to AdS5 to 12 places.
+- 3a: DONE 2026-11-11 4:28 PM, `results/3a_alcubierre.md`: both machines identical, 18 lines; the law I = R sigma/3 + (pi^2-6)/(36 R sigma). Error bound on paper: Simpson truncation below 8e-8 absolute at R sigma = 16 (3e-10 at 4), rounding
   below 8e-8 (each term carries about 20 roundings of 2^-40 on values up to 1024, and the weights integrate to the range 4): I to 7 digits.
 - 3b: recipe written (above); program not yet started.
 - 2, 1b: planned.
