@@ -146,8 +146,8 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   did not pass its first review (a division guard in the shared arithmetic, fixed in `whq.h` v2; a rounding floor on the sign tests; the
   cells next to the axis; a self-test with a constant shift), was rewritten with all four, and is DONE 2026-11-11 9:21 PM,
   `results/3b_warp.md`: both machines identical, 44 lines; the four conditions hold to beta0 = 0.03033 and fail together just above it,
-  at 12.35 m on the equator (the bracket 0.030330352784 to 0.030330429078 on the 0.2 m radial grid; the PC's 0.05 m grid lowers it by
-  4.8e-6; the pair's run on the fine grid is queued tonight). The review confirmed the general relativity (the Ricci convention, the
+  at 12.3 m on the equator (0.030330352784 to 0.030330429078 on the 0.2 m radial grid; 0.030325622559 to 0.030325698853 on the 0.05 m grid,
+  both on the pair, 11:58 PM, the fine grid's chain equal to the PC build's). The review confirmed the general relativity (the Ricci convention, the
   Eulerian frame, the four margins) against an independent derivation.
 - 4a: DONE 2026-11-11 7:39 PM (v2) and REDONE 9:36 PM (v4), `results/4a_casimir.md`: both machines identical, 21 lines; the lattice law
   1 + (5 pi^2/24)/N^2 + O(1/N^4) toward the continuum coefficient pi^2/1440 for one scalar, exact to N = 32 (v2's Q.40 frequencies had

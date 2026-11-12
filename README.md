@@ -73,7 +73,8 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   behind "a factor of about three": I = R sigma / 3 + (pi^2 - 6)/(36 R sigma) plus exponentially small terms.
 - **3b, the 2024 warp shell** (`results/3b_shell.md`, `results/3b_warp.md`): the construction reproduced as integer sums, its four energy
   conditions judged exactly with a written floor under every verdict; then its shift added and the limit the paper left open computed:
-  the conditions hold to a shift of 0.03033 c and fail together just above it, 12.35 m from the centre on the equator.
+  the conditions hold to a shift of 0.03033 c and fail together just above it, 12.3 m from the centre on the equator (two radial grids on
+  the pair, 0.2 m and 0.05 m, agree to 5e-6 in the limit).
 - **4a, the Casimir sum** (`results/4a_casimir.md`): one scalar field between plates as a finite lattice sum with no divergent subtraction,
   and the exact law by which the lattice approaches the continuum, 1 + (5 pi^2/24)/N^2 + 9.376/N^4 + ..., the ratio to ten decimals at
   N = 32 after two corrections from review.
