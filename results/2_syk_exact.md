@@ -177,7 +177,10 @@ f5b7631e8db77784); N = 10 at 12:00:19 AM (29 s, c6fd6b0164a9e5c8); N = 12 at 12:
 nine minutes for the same points); N = 14, three seeds, at 12:08:12 AM (6.7 min, 67c068cb529dac63; version 3 had needed about half an hour
 for one seed); N = 16, seed 1, at 12:24:34 AM (16.4 min, c6032abd10ef74d6); the 2022 experiment's model at t = 2.8 at 12:25:02 AM (28 s,
 a9379694959a987b). The raw output of one machine: `results/2_syk_exact_v4_board1.txt`. The numbers below are the exact matrix's; the
-"averaged forms" columns are empty for version 4, which no longer computes them (version 3's tables above have them).
+"averaged forms" columns are empty for version 4, which no longer computes them (version 3's tables above have them). The chains here are
+version 4's as it ran; the code published as `code/wh_syk4.c` is version 4.1 (the right-hand operators derived by re-indexing, the series'
+powers rescaled so that no time step passes the Q.60 ceiling, the 2022 model added), whose printout for the same arguments carries the chain
+6ff9e3ebd0fa0c7f at N = 8, the one versions 5 to 7 share (checked 4:10 AM on the PC).
 
 ### N = 8: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
 

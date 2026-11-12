@@ -45,7 +45,10 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   published shift limit (the correction went up within a minute of its reading, before the fix; the fixed program then ran on the machines),
   the paper's density-matrix formulas' sign-winding counterpart derived for our layout, and a step of the 1b plan that was a matched
   approximation rather than a closed problem; the machines' firmware giving the process one core was found by the program's own line and is
-  written where the two-core claim stood. The record of what was wrong is as public as the record of what is right.
+  written where the two-core claim stood. In the third night it found the shared header's division guard a factor of two too weak in all
+  seven copies (it stopped at sixteen times the divisor instead of eight; in between, a quotient with the wrong sign came back silently): every
+  copy now carries two checks, and every published chain of the seven programs reruns identical from the fixed sources, so no published run
+  had passed through the range. The record of what was wrong is as public as the record of what is right.
 - A result moves from "computed on a PC" to "measured" only when the two machines have run it and agreed; PC runs on this page are labelled
   as development runs.
 - The code is written to be read: every file opens with what it computes, from which equation of which paper, in what arithmetic, with
@@ -63,7 +66,9 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   - 1b, the patched five-dimensional geometry: the solver kernels built ahead of the equations, each verified on a problem with a known
     answer: `wh_relax.c` (one field: red-black SOR, a Robin boundary option, grids stretched toward a boundary with exact integer weights),
     `wh_relaxs.c` (several coupled nonlinear fields, a Newton step over the local Jacobian block, including the regime where a lagged
-    source stalls), and `wh_ode.c` (the flow's exact integrator for a vector state, so the near-brane throat is a right-hand side there);
+    source stalls), `wh_relaxt.c` (the kernel in the geometry's own rows, uniform in t = ln(-y) from the cut to the deep end, carrying the
+    reviewer's three sources in deviation variables around the AdS3 x S2 reference, whose discretization defect it measures and subtracts),
+    and `wh_ode.c` (the flow's exact integrator for a vector state, so the near-brane throat is a right-hand side there);
     and `p2_nogo/`, the reviewer's scripts behind the first 1b result, the no-go for the paper's circle of mouths.
   - 2, the SYK teleportation protocol, seven versions kept as a lineage: `wh_syk.c` (the paper's layout), `wh_syk2.c` (the factorized
     layout that made N = 14 minutes instead of weeks), `wh_syk3.c` (the exact per-realization density matrix), `wh_syk4.c` (the same in
@@ -107,7 +112,10 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   first stage finds that only the rotationally symmetric reductions are well-posed two-dimensional problems, and that the paper's fine-tuned
   circle of mouths has no static solution without both extra positive energy and a positive cosmological constant on the brane, or
   matter with rho + 3p below zero: `results/1b_nogo.md`, the first result of 1b, a derivation with its checking scripts); the relaxation kernel that will solve it is built and
-  verified on a problem with a known answer, now with a Robin boundary option and grids stretched toward a boundary, both exact.
+  verified on a problem with a known answer, now with a Robin boundary option and grids stretched toward a boundary, both exact; the
+  kernel in the geometry's own rows (`code/wh_relaxt.c`) holds the AdS3 x S2 reference with the three sources exactly (zero corrections from
+  the exact start; perturbations relax back in 3,921 sweeps at N = 128) and measures the reference's own discretization error falling 4.0x
+  per doubling of the rows at N = 64, 128 and 256 (PC build, 4:12 AM; the pair runs it in the sixth queue).
 
 Next: the pair's N = 18 and its size-winding runs, 1b's equations into the kernel. See `PLAN.md`.
 
