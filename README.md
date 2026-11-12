@@ -73,7 +73,7 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
     `wh_p3.c` with `whq56.h` (the near-brane throat as an integer shot: three rescaled variables inward from the brane in a 56-bit format,
     the shot bisected on exact event tests), `wh_dtk.c` (the five-field kernel for the two-dimensional problems in the Einstein-DeTurck
     form: the variable-coefficient principal part with its cross term, per-point weights formed once, on a manufactured problem), and
-    `wh_ode.c` (the flow's exact integrator for a vector state);
+    `wh_ode.c` (the flow's exact integrator for a vector state); `wh_cost.py` (the paper's construction at every mouth size, the yardstick page);
     and `p2_nogo/`, the reviewer's scripts behind the first 1b result, the no-go for the paper's circle of mouths.
   - 2, the SYK teleportation protocol, seven versions kept as a lineage: `wh_syk.c` (the paper's layout), `wh_syk2.c` (the factorized
     layout that made N = 14 minutes instead of weeks), `wh_syk3.c` (the exact per-realization density matrix), `wh_syk4.c` (the same in
@@ -125,7 +125,12 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   "L_IR ~ l_B" made exact) and the AdS2 radius exceeds the S2 radius at the brane by 1.77 percent; PC build, the pair runs it in the
   eighth queue. The circle-direction problem (P1, the mouths) is next: its kernel in the Einstein-DeTurck form, five fields with a
   variable-coefficient principal part and a cross-derivative term, is built (`code/wh_dtk.c`) and second order on all five fields of a
-  manufactured problem, with its reflection lines, its Neumann deep end and its deviation form, ahead of the equations.
+  manufactured problem, with its reflection lines, its Neumann deep end and its deviation form, ahead of the equations. And a reading of
+  the paper's construction at every mouth size (`results/1b_cost.md`, `code/wh_cost.py`, computed on the PC from the paper's chain with our
+  constant): the one condition that fixed its size was a human surviving the tides; without it the mouth can shrink to about a hundred
+  times the fifth dimension, but every size needs a monopole charge of 1e31 to 1e45 Dirac units, a field at the mouth of 2e7 T or more,
+  and a negative energy that grows as the mouth shrinks (minus 6.5e19 kg at 5 mm against the paper's minus 4.8e9 kg); even the paper's
+  wormhole takes 10,230 years to cross as seen from outside. The table is the yardstick any proposal to shrink it has to beat.
 
 Next: the pair's remaining P0, P3, N = 18 and size-winding runs, the reviewer's cross-check of P0, then the circle-direction problem
 (P1). See `PLAN.md`.

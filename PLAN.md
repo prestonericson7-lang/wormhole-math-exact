@@ -227,4 +227,8 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   at sweep 1), two reflection lines with a parity per field (Neumann for the even fields, zero for the odd), and a Neumann deep end by the
   mirror ghost, each 4.0x per doubling alone and together. Two more Q.60 ceiling crossings were found in the tests on the way (the cosine
   past pi/2 and a test curvature of exactly 8), neither in the kernel. The equations, the reference metric and the data wait on the
-  reviewer's P1 specification (requested 6:37 AM).
+  reviewer's P1 specification (requested 6:37 AM). The yardstick (`results/1b_cost.md`, 7:40 AM): the paper's own chain evaluated at every
+  mouth size with our constant, the human-tides condition dropped; it says what each size costs (charge, field, negative energy, crossing
+  time) and that no size is cheap: the negative energy grows as the mouth shrinks, the charge is 1e31 to 1e45 Dirac monopoles, the field
+  at least 2e7 T, and the paper's own wormhole takes 10,230 years to cross from outside. Any proposal to scale the thing down is measured
+  against that page.
