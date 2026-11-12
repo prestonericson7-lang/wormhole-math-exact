@@ -68,7 +68,8 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
     `wh_relaxs.c` (several coupled nonlinear fields, a Newton step over the local Jacobian block, including the regime where a lagged
     source stalls), `wh_relaxt.c` (the kernel in the geometry's own rows, uniform in t = ln(-y) from the cut to the deep end, carrying the
     reviewer's three sources in deviation variables around the AdS3 x S2 reference, whose discretization defect it measures and subtracts),
-    and `wh_ode.c` (the flow's exact integrator for a vector state, so the near-brane throat is a right-hand side there);
+    `wh_p3.c` with `whq56.h` (the near-brane throat as an integer shot: three rescaled variables inward from the brane in a 56-bit format,
+    the shot bisected on exact event tests), and `wh_ode.c` (the flow's exact integrator for a vector state);
     and `p2_nogo/`, the reviewer's scripts behind the first 1b result, the no-go for the paper's circle of mouths.
   - 2, the SYK teleportation protocol, seven versions kept as a lineage: `wh_syk.c` (the paper's layout), `wh_syk2.c` (the factorized
     layout that made N = 14 minutes instead of weeks), `wh_syk3.c` (the exact per-realization density matrix), `wh_syk4.c` (the same in
@@ -120,10 +121,13 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   the Fefferman-Graham series at the cut, the deep end free, the brane radius ramped in ten doublings because the direct start leaves the
   basin; the centre value U_c = -0.594115, -0.594579 and -0.594695 at N = 128, 256 and 512 (4.00x per doubling), extrapolating to
   -0.594734, which is the reviewer's own independent extrapolation to six digits; the N = 128 solution is MEASURED on the two machines
-  (26,011 sweeps each, 191 identical lines, the PC's chain), the finer grids are the PC's until the queue reaches them.
+  (26,011 sweeps each, 191 identical lines, the PC's chain), the finer grids are the PC's until the queue reaches them. And the near-brane
+  throat (`results/1b_p3.md`, 6:25 AM): the paper's log ln(L_IR/R5) as an integer shot at three charges, bit-identical to the reviewer's
+  independent integer mimic in all three; at the paper's charge L_IR = 1.13679 l_B (its "L_IR ~ l_B" made exact) and the AdS2 radius
+  exceeds the S2 radius at the brane by 1.77 percent; PC build, the pair runs it in the eighth queue.
 
-Next: the pair's P0, N = 18 and size-winding runs (the sixth queue), the reviewer's cross-check of P0, then the circle-direction problem
-(P1) and the near-brane throat (P3). See `PLAN.md`.
+Next: the pair's remaining P0, P3, N = 18 and size-winding runs, the reviewer's cross-check of P0, then the circle-direction problem
+(P1). See `PLAN.md`.
 
 ## Licenses
 
