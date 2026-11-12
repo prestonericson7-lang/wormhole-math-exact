@@ -47,8 +47,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "whq.h"
-#include "../par2.h"
-#include "limb_tile.h"                       /* v7: the three-limb kernel (limb_q60.c) and its tile sizes */                           /* v5.2 (11:44 PM): the A9's second core takes half the rows of every product (par_post / par_join); on a
+#include "par2.h"
+#include "limb_tile.h"                       /* v7: the three-limb kernel (limb_q60.c) and its tile sizes */                           /* v5.2 (11:44 PM): the A9's second core takes half the rows of every product (the machines' two-core call); on a
                                                   machine without it, or on the PC, both halves run here one after the other: the same bits either way */
 
 #define MAXN 18
