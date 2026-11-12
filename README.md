@@ -72,7 +72,9 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
     reviewer's three sources in deviation variables around the AdS3 x S2 reference, whose discretization defect it measures and subtracts),
     `wh_p3.c` with `whq56.h` (the near-brane throat as an integer shot: three rescaled variables inward from the brane in a 56-bit format,
     the shot bisected on exact event tests), `wh_dtk.c` (the five-field kernel for the two-dimensional problems in the Einstein-DeTurck
-    form: the variable-coefficient principal part with its cross term, per-point weights formed once, on a manufactured problem), and
+    form: the variable-coefficient principal part with its cross term, per-point weights formed once, on a manufactured problem),
+    `wh_p1data.c` (P1's boundary data in the cylinder frame: the paper's SO(3) example as a conformal class, blended and expanded to the
+    Fefferman-Graham cutoff, checked against the reviewer's table), and
     `wh_ode.c` (the flow's exact integrator for a vector state); `wh_cost.py` (the paper's construction at every mouth size, the yardstick page);
     and `p2_nogo/`, the reviewer's scripts behind the first 1b result, the no-go for the paper's circle of mouths.
   - 2, the SYK teleportation protocol, seven versions kept as a lineage: `wh_syk.c` (the paper's layout), `wh_syk2.c` (the factorized
