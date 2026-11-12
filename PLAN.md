@@ -189,4 +189,8 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   mouths, which it called findable numerically. The kernel is at version 4: a Robin boundary option eliminated into the first interior row
   and grids stretched toward a boundary with exact integer stencil weights, both landing on the known solution to tens of units of 2^-60;
   an adaptive relaxation parameter was tried and dropped (it misreads SOR's early transient). The pair ran version 3 at G = 128 and 256
-  and the nonlinear G = 128 (12:28-12:32 AM, chains equal to the PC's) and runs version 4 tonight.
+  and the nonlinear G = 128 (12:28-12:32 AM, chains equal to the PC's) and runs version 4 tonight. The system kernel (`code/wh_relaxs.c`,
+  2:00 AM) relaxes three coupled fields with nonlinear sources, the Newton step over the local 3 x 3 Jacobian: on the exact test it lands
+  within 3 to 172 units of 2^-60 at G = 32 to 128 in about 8 G sweeps; where the source's own derivative is a third of the Laplacian's
+  diagonal, the Newton step (block or diagonal) still lands exactly while the lagged plain update stalls at a false floor with a 2e-2 error.
+  The pair runs both tonight.
