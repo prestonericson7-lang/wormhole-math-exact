@@ -209,3 +209,18 @@ mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.143745
 mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.091028
 mu = 0: the exact I_RT/(2 ln 2) is at most 0.0e+00 over 18 points (the exact zero to the rounding)
 the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 0.0e+00 over every point
+
+### N = 14: the peak over t of the exact I_RT/(2 ln 2), per seed and sign of mu
+
+| seed | mu | t at the peak | exact I_RT/(2 ln 2) | averaged forms (2.63)-(2.66) | exact - averaged | rho00 - rho33 | abs(rho12) |
+|---|---|---|---|---|---|---|---|
+| 1 | -12 | 4 | 0.141559308749 | n/a | n/a | -0.000839398 | 0.010612170 |
+| 1 | +12 | 6 | 0.086986690547 | n/a | n/a | +0.000561942 | 0.005864685 |
+| 2 | -12 | 4 | 0.136228568414 | n/a | n/a | +0.000295675 | 0.008760569 |
+| 2 | +12 | 6 | 0.088662992114 | n/a | n/a | +0.002470893 | 0.003045576 |
+| 3 | -12 | 4 | 0.135315758588 | n/a | n/a | +0.000341361 | 0.005906064 |
+| 3 | +12 | 6 | 0.087609856281 | n/a | n/a | +0.000773986 | 0.000358937 |
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = -12: 0.137701
+mean over 3 seeds of the peak exact I_RT/(2 ln 2) at mu = +12: 0.087753
+mu = 0: the exact I_RT/(2 ln 2) is at most 0.0e+00 over 18 points (the exact zero to the rounding)
+the reference's marginal: |rho00 + rho11 - 1/2| and |rho22 + rho33 - 1/2| at most 0.0e+00 over every point
