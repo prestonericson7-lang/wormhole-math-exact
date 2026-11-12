@@ -81,7 +81,7 @@ public toolkit Warp Factory (github.com/NerdsWithAttitudes/WarpFactory), which w
 Bobrick-Martire eq. (3): T^00 = -(1/8 pi) (rho^2 v^2 / 4 r^2) f'^2, negative everywhere; their (A.7): E = -(v^2/12) INT r^2 f'^2 dr.
 For their optimal wall f = min(r0/r, 1) this is E = -v^2 r0/12 exactly (f' = -r0/r^2 and INT r0^2/r^2 dr = r0). For Alcubierre's tanh
 wall (their eq. 2) with a thin wall it is -v^2 R^2 sigma/36 (sech^4 integrates to 4/3), so the ratio between the two is R sigma / 3,
-not a constant 3: their "about a factor of three" is the value at R sigma = 9. DELIVERABLE: the integral in Q.28 for R sigma = 4, 6,
+not a constant 3: their "about a factor of three" is the value at R sigma = 9. DELIVERABLE: the integral in Q.40 for R sigma = 4, 6,
 8, 9, 10, 12, 16 by a fixed-point trapezoid on a declared grid, the ratio tabulated, the asymptote checked; the flattening theorem
 E -> E/alpha_X (their 4.2) checked on a 2D (x, rho) grid for alpha_X = 2 and 10 as a test of the arithmetic. Their "two orders of
 magnitude" is flattening by 10 times the wall factor: the table says what it is at each wall thickness.
@@ -136,6 +136,8 @@ its format, its bounds and its seed. None of them builds a door, and each write-
 ## Status (2026-11-11)
 
 - 1a: `code/wh_flow.c` built; first run pending; its table and the two machines' agreement line will appear in `results/`.
-- 3a: `code/wh_alcub.c` built (the Alcubierre integral, the wall-thickness law and the flattening check); first run pending, after 1a.
+- 3a: `code/wh_alcub.c` built on the shared arithmetic `code/whq.h` (the Alcubierre integral, the wall-thickness law and the flattening
+  check); first run pending, after 1a. Error bound on paper: Simpson truncation below 8e-8 absolute at R sigma = 16 (3e-10 at 4), rounding
+  below 8e-8 (each term carries about 20 roundings of 2^-40 on values up to 1024, and the weights integrate to the range 4): I to 7 digits.
 - 3b: recipe written (above); program not yet started.
 - 2, 1b: planned.
