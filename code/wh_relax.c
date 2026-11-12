@@ -24,6 +24,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "whq.h"
+#include "par2.h"                              /* v3 (11:47 PM): the second A9 core takes half the rows of every sweep and of every residual pass;
+                                                  without it (the PC, or a machine with one core) both halves run here: the same bits */
 
 #define MAXG 1024
 #define F60 60
@@ -71,6 +73,38 @@ static void fmt60(int64_t v, char *out)
     sprintf(out, "%s%llu.%015llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dg);
 }
 
+/* the sweep and the residual pass over a range of rows: pure computation (reads U's other colour and the tables, writes its own points
+   or its own job record), so a half can run on core 1 */
+static int Gg, NL; static int64_t G2g, OMEGA;
+typedef struct { int color, i_begin, i_end; int64_t maxchg, maxres; } rjob;
+static void sweep_rows(void *p)
+{
+    rjob *jb = (rjob *)p; const int color = jb->color; int64_t maxchg = 0;
+    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1 + ((i + color) & 1); j < Gg; j += 2) {
+        const int64_t fh2 = rdiv64(Fv[i][j], G2g);
+        const int64_t S = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1];
+        int64_t gs;
+        if (!NL) gs = rdiv64(S - fh2, 4);
+        else { const int64_t u = U[i][j], u2h2 = rdiv64(mul60(u, u), G2g);
+               const int64_t res = 4 * u + u2h2 - S + fh2, dres = 4 * ONE60 + 2 * rdiv64(u, G2g); gs = u - div60(res, dres); }
+        const int64_t nu = U[i][j] + mul60(OMEGA, gs - U[i][j]);
+        int64_t ch = nu - U[i][j]; if (ch < 0) ch = -ch; if (ch > maxchg) maxchg = ch;
+        U[i][j] = nu;
+    }
+    jb->maxchg = maxchg;
+}
+static void resid_rows(void *p)
+{
+    rjob *jb = (rjob *)p; int64_t maxres = 0;
+    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1; j < Gg; j++) {
+        const int64_t lap = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1] - 4 * U[i][j];
+        s128 r = {0, 0}; s128_addp(&r, lap, G2g); s128_add(&r, -(Fv[i][j] >> 63) - (Fv[i][j] < 0), (uint64_t)(-Fv[i][j]));
+        if (NL) { const int64_t u2 = mul60(U[i][j], U[i][j]); s128_add(&r, -(u2 >> 63) - (u2 < 0), (uint64_t)(-u2)); }
+        int64_t rv = s128_round_sh(r, 0); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
+    }
+    jb->maxres = maxres;
+}
+
 int main(int argc, char **argv)
 {
     int G = 128, nl = 0; int64_t omega = 0, thr = 1; /* thr in units of 2^-60 of the residual (the residual is O(1) in size, so 1 unit = 8.7e-19) */
@@ -105,33 +139,19 @@ int main(int argc, char **argv)
     /* THE STOP: the residual's floor is the rounding of the four neighbours and the centre (about one unit each) times G^2, so a residual
        of one unit is unreachable at G > 1; the sweep stops when the maximum residual has not improved for 50 sweeps (the floor reached), or
        at thr if that comes first. The sweep count at which the floor was reached is the convergence measure printed. */
+    Gg = G; NL = nl; G2g = G2; OMEGA = omega;
+    const int mid = 1 + (G - 1) / 2;                      /* the rows split in two halves, one per core */
     for (sweep = 1; sweep <= 100000; sweep++) {
         maxchg = 0;
-        for (int color = 0; color < 2; color++)
-            for (int i = 1; i < G; i++) for (int j = 1 + ((i + color) & 1); j < G; j += 2) {
-                /* the Gauss-Seidel value: (u_N + u_S + u_E + u_W - f h^2) / 4; f h^2 = f / G^2 */
-                const int64_t fh2 = rdiv64(Fv[i][j], G2);
-                const int64_t S = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1];
-                int64_t gs;
-                if (!nl) gs = rdiv64(S - fh2, 4);
-                else {   /* one Newton step of 4u + h^2 u^2 - S + h^2 g = 0 at the current u */
-                    const int64_t u = U[i][j], u2h2 = rdiv64(mul60(u, u), G2);
-                    const int64_t res = 4 * u + u2h2 - S + fh2, dres = 4 * ONE60 + 2 * rdiv64(u, G2);
-                    gs = u - div60(res, dres);
-                }
-                const int64_t nu = U[i][j] + mul60(omega, gs - U[i][j]);
-                int64_t ch = nu - U[i][j]; if (ch < 0) ch = -ch; if (ch > maxchg) maxchg = ch;
-                U[i][j] = nu;
-            }
-        /* the residual, exactly: r = (u_N + u_S + u_E + u_W - 4u) G^2 - f, in units of 2^-60 (the Laplacian of an O(1) function) */
-        maxres = 0;
-        for (int i = 1; i < G; i++) for (int j = 1; j < G; j++) {
-            const int64_t lap = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1] - 4 * U[i][j];
-            s128 r = {0, 0}; s128_addp(&r, lap, G2); s128_add(&r, -(Fv[i][j] >> 63) - (Fv[i][j] < 0), (uint64_t)(-Fv[i][j]));
-            if (nl) { const int64_t u2 = mul60(U[i][j], U[i][j]); s128_add(&r, -(u2 >> 63) - (u2 < 0), (uint64_t)(-u2)); }   /* - u^2 */
-            /* the line above subtracts f as a 128-bit value: hi = sign extension, lo = -f */
-            int64_t rv = s128_round_sh(r, 0); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
+        for (int color = 0; color < 2; color++) {           /* the Gauss-Seidel value (u_N + u_S + u_E + u_W - f h^2) / 4, or one Newton step for nl=1; over-relaxed */
+            rjob a = { color, 1, mid, 0, 0 }, b = { color, mid, G, 0, 0 };
+            par2(sweep_rows, &a, &b);
+            if (a.maxchg > maxchg) maxchg = a.maxchg; if (b.maxchg > maxchg) maxchg = b.maxchg;
         }
+        /* the residual, exactly: r = (u_N + u_S + u_E + u_W - 4u) G^2 - f (- u^2 for nl=1), in units of 2^-60 */
+        { rjob a = { 0, 1, mid, 0, 0 }, b = { 0, mid, G, 0, 0 };
+          par2(resid_rows, &a, &b);
+          maxres = a.maxres > b.maxres ? a.maxres : b.maxres; }
         chain = fnv(chain, &maxres, 8);
         if (best < 0 || maxres < best) { best = maxres; lastimp = sweep; floor_sweep = sweep; }
         if ((sweep & (sweep - 1)) == 0 || sweep % 1000 == 0) printf("WHRELAX sweep %d: max |residual| = %lld units of 2^-60 (%.3e), max change = %lld units\n", sweep, (long long)maxres, (double)maxres / 1152921504606846976.0, (long long)maxchg);
