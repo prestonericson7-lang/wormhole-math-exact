@@ -117,5 +117,8 @@ and the learned model has to match.
 The paper's interleaved layout (this program, version 1) and the factorized layout of versions 2 and later compute the same quantities
 by different arithmetic paths. At N = 10, three seeds, mu = -12, +12 and 0, t = t' = 1..6 (54 points, 270 printed numbers), version 1's PC
 build (chain fdb4636ff5ab97ee) and version 2's run on the pair (chain 8cceeccb931b6c19) agree to 7.4e-11 in the worst number, K at seed 1,
-mu = +12, t = 6, which is version 1's own Q.40 rounding on 2^N amplitudes as the review measured it. The pair runs version 1 at N = 10
-tonight to put the same comparison on the two machines; its line is added here when it lands.
+mu = +12, t = 6, which is version 1's own Q.40 rounding on 2^N amplitudes as the review measured it. **On the pair (MEASURED, 11-12):**
+version 1 at N = 10, the same 54 points, ran on the two machines from 12:33 to 1:52 AM (79 minutes; version 2 had taken 29 seconds for the
+same points, version 4 the same), both machines line for line, chain fdb4636ff5ab97ee, the PC build's exactly. So the comparison above now
+stands between two runs on the machines: the paper's layout and ours agree to 7.4e-11 across the 270 numbers, and the chains are the
+proof of which bits each produced. The raw lines are appended to `results/2_syk_board1.txt`.
