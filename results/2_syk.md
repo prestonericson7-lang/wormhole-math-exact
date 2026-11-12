@@ -111,3 +111,11 @@ N = 10 (an hour on the pair), N = 12 (a reduced grid), N = 14 (hours per point a
 diagonalization of one side would make it minutes, and is the planned v2); the size-winding signature as the protocol paper and the
 comment define it; mu and beta scans; and the N-dependence of the sign asymmetry, which is the quantity the gravitational reading predicts
 and the learned model has to match.
+
+## The two layouts against each other at N = 10 (added 11-11, 11:56 PM)
+
+The paper's interleaved layout (this program, version 1) and the factorized layout of versions 2 and later compute the same quantities
+by different arithmetic paths. At N = 10, three seeds, mu = -12, +12 and 0, t = t' = 1..6 (54 points, 270 printed numbers), version 1's PC
+build (chain fdb4636ff5ab97ee) and version 2's run on the pair (chain 8cceeccb931b6c19) agree to 7.4e-11 in the worst number, K at seed 1,
+mu = +12, t = 6, which is version 1's own Q.40 rounding on 2^N amplitudes as the review measured it. The pair runs version 1 at N = 10
+tonight to put the same comparison on the two machines; its line is added here when it lands.
