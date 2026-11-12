@@ -59,7 +59,7 @@
 static int N, GX; static int64_t DT, DX, T0, OMEGA, LAM;
 #define ONE56 ((int64_t)1 << 56)
 static int64_t T056, DT56;   /* the row coordinate t_j = t0 + Dt j in Q.56: t itself passes the Q.60 ceiling at the real cut (t0 = -10.85) and the span is 13.5 */
-static int64_t UR56[MAXN + 2], BR56[MAXN + 2], LNS0, LNL3;   /* the reference's node values in Q.56 (U about 11 and B about -13 at the ends), one ghost row past the deep end; ln S0 and ln L3 */
+static int64_t UR56[MAXN + 2], BR56[MAXN + 2], LNS0, LNL3, CZ[MAXN + 2];   /* CZ: coth(z)/z per row where z >= 0.4 (else -1), for the first-integral rows */   /* the reference's node values in Q.56 (U about 11 and B about -13 at the ends), one ghost row past the deep end; ln S0 and ln L3 */
 static int64_t F[NF][MAXGX + 1][MAXN + 1], SRC[NF][MAXGX + 1][MAXN + 1], EX[NF][MAXGX + 1][MAXN + 1], CKP[NF][MAXGX + 1][MAXN + 1];
 static int64_t CJ[MAXN + 1], WS[MAXN + 1], WN[MAXN + 1], WX[MAXN + 1], WD[MAXN + 1], DIAG1[MAXN + 1];   /* per row: c_j, the weights, and 1 + c_j */
 static inline void split60(s128 x, int64_t *n, int64_t *f)         /* a 128-bit Q.60 exponent into integer + fraction for exp60n */
@@ -127,6 +127,9 @@ static inline int64_t source(int k, int i, int j)                  /* S_k = the 
 }
 static inline int64_t dT(int k, int i, int j) { s128 r = {0, 0}; s128_addp(&r, Fv(k, i, j + 1) - Fv(k, i, j - 1), INV2DT56); return s128_round_sh(r, 56); }   /* centred d_t of a deviation */
 static inline int64_t dX(int k, int i, int j) { return (Fv(k, i + 1, j) - Fv(k, i - 1, j)) / 2; }                                                         /* centred d_x (Dx = 1) */
+/* The first integral of the x-independent problem (the reviewer's stage 2): Q = e^{U + 2V} (d_y U - d_y B) is constant in y; in t = ln(-y),
+   Q = -e^{U + 2V - t} (U_t - B_t), whose reference part is exactly 1, so Q/(-L3 S0^2) = e^{u + 2v} [1 + (coth z / z)(u_t - b_t)]: the same on
+   every row for the exact solution and e^{u_c + 2 v_c} = c2_eff/c2 at the deep end. Near the cut coth z / z = 1/z^2 is 1e9 and the row is ill-conditioned. */
 /* ads3: the three weighted sources at a point: w_D S_a + w_X S_b + w_E e^{2b} S_c (the manufactured defect is subtracted in correction()) */
 static void ads3_wsource(int i, int j, int64_t out[NF])
 {
@@ -284,6 +287,8 @@ int main(int argc, char **argv)
             const int64_t em2z = exp_of128(m2);
             s128 m4 = {0, 0}; s128_addv(&m4, -4 * zf); { s128 zz = { (-4 * zi) >> 4, (uint64_t)(-4 * zi) << 60 }; s128_add(&m4, zz.hi, zz.lo); }
             const int64_t em4z = exp_of128(m4);
+            CZ[j] = -1;                                                       /* coth(z)/z = (1 + e^-2z)/((1 - e^-2z)) e^-t, kept where z >= 0.4 (below 4.8; near the cut it is 1/z^2) */
+            if (zi >= 1 || zf >= 2 * (ONE60 / 5)) { s128 mt = {0, 0}; s128_addp(&mt, -16, tj56); CZ[j] = mul60(div60(ONE60 + em2z, ONE60 - em2z), exp_of128(mt)); }
             const int64_t ln1p = ln60(ONE60 + em2z);                                  /* ln(1 + e^{-2z}), in [0, ln 2] */
             const s128 ln1m = ln1mexp(2, zi, zf, em2z, tj56), ln1m4 = ln1mexp(4, zi, zf, em4z, tj56);   /* ln(1 - e^{-2z}), ln(1 - e^{-4z}) in 128 bits (about t + ln 2 near the cut, past the Q.60 ceiling) */
             /* ln coth z = ln1p - ln1m;  ln sinh z = z + ln1m - ln 2;  Ur = ln L3 + ln coth z;  Br = ln L3 - ln sinh z (all in 128 bits, stored in Q.56) */
@@ -411,7 +416,9 @@ int main(int argc, char **argv)
         for (int j = 0; j <= N; j += N / 4) {
             char r1[48], r2[48], r3[48], r4[48], r5[48], r6[48], r7[48];
             fmt56(TROW56(j), r1); fmt56(UR56[j] + ((F[0][0][j] + 8) >> 4), r2); fmt56(BR56[j] + ((F[2][0][j] + 8) >> 4), r3); fmt60(LNS0 + F[1][0][j], r4); fmt60(F[0][0][j], r5); fmt60(F[1][0][j], r6); fmt60(F[2][0][j], r7);
-            printf("WHRELAXT p0 row %d (t = %s): U = %s, B = %s, V = %s; deviations u = %s, v = %s, b = %s\n", j, r1, r2, r3, r4, r5, r6, r7);
+            char r8[48] = "(near the cut: ill-conditioned, not printed)";
+            if (CZ[j] >= 0) { const int64_t qr = mul60(exp60(F[0][0][j] + 2 * F[1][0][j]), ONE60 + mul60(CZ[j], dT(0, 0, j) - dT(2, 0, j))) - ONE60; fmt60(qr, r8); }
+            printf("WHRELAXT p0 row %d (t = %s): U = %s, B = %s, V = %s; deviations u = %s, v = %s, b = %s; the first integral Q/(-L3 S0^2) - 1 = %s\n", j, r1, r2, r3, r4, r5, r6, r7, r8);
         }
         { char c1[48], c2[48], c3[48]; fmt56(UR56[N] + ((F[0][0][N] + 8) >> 4), c1); fmt60(LNS0 + F[1][0][N], c2); fmt60(LNL3 + F[2][0][N], c3);   /* B + ln sinh(-y) = (Br + b) + ln sinh z = ln L3 + b */
           const int64_t c2r = exp60(F[0][0][N] + 2 * F[1][0][N]); char c4[48]; fmt60(c2r - ONE60, c4);   /* c2_eff/c2 - 1 = e^{u_c + 2 v_c} - 1 */

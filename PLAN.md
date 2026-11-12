@@ -212,9 +212,15 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   leaves the basin inside 63 to 128 sweeps while a quarter of the data converges), so the brane radius is ramped in ten doublings; every stage
   converges in 2,559 to 3,274 sweeps; the centre value U_c = -0.594115 (N = 128), -0.594579 (N = 256), extrapolating to -0.594734 =
   the reviewer's independent plain-row extrapolation; the error falls 4.00x per doubling (N = 512: U_c = -0.594695). MEASURED on the pair
-  at N = 128 at 6:12 AM (191 identical lines, the PC's chain 46e8b5ae9ae59aa2); N = 256 waits in the queue;
+  at N = 128 at 6:12 AM (191 identical lines, the PC's chain 46e8b5ae9ae59aa2) and at N = 256 at 6:58 AM (30,608 sweeps, the PC's chain
+  5a89a7f4c5f17234);
   the reviewer's own defect-corrected run and a direct check at alpha = 1/8 against its specification's continuum values follow (the check,
   6:26 AM: V and B agree to 1e-8 and 2e-7; U's limit on these rows is 1.4e-5 above the specification's, one of the two carrying it). P3, the
   near-brane throat, DONE on the PC at 6:25 AM (`results/1b_p3.md`, `code/wh_p3.c`): the reviewer's verified specification coded as an
   integer shot in Q.56, bit-identical to its mimic in all three cases (the raw ells, the halvings, the event depths to the step); the pair
-  runs the three cases in the eighth queue.
+  runs the three cases in the eighth queue. P1's kernel (`code/wh_dtk.c`, 6:58 AM): the Einstein-DeTurck form's five fields on a periodic
+  circle coordinate by a depth coordinate, the principal part h^ab d_a d_b with the reference metric's inverse per point (the weights and
+  the row scale formed once), the cross-derivative term over the four diagonal neighbours, red-black with all fields from one state; on a
+  manufactured problem with a non-diagonal reference metric the errors fall 3.97x to 4.15x per doubling on every field at Ge = N = 16 to
+  128 (PC build), with and without the cross term and with a lagged coupling. The equations, the reference metric and the data wait on the
+  reviewer's P1 specification (requested 6:37 AM).

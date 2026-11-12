@@ -1,0 +1,199 @@
+WHRELAXT p0: the brane's data at the cut (a = 0.020000000000; U0 = B0 = -t0 + v^2/(18 a^2) + (6 Q2 - 1)/(60 a^4) v^4 ln v, V0 = ln a - t0 - 7 v^2/(36 a^2) - 3/2 of the log term, plus the free v^4 terms fu4, fv4: zero), reached in 10 stages of the radius doubling from 0.000039062500 (the small terms only at the full radius); stage 1: deviations u0 = 0.594408601164, v0 = 0.761990742993, b0 = 0.594408601353; the start: u and b linear from the cut values to zero at the deep end, v = (1/2) ln(1 + a^2 w e^-2t); later stages start from the previous solution plus the profile's increment
+WHRELAXT p0: the AdS3 x S2 reference with w = 1.132782218537: Q2 = 6.000000000000, L3 = 0.551888855732, V = ln S0 = -0.062338373461; deviations (u, v, b) from (ln(L3 coth e^t), ln S0, ln(L3/sinh e^t)); the discretization defect subtracted so zero is the exact discrete solution; start = the brane's data at the cut (see the p0 line)
+WHRELAXT: Q.60 fixed point; 3 fields on rows uniform in t = ln(-y) from t0 = -10.850000000000 (Dirichlet, the cut) to t1 = ln 14 = 2.639057329615 (Neumann with values), N = 256 (Dt = 0.052691630194), Gx = 4 columns of spacing 1 (Neumann with values); the operator F_tt - F_t + e^{2t} F_xx normalized by its row diagonal (c_j at the deep end = 0.544175946926); red-black, all fields from one state, the plain diagonal as per-row weights, omega = 1.648437500000 (2 - 90/N), the change guard on; lam = 0.000000000000
+WHRELAXT selftest ln 2 = 0.693147180559945311 (0.693147180559945309; 2 units)
+WHRELAXT selftest e = 2.718281828459045235 (2.718281828459045235; 0 units)
+WHRELAXT selftest e^-1 = 0.367879441171442323 (0.367879441171442322; 1 units)
+WHRELAXT selftest sqrt 2 = 1.414213562373095048 (1.414213562373095049; -1 units)
+WHRELAXT selftest ln 3 = 1.098612288668109694 (1.098612288668109691; 3 units)
+WHRELAXT selftest sin(pi/6) = 0.499999999999999999 (0.500000000000000000; -1 units)
+WHRELAXT selftest cos(pi/3) = 0.500000000000000000 (0.500000000000000000; 0 units)
+WHRELAXT selftest e^-20 = 0.000000002061153623 (0.000000002061153622; 1 units)
+WHRELAXT selftest: largest deviation 3 units of 2^-60
+WHRELAXT sweep 1: max correction = 64083475770586457 units of 2^-60, max change = 105637604590576113, max |residual| = -1
+WHRELAXT sweep 2: max correction = 59550349926911338 units of 2^-60, max change = 98165029957642909, max |residual| = -1
+WHRELAXT sweep 4: max correction = 44862568839474431 units of 2^-60, max change = 73953140821321132, max |residual| = -1
+WHRELAXT sweep 8: max correction = 25276599392545237 units of 2^-60, max change = 41666894311148789, max |residual| = -1
+WHRELAXT sweep 16: max correction = 19229079554196427 units of 2^-60, max change = 31697935827620673, max |residual| = 9223372036854775807
+WHRELAXT sweep 32: max correction = 8803851122648968 units of 2^-60, max change = 14512598334991658, max |residual| = 6088054172158525464
+WHRELAXT sweep 64: max correction = 5234833818052186 units of 2^-60, max change = 8629296371945400, max |residual| = 3731814730047834201
+WHRELAXT sweep 128: max correction = 3350923892467450 units of 2^-60, max change = 5523788603989312, max |residual| = 2401803516504715015
+WHRELAXT sweep 256: max correction = 1975151509625849 units of 2^-60, max change = 3255913816648860, max |residual| = 1416890052692189833
+WHRELAXT sweep 512: max correction = 443093839594902 units of 2^-60, max change = 730412501207221, max |residual| = 488821573211680272
+WHRELAXT sweep 1000: max correction = 4092031210217 units of 2^-60, max change = 6745457698092, max |residual| = 4873374729745821
+WHRELAXT sweep 1024: max correction = 3238149539841 units of 2^-60, max change = 5337887132082, max |residual| = 3567019689755769
+WHRELAXT sweep 2000: max correction = 238134550 units of 2^-60, max change = 392549922, max |residual| = 262318671681
+WHRELAXT sweep 2048: max correction = 149092578 units of 2^-60, max change = 245769797, max |residual| = 164233837638
+WHRELAXT sweep 3000: max correction = 13753 units of 2^-60, max change = 22671, max |residual| = 15150278
+WHRELAXT: stop at sweep 3274: the largest correction 949 and residual 1042277 are at or below tol 1048576 units
+WHRELAXT p0 stage 1 of 10: converged after 3274 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 3274 sweeps in all
+WHRELAXT p0 stage 2 of 10: a = 0.000078125000, the V deviation at the cut 1.455137923553
+WHRELAXT sweep 1: max correction = 51681817468893485 units of 2^-60, max change = 85194245983879104, max |residual| = -1
+WHRELAXT sweep 2: max correction = 52276869750177821 units of 2^-60, max change = 86175152478808752, max |residual| = -1
+WHRELAXT sweep 4: max correction = 51407804958426566 units of 2^-60, max change = 84742553486156292, max |residual| = -1
+WHRELAXT sweep 8: max correction = 45235890875382645 units of 2^-60, max change = 74568538864888579, max |residual| = -1
+WHRELAXT sweep 16: max correction = 42106009997507599 units of 2^-60, max change = 69409125855266433, max |residual| = 9223372036854775807
+WHRELAXT sweep 32: max correction = 11865607731949285 units of 2^-60, max change = 19559712745635149, max |residual| = 8209067904809869312
+WHRELAXT sweep 64: max correction = 7378273017644059 units of 2^-60, max change = 12162621927522629, max |residual| = 5138934223049157504
+WHRELAXT sweep 128: max correction = 1528721299941305 units of 2^-60, max change = 2520001517871995, max |residual| = 1082837279180023003
+WHRELAXT sweep 256: max correction = 497379134969607 units of 2^-60, max change = 819898417801462, max |residual| = 355765525192907225
+WHRELAXT sweep 512: max correction = 83672715363551 units of 2^-60, max change = 137929241732104, max |residual| = 92343782302115003
+WHRELAXT sweep 1000: max correction = 775930604970 units of 2^-60, max change = 1279073106630, max |residual| = 924650944255793
+WHRELAXT sweep 1024: max correction = 612727119101 units of 2^-60, max change = 1010042360393, max |residual| = 674896825757785
+WHRELAXT sweep 2000: max correction = 41324578 units of 2^-60, max change = 68120984, max |residual| = 45517487820
+WHRELAXT sweep 2048: max correction = 25767500 units of 2^-60, max change = 42476113, max |residual| = 28381939965
+WHRELAXT sweep 3000: max correction = 2202 units of 2^-60, max change = 3630, max |residual| = 2420485
+WHRELAXT: stop at sweep 3086: the largest correction 943 and residual 1038940 are at or below tol 1048576 units
+WHRELAXT p0 stage 2 of 10: converged after 3086 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 6360 sweeps in all
+WHRELAXT p0 stage 3 of 10: a = 0.000156250000, the V deviation at the cut 2.148285104113
+WHRELAXT sweep 1: max correction = 13940079661547605 units of 2^-60, max change = 22979350067082380, max |residual| = -1
+WHRELAXT sweep 2: max correction = 14036835710966624 units of 2^-60, max change = 23138846367296544, max |residual| = -1
+WHRELAXT sweep 4: max correction = 13936852255624592 units of 2^-60, max change = 22974029890131163, max |residual| = -1
+WHRELAXT sweep 8: max correction = 13063725977557499 units of 2^-60, max change = 21534735791129940, max |residual| = -1
+WHRELAXT sweep 16: max correction = 11645937805677437 units of 2^-60, max change = 19197600601546400, max |residual| = 8434703576707675524
+WHRELAXT sweep 32: max correction = 9304900830969823 units of 2^-60, max change = 15338547463551818, max |residual| = 6583480792195480058
+WHRELAXT sweep 64: max correction = 11303935550552668 units of 2^-60, max change = 18633831259114164, max |residual| = 7920190156767382523
+WHRELAXT sweep 128: max correction = 2121389826127311 units of 2^-60, max change = 3496978541506739, max |residual| = 1494976723707028737
+WHRELAXT sweep 256: max correction = 509971730994816 units of 2^-60, max change = 840656525311767, max |residual| = 364962498174902392
+WHRELAXT sweep 512: max correction = 81437099393718 units of 2^-60, max change = 134243968531832, max |residual| = 89826514440910554
+WHRELAXT sweep 1000: max correction = 728551935117 units of 2^-60, max change = 1200972330544, max |residual| = 868190672982236
+WHRELAXT sweep 1024: max correction = 575315758798 units of 2^-60, max change = 948372071144, max |residual| = 633689670434965
+WHRELAXT sweep 2000: max correction = 38811862 units of 2^-60, max change = 63978929, max |residual| = 42749833386
+WHRELAXT sweep 2048: max correction = 24201052 units of 2^-60, max change = 39893922, max |residual| = 26656561288
+WHRELAXT sweep 3000: max correction = 2068 units of 2^-60, max change = 3409, max |residual| = 2274766
+WHRELAXT: stop at sweep 3079: the largest correction 949 and residual 1045614 are at or below tol 1048576 units
+WHRELAXT p0 stage 3 of 10: converged after 3079 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 9439 sweeps in all
+WHRELAXT p0 stage 4 of 10: a = 0.000312500000, the V deviation at the cut 2.841432284673
+WHRELAXT sweep 1: max correction = 6657852916301015 units of 2^-60, max change = 10975054416714954, max |residual| = -1
+WHRELAXT sweep 2: max correction = 10959596681013631 units of 2^-60, max change = 18066210153858407, max |residual| = -1
+WHRELAXT sweep 4: max correction = 12917122687277603 units of 2^-60, max change = 21293069429809174, max |residual| = -1
+WHRELAXT sweep 8: max correction = 12007273156467520 units of 2^-60, max change = 19793239343864428, max |residual| = -1
+WHRELAXT sweep 16: max correction = 9809373591536512 units of 2^-60, max change = 16170139279798469, max |residual| = 6930364255726308921
+WHRELAXT sweep 32: max correction = 7284964577994851 units of 2^-60, max change = 12008808796538387, max |residual| = 5146275187332226735
+WHRELAXT sweep 64: max correction = 13309644501843705 units of 2^-60, max change = 21940117108507982, max |residual| = 9223372036854775807
+WHRELAXT sweep 128: max correction = 2711381655088581 units of 2^-60, max change = 4469543197060083, max |residual| = 1908889351956013138
+WHRELAXT sweep 256: max correction = 485226768066398 units of 2^-60, max change = 799866000484453, max |residual| = 347685309288209647
+WHRELAXT sweep 512: max correction = 77843691545540 units of 2^-60, max change = 128320460282101, max |residual| = 85833632072525983
+WHRELAXT sweep 1000: max correction = 682169961570 units of 2^-60, max change = 1124514546026, max |residual| = 812916581222969
+WHRELAXT sweep 1024: max correction = 538694719303 units of 2^-60, max change = 888004576351, max |residual| = 593353166914147
+WHRELAXT sweep 2000: max correction = 36359130 units of 2^-60, max change = 59935753, max |residual| = 40048261754
+WHRELAXT sweep 2048: max correction = 22672197 units of 2^-60, max change = 37373700, max |residual| = 24972604496
+WHRELAXT sweep 3000: max correction = 1939 units of 2^-60, max change = 3196, max |residual| = 2133497
+WHRELAXT: stop at sweep 3073: the largest correction 946 and residual 1041165 are at or below tol 1048576 units
+WHRELAXT p0 stage 4 of 10: converged after 3073 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 12512 sweeps in all
+WHRELAXT p0 stage 5 of 10: a = 0.000625000000, the V deviation at the cut 3.534579465233
+WHRELAXT sweep 1: max correction = 6658666208841233 units of 2^-60, max change = 10976395078636720, max |residual| = -1
+WHRELAXT sweep 2: max correction = 10966808392202355 units of 2^-60, max change = 18078098209021070, max |residual| = -1
+WHRELAXT sweep 4: max correction = 12919772468686977 units of 2^-60, max change = 21297437428851189, max |residual| = -1
+WHRELAXT sweep 8: max correction = 12001847558318668 units of 2^-60, max change = 19784295584415929, max |residual| = -1
+WHRELAXT sweep 16: max correction = 9782977481236602 units of 2^-60, max change = 16126626941725961, max |residual| = 6906977841439717996
+WHRELAXT sweep 32: max correction = 7236338995808503 units of 2^-60, max change = 11928652563403079, max |residual| = 5110572482698173005
+WHRELAXT sweep 64: max correction = 12521855659415636 units of 2^-60, max change = 20641496438567962, max |residual| = 8984306327864423855
+WHRELAXT sweep 128: max correction = 3303280436651343 units of 2^-60, max change = 5445251344792448, max |residual| = 2393689529988603319
+WHRELAXT sweep 256: max correction = 439757525927523 units of 2^-60, max change = 724912796646151, max |residual| = 315163300351921681
+WHRELAXT sweep 512: max correction = 68985643100098 units of 2^-60, max change = 113718521047818, max |residual| = 76044668672770616
+WHRELAXT sweep 1000: max correction = 594792506775 units of 2^-60, max change = 980478272887, max |residual| = 708787157896637
+WHRELAXT sweep 1024: max correction = 469706016435 units of 2^-60, max change = 774281011467, max |residual| = 517365078981775
+WHRELAXT sweep 2000: max correction = 31737324 units of 2^-60, max change = 52316995, max |residual| = 34957547932
+WHRELAXT sweep 2048: max correction = 19791266 units of 2^-60, max change = 32624665, max |residual| = 21799385338
+WHRELAXT sweep 3000: max correction = 1694 units of 2^-60, max change = 2792, max |residual| = 1865420
+WHRELAXT: stop at sweep 3059: the largest correction 946 and residual 1043389 are at or below tol 1048576 units
+WHRELAXT p0 stage 5 of 10: converged after 3059 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 15571 sweeps in all
+WHRELAXT p0 stage 6 of 10: a = 0.001250000000, the V deviation at the cut 4.227726645793
+WHRELAXT sweep 1: max correction = 6660323998061853 units of 2^-60, max change = 10979127840555086, max |residual| = -1
+WHRELAXT sweep 2: max correction = 10969601641970158 units of 2^-60, max change = 18082702706685182, max |residual| = -1
+WHRELAXT sweep 4: max correction = 12918976949004250 units of 2^-60, max change = 21296126064374193, max |residual| = -1
+WHRELAXT sweep 8: max correction = 11999109259933147 units of 2^-60, max change = 19779781670671047, max |residual| = -1
+WHRELAXT sweep 16: max correction = 9775367312561577 units of 2^-60, max change = 16114082054300725, max |residual| = 6899031528441808004
+WHRELAXT sweep 32: max correction = 7220738383659367 units of 2^-60, max change = 11902935929313488, max |residual| = 5098601550194049628
+WHRELAXT sweep 64: max correction = 11286622353894890 units of 2^-60, max change = 18605291536498608, max |residual| = 8097519999822591649
+WHRELAXT sweep 128: max correction = 3641897129090900 units of 2^-60, max change = 6003439798735780, max |residual| = 2534415779494737598
+WHRELAXT sweep 256: max correction = 400840132670387 units of 2^-60, max change = 660759906198841, max |residual| = 286474620352648082
+WHRELAXT sweep 512: max correction = 58498571247921 units of 2^-60, max change = 96431238541495, max |residual| = 64469239712764856
+WHRELAXT sweep 1000: max correction = 498052670649 units of 2^-60, max change = 821008699273, max |residual| = 593496507900380
+WHRELAXT sweep 1024: max correction = 393333100489 units of 2^-60, max change = 648385032837, max |residual| = 433243915240729
+WHRELAXT sweep 2000: max correction = 26639469 units of 2^-60, max change = 43913500, max |residual| = 29342507666
+WHRELAXT sweep 2048: max correction = 16614153 units of 2^-60, max change = 27387393, max |residual| = 18299946870
+WHRELAXT sweep 3000: max correction = 1425 units of 2^-60, max change = 2349, max |residual| = 1568421
+WHRELAXT: stop at sweep 3041: the largest correction 953 and residual 1046726 are at or below tol 1048576 units
+WHRELAXT p0 stage 6 of 10: converged after 3041 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 18612 sweeps in all
+WHRELAXT p0 stage 7 of 10: a = 0.002500000000, the V deviation at the cut 4.920873826353
+WHRELAXT sweep 1: max correction = 6662697892072037 units of 2^-60, max change = 10983041056462498, max |residual| = -1
+WHRELAXT sweep 2: max correction = 10969832475826393 units of 2^-60, max change = 18083083221870070, max |residual| = -1
+WHRELAXT sweep 4: max correction = 12915885672512186 units of 2^-60, max change = 21291030288281807, max |residual| = -1
+WHRELAXT sweep 8: max correction = 11996470661181235 units of 2^-60, max change = 19775432105540942, max |residual| = -1
+WHRELAXT sweep 16: max correction = 9773619169303885 units of 2^-60, max change = 16111200349399373, max |residual| = 6898587383603556124
+WHRELAXT sweep 32: max correction = 7215987089177534 units of 2^-60, max change = 11895103717316091, max |residual| = 5094426971771963518
+WHRELAXT sweep 64: max correction = 10980426663521536 units of 2^-60, max change = 18100547078148782, max |residual| = 7874574840526070030
+WHRELAXT sweep 128: max correction = 3669636116351332 units of 2^-60, max change = 6049165785547899, max |residual| = 2566549284840136600
+WHRELAXT sweep 256: max correction = 368689632605965 units of 2^-60, max change = 607761816248895, max |residual| = 264002759824000490
+WHRELAXT sweep 512: max correction = 48655401760390 units of 2^-60, max change = 80205388839393, max |residual| = 53615348094630130
+WHRELAXT sweep 1000: max correction = 411075239468 units of 2^-60, max change = 677631840061, max |residual| = 489832317962407
+WHRELAXT sweep 1024: max correction = 324682759257 units of 2^-60, max change = 535219235963, max |residual| = 357629424070369
+WHRELAXT sweep 2000: max correction = 22096256 units of 2^-60, max change = 36424297, max |residual| = 24338425184
+WHRELAXT sweep 2048: max correction = 13783864 units of 2^-60, max change = 22721838, max |residual| = 15182549036
+WHRELAXT sweep 3000: max correction = 1188 units of 2^-60, max change = 1958, max |residual| = 1310354
+WHRELAXT: stop at sweep 3023: the largest correction 947 and residual 1042277 are at or below tol 1048576 units
+WHRELAXT p0 stage 7 of 10: converged after 3023 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 21635 sweeps in all
+WHRELAXT p0 stage 8 of 10: a = 0.005000000000, the V deviation at the cut 5.614021006913
+WHRELAXT sweep 1: max correction = 6663893666359981 units of 2^-60, max change = 10985012215640281, max |residual| = -1
+WHRELAXT sweep 2: max correction = 10968150314566967 units of 2^-60, max change = 18080310284168985, max |residual| = -1
+WHRELAXT sweep 4: max correction = 12912704332652010 units of 2^-60, max change = 21285786048356048, max |residual| = -1
+WHRELAXT sweep 8: max correction = 11992909978586908 units of 2^-60, max change = 19769562542826856, max |residual| = -1
+WHRELAXT sweep 16: max correction = 9772833375182964 units of 2^-60, max change = 16109905016903167, max |residual| = 6898971714855551786
+WHRELAXT sweep 32: max correction = 7213594911297174 units of 2^-60, max change = 11891160361591435, max |residual| = 5093217503713041030
+WHRELAXT sweep 64: max correction = 11000704891701777 units of 2^-60, max change = 18133974469914648, max |residual| = 7883566667430436913
+WHRELAXT sweep 128: max correction = 3483879003383721 units of 2^-60, max change = 5742956794640353, max |residual| = 2433988790348820208
+WHRELAXT sweep 256: max correction = 390871809786388 units of 2^-60, max change = 644327748944749, max |residual| = 281790237696974887
+WHRELAXT sweep 512: max correction = 40373868216435 units of 2^-60, max change = 66553798388030, max |residual| = 44491863630853025
+WHRELAXT sweep 1000: max correction = 340111260645 units of 2^-60, max change = 560652156219, max |residual| = 405241403734086
+WHRELAXT sweep 1024: max correction = 268694221077 units of 2^-60, max change = 442925630057, max |residual| = 295962169611204
+WHRELAXT sweep 2000: max correction = 18455176 units of 2^-60, max change = 30422204, max |residual| = 20328056365
+WHRELAXT sweep 2048: max correction = 11517408 units of 2^-60, max change = 18985727, max |residual| = 12686221407
+WHRELAXT sweep 3000: max correction = 1000 units of 2^-60, max change = 1648, max |residual| = 1100119
+WHRELAXT: stop at sweep 3005: the largest correction 952 and residual 1045614 are at or below tol 1048576 units
+WHRELAXT p0 stage 8 of 10: converged after 3005 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 24640 sweeps in all
+WHRELAXT p0 stage 9 of 10: a = 0.010000000000, the V deviation at the cut 6.307168187473
+WHRELAXT sweep 1: max correction = 6663985172831200 units of 2^-60, max change = 10985163058338931, max |residual| = -1
+WHRELAXT sweep 2: max correction = 10964678323826890 units of 2^-60, max change = 18074586924433389, max |residual| = -1
+WHRELAXT sweep 4: max correction = 12917007190566447 units of 2^-60, max change = 21292879040699377, max |residual| = -1
+WHRELAXT sweep 8: max correction = 11995722202873286 units of 2^-60, max change = 19774198318798932, max |residual| = -1
+WHRELAXT sweep 16: max correction = 9771536880634481 units of 2^-60, max change = 16107767826670902, max |residual| = 6899029769761127514
+WHRELAXT sweep 32: max correction = 7210834235258481 units of 2^-60, max change = 11886609559683902, max |residual| = 5093602186718544448
+WHRELAXT sweep 64: max correction = 11006569047765754 units of 2^-60, max change = 18143641164676360, max |residual| = 7886495208083713581
+WHRELAXT sweep 128: max correction = 3332268562661337 units of 2^-60, max change = 5493036458762048, max |residual| = 2330205363214809122
+WHRELAXT sweep 256: max correction = 383844296663699 units of 2^-60, max change = 632743332781566, max |residual| = 274985930286726261
+WHRELAXT sweep 512: max correction = 33798402029344 units of 2^-60, max change = 55714553345247, max |residual| = 37246884695344853
+WHRELAXT sweep 1000: max correction = 284967988568 units of 2^-60, max change = 469751918655, max |residual| = 339494866970216
+WHRELAXT sweep 1024: max correction = 225216833239 units of 2^-60, max change = 371255873542, max |residual| = 248076586594205
+WHRELAXT sweep 2000: max correction = 15715535 units of 2^-60, max change = 25906077, max |residual| = 17310637021
+WHRELAXT sweep 2048: max correction = 9814345 units of 2^-60, max change = 16178334, max |residual| = 10810477885
+WHRELAXT: stop at sweep 2990: the largest correction 951 and residual 1043389 are at or below tol 1048576 units
+WHRELAXT p0 stage 9 of 10: converged after 2990 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 27630 sweeps in all
+WHRELAXT p0 stage 10 of 10: a = 0.020000000000, the V deviation at the cut 7.000315185001; the small FG terms in, the log term -0.000000000006
+WHRELAXT sweep 1: max correction = 6662865488608322 units of 2^-60, max change = 10983317328877781, max |residual| = -1
+WHRELAXT sweep 2: max correction = 10962782457444081 units of 2^-60, max change = 18071461707192977, max |residual| = -1
+WHRELAXT sweep 4: max correction = 12919171401405427 units of 2^-60, max change = 21296446607004259, max |residual| = -1
+WHRELAXT sweep 8: max correction = 11997342482833935 units of 2^-60, max change = 19776869249046565, max |residual| = -1
+WHRELAXT sweep 16: max correction = 9768982846264930 units of 2^-60, max change = 16103557660639846, max |residual| = 6898185605908411123
+WHRELAXT sweep 32: max correction = 7209245050131455 units of 2^-60, max change = 11883989887326070, max |residual| = 5092007791589404489
+WHRELAXT sweep 64: max correction = 11007666590854473 units of 2^-60, max change = 18145450395861670, max |residual| = 7887593911923287775
+WHRELAXT sweep 128: max correction = 3276691712243505 units of 2^-60, max change = 5401421494401403, max |residual| = 2289246292029208424
+WHRELAXT sweep 256: max correction = 377842768246810 units of 2^-60, max change = 622850188281851, max |residual| = 264549851516425330
+WHRELAXT sweep 512: max correction = 28693398123717 units of 2^-60, max change = 47299273469565, max |residual| = 31609684260757884
+WHRELAXT sweep 1000: max correction = 243749271072 units of 2^-60, max change = 401805439033, max |residual| = 290338758264525
+WHRELAXT sweep 1024: max correction = 192756904774 units of 2^-60, max change = 317747710213, max |residual| = 212328036327932
+WHRELAXT sweep 2000: max correction = 13752014 units of 2^-60, max change = 22669336, max |residual| = 15148071585
+WHRELAXT sweep 2048: max correction = 8594977 units of 2^-60, max change = 14168282, max |residual| = 9467502471
+WHRELAXT: stop at sweep 2978: the largest correction 948 and residual 1041165 are at or below tol 1048576 units
+WHRELAXT p0 stage 10 of 10: converged after 2978 sweeps (omega at the end 1.648437500000, 0 guard restores so far); 30608 sweeps in all
+WHRELAXT: after 30608 sweeps (omega at the end 1.648437500000, 0 guard restores): max |F - exact| = 686034001621882354, 8070813915813845820, 686019365709718482 units of 2^-60 for the three fields; F_1 at the middle = 0.510453135178 (exact 0.000000000000)
+WHRELAXT ads3: the reference's defect on this grid as residuals: interior rows max = 630610566413646, 0, 3543451896896990 units of 2^-60, the deep Neumann row = 204992612, 0, 3735168474947861; the defect was subtracted (zero deviation is the exact discrete solution)
+WHRELAXT p0 row 0 (t = -10.850000000000): U = 10.850000052291, B = 10.850000052291, V = 6.937976811541; deviations u = 0.594408653456, v = 7.000315185001, b = 0.594408653644
+WHRELAXT p0 row 64 (t = -7.477735667596): U = 7.477778776192, B = 7.477778628689, V = 3.565559728206; deviations u = 0.594451603275, v = 3.627898101667, b = 0.594451615688
+WHRELAXT p0 row 128 (t = -4.105471335192): U = 4.021606418178, B = 4.021560845596, V = 0.316279361194; deviations u = 0.510453135178, v = 0.378617734655, b = 0.510543388702
+WHRELAXT p0 row 192 (t = -0.733207002789): U = 0.236532282517, B = 0.131542858470, V = -0.061296358451; deviations u = 0.024707118841, v = 0.001042015010, b = 0.030911484256
+WHRELAXT p0 row 256 (t = 2.639057329615): U = -0.594579069867, B = -13.887093008174, V = -0.062148315235; deviations u = -0.000170468578, v = 0.000190058226, b = 0.014168412555
+WHRELAXT p0: the column spread (x-independent data must give identical columns) = 19714 units of 2^-60
+WHRELAXT: chain 5a89a7f4c5f17234
+WHRELAXT: done
