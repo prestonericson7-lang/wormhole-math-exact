@@ -40,7 +40,10 @@ beta = 4, t = t' = 2.8, mu = -12 and +12 with V normalized as if N were 10 (thei
   two sides' operators anticommute, so the protocol without the coupling teleports nothing: an exact zero of the algebra, reached here
   through 18 time evolutions per point).
 - Cross-check: a double-precision implementation with dense 2^8 x 2^8 matrices and exact matrix exponentials, on the same couplings bit
-  for bit, agrees with the exact program at every printed digit but the last one or two (1e-11) at N = 8, seed 1.
+  for bit, agrees with the exact program at every printed digit but the last one or two (1e-11) at N = 8, seed 1, at the points it ran.
+  A bit-exact emulation of the whole arithmetic by the reviewer (11-11, 10:20 PM) puts the rounding at up to 4.8e-11 in K over all the
+  points, from two sources: the Q.40 cosine and sine of the coupling (their squares sum to 1 minus 2.4 units) and the Q.40 chain of
+  products U(1)^t; version 4 of the program carries both in Q.60.
 - Runs: 7:40-7:46 PM (the full SYK, 54 points) and 7:46 PM (Model 1, 2 points), both machines at once; 64 and 8 output lines each;
   **identical line for line**, chains 2c70424b9fa1aca3 and 9899c884ff17ebb5. The raw output: `2_syk_board1.txt` (board 2 byte-identical).
 
@@ -96,7 +99,8 @@ the discriminator the comment names, the size-winding test, is the next thing th
 Every evolution rounds each amplitude once per Taylor term (about 14 terms per unit of time) and once per step; with amplitudes of
 order 2^-4 at N = 8 and 18 evolutions of up to 6 steps per point, the worst-case accumulated rounding on an inner product is below
 2e-9 and the random-walk estimate below 1e-11; the printed norm drift of every real-time evolution stayed below 1e-10. The mu = 0 points,
-which must be exactly zero, came out at 1e-11, and the double-precision cross-check agrees to 1e-11: the digits down to the 10th are the
+which must be exactly zero, came out at 1e-11, and the double-precision cross-check agrees to 1e-11 at the points it ran, while the
+reviewer's bit-exact emulation of the whole arithmetic finds up to 4.8e-11 in K (above): the digits down to the 10th are the
 protocol's, the last two belong to the declared arithmetic. The two machines' bit-equality checks the arithmetic, not this bound. The
 disorder average over three seeds is a three-sample mean; its spread is visible in the table and is the real uncertainty of the "mean"
 columns.
