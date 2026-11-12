@@ -1,0 +1,33 @@
+N1 ln(re/R5) = 26.42705 ; G4 c2 = 1833.36 m^2 ; c2 = 7.018e+72 ; ell = 2.9454e+19 m = 3113.3 ly ; gamma = 1.964e+12 ; l_B = 81.719 m
+N1 consistency: ell - 16 re^3/(G4 c2) = 0.0 ; pi ell = 9780.8 ly
+N2 ratio formula check (pi/3) G4c2/L^2 vs direct at L = re: 8.53283e-12 8.53283e-12
+N2 L = re       ratio = 8.53e-12
+N2 L = 0.5 ly   ratio = 8.58e-29
+N2 L = pi ell   ratio = 2.24e-37
+N2 L = l_B(re)  ratio = 0.287
+N2 length at which the ratio would reach 1: 43.82 m (below l_B = 81.72 m, where the 2D description itself fails)
+N3 |E_Cas|/Me at L = re using flat-circle -pi c2/(6L): 4.27e-12
+N3 |E_Cas|/Me at L = re using MM's -c2/(8 ell) with L = pi ell: 3.2e-12
+N3 MM config: |E_Cas| = 1.048e+10 kg ; Me = 2.02e+34 kg = 1.016e+4 Msun ; ratio = 5.187e-25 ; 2/gamma^2 = 5.187e-25 ; |E_bin| = 5.239e+9 kg
+N4 r* = d/pi = 1.5057e+15 m ; (R5/re)^2 = 1.11e-23 ; (R5/r*)^2 = 1.1e-39
+N5 kappa with ln(l_B/R5)   = 14.307: r* = d/pi -> 2.288 ; r* = pi ell -> 3.059 ; rho+sum p factor 1 - 1/(2 ln) = 0.9651
+N5 kappa with ln(re/R5)/2  = 13.214: r* = d/pi -> 2.394 ; r* = pi ell -> 3.229 ; rho+sum p factor 1 - 1/(2 ln) = 0.9622
+N5 f'(1) = 2 - 1/ln_IR = 1.924 > 0, so r*^2 > kappa re^2 for every r* > re
+N6 at r* = d/pi: extra density >= 2.363e-5 kg/m^3 ; field density 2.345e-21 kg/m^3 ; extra mass per side (throat to r*) = 1.014e+42 kg = 5.1e+11 Msun ; both sides = 2.028e+42 kg = 1.02e+12 Msun
+N6 MM:707 check: Kepler Omega at d = 0.5 ly = 1.19e-20 /m vs 1/ell = 3.395e-20 /m
+N7 profile k=1, r* = 10 re:  r/re | X*-X closed form | X*-X quad | 3R re^2 | field | extra (16 pi G rho_x re^2)
+N7   1.001  28.4902    28.4902    1.992     1.99       6.64e-7
+N7   1.01   26.1781    26.1781    1.922     1.92       6.45e-5
+N7   1.5    21.7411    21.7411    0.439     0.395      0.0439
+N7   3.0    18.6432    18.6432    0.1015    0.0247     0.0768
+N7   7.0    11.7093    11.7093    0.05081   0.000833   0.05
+N7   9.9    2.10897    2.10897    0.03832   0.000208   0.0381
+N7   10 (r*): 3R = 0.038 = 2/r*^2 + 4|r''|/r* = 0.02 + 0.018 ; field 0.0002 ; extra 0.0378 ; bound 2(r*^2-1)/r*^4 = 0.0198 ; ratio 1.9091
+N7 per side: 2G INT 4 pi r^2 rho_x dr = 8.1 vs (r*-1)^2/r* = 8.1 ; extra mass per side = 4.05 re/G
+N7 per side, proper-volume version 2G INT rho_x dV = 25.6166 (dr-weighted is the Misner-Sharp mass; proper is larger)
+N7 at MM re: rho_x(r*) = 4.501e+9 kg/m^3 ; extra mass per side = 8.181e+34 kg ; whole circle = 1.636e+35 kg
+N7 circle length > 2 (X* - X(1.001)) = 56.98 re ; 2D CFT share of the floor 2/r*^2 <= 2.63e-15 ; of the extra needed <= 1.39e-15
+N7 min extra on a 2000-point grid over (re, r*]: 1.33e-5
+N8 k = 2.0: extra at r* over the bound = 2.6529 ; r''(r*) = -0.08182 ; per side 2G INT = 8.1
+N8 k = 0.25: extra at r* over the bound = 1.4674 ; r''(r*) = -0.02313 ; per side 2G INT = 8.1
+N8 k = 0.01: extra at r* over the bound = 1.3594 ; r''(r*) = -0.01779 ; per side 2G INT = 8.1

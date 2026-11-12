@@ -1,0 +1,25 @@
+(1) 3R = 2*(-2*r(X)*Derivative(r(X), (X, 2)) - Derivative(r(X), X)**2 + 1)/r(X)**2
+(1) 3R - [2(1 - r'^2)/r^2 - 4 r''/r] = 0
+(2) static: 2 G_nn - 3R = 0
+(2) static: R_tt - N D^2 N = 0
+(3) shift: 2 G_nn - 3R = 2*(beta(X)*Derivative(r(X), X) + 2*r(X)*Derivative(beta(X), X))*beta(X)*Derivative(r(X), X)/(N(X)**2*r(X)**2)
+(3) shift: same at r' = 0 : 0
+(3) shift: n.n = -1
+(4) F^2 = q**2/(2*r(X)**4) ; rho_M = q**2/(8*g4**2*r(X)**4)
+(4) 16 pi G rho_M - 2 re^2/r^4 (re^2 = pi G q^2/g4^2) = 0
+(4) the field lines carry tension: T^X_X / rho_M = -1 ; T^th_th / rho_M = 1
+(4) from the action: rho = q**2/(8*g4**2*r(X)**4) (same as above: True )
+(4) running coupling L = -(1/4) f(F^2) F^2: rho = q**2*f(q**2/(2*r(X)**4))/(8*r(X)**4) ; contains f' : False
+(5) extremal RN, G^m_n - 8 pi G T^m_n with q^2 = re^2 g4^2/(pi G): [0, 0, 0, 0] ; off-diagonal all zero: True
+(5) RN slice: 3R - 2 re^2/r^4 = 0
+(6) ESU: rho_dust = 1/(4*pi*G*a**2) ; Lambda4 = a**(-2) ; thth, phph eqs hold: True
+(6) ESU slice r = a sin(X/a): 3R = 6/a**2 ; 16 pi G rho_dust + 2 Lambda4 = 6/a**2
+(6) ESU at the equator (r* = a): 3R - 2/r*^2 = 4|r''|/r* = 4/a**2 ; supply over the bound (16 pi G rho_dust + 2 Lambda4)/(2/a^2) = 3
+(6) ESU lapse equation: 4 pi G (rho + 3p) - Lambda4 = 0
+(7) dm/dX - (r^2 r'/(4G)) 3R = 0
+(7) INT_{r_t}^{r*} 4 pi r^2 rho_x dr (throat minimum r_t, maximum r* = r_s, both r' = 0) = -(r_e**2 - r_s*r_t)*(r_s - r_t)/(2*G*r_s*r_t)
+(7) at r_t = re: (r_e - r_s)**2/(2*G*r_s)
+(8) constant g4: rho = q**2/(8*g4**2*r(X)**4) ; p_X = -q**2/(8*g4**2*r(X)**4) ; p_th = q**2/(8*g4**2*r(X)**4) ; p_ph - p_th = 0 ; rho + sum p = q**2/(4*g4**2*r(X)**4)
+(8) running f(F^2): rho = q**2*f(q**2/(2*r(X)**4))/(8*r(X)**4) ; p_X = -q**2*f(q**2/(2*r(X)**4))/(8*r(X)**4) ; p_th = q**2*(q**2*Subs(Derivative(f(_xi_1), _xi_1), _xi_1, q**2/(2*r(X)**4)) + f(q**2/(2*r(X)**4))*r(X)**4)/(8*r(X)**8) ; p_ph - p_th = 0 ; rho + sum p = q**2*(q**2*Subs(Derivative(f(_xi_1), _xi_1), _xi_1, q**2/(2*r(X)**4)) + f(q**2/(2*r(X)**4))*r(X)**4)/(4*r(X)**8)
+(8) log running: rho + sum p = f X/2 + X^2 f' = R5*Xv*(4*l0 + log(X0) - log(Xv) - 2)/(8*g5**2) ; over 2 rho = f X/2: (4*l0 - log(Xv/X0) - 2)/(4*l0 - log(Xv/X0))
+done in 9.5 s

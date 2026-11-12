@@ -1,0 +1,28 @@
+V0 sanity: R[S2 radius a] = 2/a**2
+V1 3R = 2*(-2*r(X)*Derivative(r(X), (X, 2)) - Derivative(r(X), X)**2 + 1)/r(X)**2
+V1 3R - [2(1 - r'^2)/r^2 - 4 r''/r] = 0
+V1 at a maximum (r'=0, r''=-k, k>=0): 3R - 2/r^2 = 4*k/r(X)
+V2 2 G_nn - 3R (G_nn = G_tt/N^2) = 0
+V2 R_tt - N D^2 N = 0
+V2 G^t_t - G^X_X = 2*(N(X)*Derivative(r(X), (X, 2)) - Derivative(N(X), X)*Derivative(r(X), X))/(N(X)*r(X))
+V2 G^t_t - G^X_X - (2/r)(r'' - r' N'/N) = 0
+V2 lapse eq: R_tt[Einstein]/N - N [4 pi G (rho + p1 + p2 + p3) - Lam] = 0
+V3 F^2 = q**2/(2*r(X)**4) ; rho_M = q**2/(8*g4**2*r(X)**4) ; p_X/rho = -1 ; p_th/rho = 1 ; p_ph/rho = 1
+V3 rho + sum p over rho_M = 2
+V3 16 pi G rho_M - 2 re^2/r^4 with re^2 = pi G q^2/g4^2 : 0
+V3 from the action: T^a_a = [-q**2/(8*g4**2*r(X)**4), -q**2/(8*g4**2*r(X)**4), q**2/(8*g4**2*r(X)**4), q**2/(8*g4**2*r(X)**4)] ; -T^t_t - rho_M = 0
+V4 extremal RN: G_ab - 8 pi G T_ab with q = re g4/sqrt(pi G): all zero = True
+V4 general RN: G^t_t = -8 pi G rho_M gives Q2 = [pi*G*q**2/g4**2] ; extremal f = (1 - re/r)^2 needs M = re, Q2 = re^2, so re^2 = pi*G*q**2/g4**2
+V5 n.n = -1
+V5 2 G_nn - 3R = 2*(beta(X)*Derivative(r(X), X) + 2*r(X)*Derivative(beta(X), X))*beta(X)*Derivative(r(X), X)/(N(X)**2*r(X)**2)
+V5 same at r' = 0: 0
+V5 R_ab xi^a n^b - D^2 N with a shift = -beta(X)*Derivative(beta(X), (X, 2))/N(X) - 2*beta(X)*Derivative(beta(X), X)*Derivative(r(X), X)/(N(X)*r(X)) - Derivative(beta(X), X)**2/N(X) + beta(X)*Derivative(N(X), X)*Derivative(beta(X), X)/N(X)**2
+V5 that residual + (1/r^2)(r^2 beta beta'/N)' (zero: a divergence, so only Komar survives) = 0
+V5 K_ij K^ij - K^2 = -2*beta(X)**2*Derivative(r(X), X)**2/(N(X)**2*r(X)**2) - 4*beta(X)*Derivative(beta(X), X)*Derivative(r(X), X)/(N(X)**2*r(X)) (either sign: the lapse identity is a static-only result)
+V6 dm/dX - r^2 r' 3R/(4G) = 0
+V6 INT_{r_t}^{r*} 4 pi r^2 rho_x dr = -(r_e**2 - r_s*r_t)*(r_s - r_t)/(2*G*r_s*r_t) ; minus (r*-r_t)(1 - re^2/(r_t r*))/(2G) = 0 ; at r_t = re: (r_e - r_s)**2/(2*G*r_s)
+V7 ESU: solution {Lambda: a**(-2), rho_d: 1/(4*pi*G*a**2)} ; theta-theta and phi-phi residuals: [0, 0]
+V7 slice r = a sin(X/a): 3R = 6/a**2 ; 16 pi G rho_d + 2 Lambda = 6/a**2 ; supply over the floor 2/a^2 = 3 ; lapse 4 pi G rho_d - Lambda = 0
+V8 running: p_X/rho = -1 ; (rho + sum p)/(2 rho) - (1 - 1/(2 ln(L_IR/R5))) = 0
+V9 tube: solutions [{Lambda: 1/(4*r_e**2), r0: sqrt(2)*r_e}] ; all residuals: [[0, 0, 0, 0]]
+done in 10.8 s
