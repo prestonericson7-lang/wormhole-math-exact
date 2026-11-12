@@ -176,5 +176,14 @@ constants in closed form (Gamma_sigma = -8 + 10 ln 2/k, Gamma_lambda = (1 - sqrt
 -0.271699935369626228: fourteen digits, where version 3 had ten; the sphere flow, still from its version-3 start, prints 0.377362726342 and
 -0.297030895775, its twelve. The same program integrates a fourth variable J along the flat flow and prints the gauge-invariant constant
 Xi = lim [sigma - e^{2(sigma - lambda)} J] = 0.121789029475802, the reviewer's 0.121789029475803078 to fifteen digits (`code/wh_ode.c` holds the
-Q.40 version, which reaches 0.121789029377, the format's floor). What Xi means for the paper's parameters is the reviewer's claim and is under
-independent verification; it is not asserted on this page until it has passed. The machines run version 4 tonight.
+Q.40 version, which reaches 0.121789029377, the format's floor). What Xi means (COMPUTED by the reviewer; verified 3:37 AM by an adversarial rebuild
+with its own code, and by four routes in all: the linearized brane matching, a shooting of the closed mirror-brane throat at fourteen
+flux values extrapolating to within 4e-9, an independent agent's integration, and this program): on the paper's fine-tuned brane the
+throat obeys re^2/Q2 = ln(re/S0) + 1/4 - Xi with S0 = (Q2 L^2/6)^(1/4), so the constant inside their eq. (3.24), which the paper estimated
+to one figure, is exact: kappa_flat = 1/4 - Xi = 0.128210970524, and L_IR = e^(1/4 - Xi) l_B = 1.1368 l_B. With it, the paper's eq. (3.27)
+numbers move by 4 to 9 percent, each staying within its one-figure estimate (the paper's value in brackets; COMPUTED by the reviewer, with
+the paper's four-dimensional energetics used as printed and re read as the throat's S2 radius on the brane; if the paper's re is meant as
+the AdS2 radius instead, c2 is 1.7 percent lower): ln(L_IR/R5) = 14.457 (13.21), c2 = 6.709e72 (7.02e72), ell = 3,257 light years (3,113),
+gamma = 2.054e12 (1.964e12), E_bin = -4.79e9 kg (-5.24e9), l_B = 83.58 m (81.72), and the throat's AdS2 radius exceeds its S2 radius by
+1.775 percent (the paper's own 1.947). Only c2 and the logarithm are the solution's; ell, gamma and E_bin rest on the paper's balance
+equations as before. The machines run version 4 tonight.

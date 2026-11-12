@@ -85,7 +85,8 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   to AdS5, their Figure 3 as a table; then, after review, a third version with one rounding per step, each flow on its own unstable
   manifold, and the gauge invariants, which agree with an independent 40-digit integration to 2.5e-11; then a fourth version in a
   56-bit format that carries the invariants to fourteen digits and prints a new gauge-invariant constant of the flat flow, Xi =
-  0.121789029475802, whose meaning for the paper's parameters is under the reviewer's verification.
+  0.121789029475802, which fixes the constant inside the paper's eq. (3.24) that it had estimated to one figure (kappa_flat = 1/4 - Xi =
+  0.128210970524, verified by four independent routes); the paper's derived numbers move by 4 to 9 percent with it.
 - **3a, the Alcubierre negative-energy integral** (`results/3a_alcubierre.md`): the exact integral for seven wall thicknesses and the law
   behind "a factor of about three": I = R sigma / 3 + (pi^2 - 6)/(36 R sigma) plus exponentially small terms.
 - **3b, the 2024 warp shell** (`results/3b_shell.md`, `results/3b_warp.md`): the construction reproduced as integer sums, its four energy

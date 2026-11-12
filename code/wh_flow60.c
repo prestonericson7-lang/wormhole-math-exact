@@ -1,5 +1,5 @@
 /* wh_flow60.c (11-12-2026, 3:10 AM) -- WORMHOLE MATH 1a, THE FLOW IN Q.56: wh_flow.c version 3's two Maldacena-Milekhin flows (flat (3.19)/(A.28-29),
- * sphere (A.30)) and the constant Xi of the flat flow (defined in wh_ode.c; its meaning for the paper is under review), integrated in a fixed-point format with 56 fraction bits instead of 40,
+ * sphere (A.30)) and the constant Xi of the flat flow (defined in wh_ode.c; it fixes the constant inside the paper's eq. 3.24), integrated in a fixed-point format with 56 fraction bits instead of 40,
  * so that the gauge invariants K_sigma, K_lambda and Xi come out to twelve digits instead of ten. The state (sigma, sigma', lambda, J) is held
  * in Q.56 (values below 128: sigma reaches 16 at the stop, past Q.60's ceiling of 8); every product is a 128-bit product rounded once to
  * nearest; the exponentials e^{-4 sigma}, e^{-2 sigma} and e^{2(lambda - sigma)} come from whq60.h's exp60n (ln 2 reduction, Taylor to a
