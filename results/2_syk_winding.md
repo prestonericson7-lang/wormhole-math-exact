@@ -108,11 +108,13 @@ machines' exact values): N m* = 2.31, 2.64, 2.98, 3.40, 3.36 at N = 8, 10, 12, 1
 - N = 10, three seeds, t = 2.8: started 07:00:08 AM, both machines line for line at 07:00:29 AM; protocol chain `bb5e6efa00d910e5`, winding chain `2bee1f5c161bfe55` (both the PC build's).
 - N = 12, three seeds, t = 2.8: started 07:00:29 AM, both machines line for line at 07:00:59 AM; protocol chain `663739f23e1e1cc0`, winding chain `98c9dfd66af8675b` (both the PC build's).
 - N = 14, three seeds, t = 2.8: started 07:01:00 AM, both machines line for line at 07:02:38 AM; protocol chain `10a186a9f6e5fa44`, winding chain `ab106e45624bd39a` (both the PC build's).
+- N = 16, seed 1, t = 2.8: started 07:15:50 AM, both machines line for line at 07:19:11 AM; protocol chain `4eb2f59ce70e8d91`, winding chain `e90c865c53fd8e28` (both the PC build's).
 - the 2022 experiment's model, all seven operators, t = 2.8: started 06:59:48 AM, both machines line for line at 07:00:08 AM; protocol chain `347d411caa01caff`, winding chain `60c2a928ab4105d0` (both the PC build's).
 - N = 8, three seeds, t = 1 to 6: started 06:56:59 AM, both machines line for line at 06:57:26 AM; protocol chain `6ff9e3ebd0fa0c7f`, winding chain `8834d99dd0bb4f02` (both the PC build's).
 - N = 10, three seeds, t = 1 to 6: started 06:57:26 AM, both machines line for line at 06:58:00 AM; protocol chain `b101fd5a26c155fe`, winding chain `8137da08c0f42a68` (both the PC build's).
 - N = 12, three seeds, t = 1 to 6: started 06:58:00 AM, both machines line for line at 06:59:28 AM; protocol chain `1b590e73c01e1f3c`, winding chain `b089fc2bab21c535` (both the PC build's).
 - N = 14, three seeds, t = 1 to 6: started 07:02:38 AM, both machines line for line at 07:10:52 AM; protocol chain `9d2559bc3d7810dd`, winding chain `40835081d0b3c8ac` (both the PC build's).
+- N = 16, seed 1, t = 1 to 6: started 07:19:11 AM, both machines line for line at 07:32:01 AM; protocol chain `40f188ba7017b076`, winding chain `dc79979912be8511` (both the PC build's).
 
 **KSY's fit numbers from the machines' exact q(l), beta = 4, t = 2.8** (COMPUTED by `code/wind_summary.py` from the lines above;
 every seed and both operators; the machine's own 2|C(mu)| beside the fit):
@@ -143,6 +145,8 @@ every seed and both operators; the machine's own 2|C(mu)| beside the fit):
 | 14 | 2 | 2.8 | 2 | 0.791902792 | 0.905853 | 0.5476 | 0.902376 | +0.2404 | +3.365 | 0.9695 | 0.9985 | 0.6159 | 0.901009, 0.555761 |
 | 14 | 3 | 2.8 | 1 | 0.791587220 | 0.908538 | 0.5612 | 0.905850 | +0.2433 | +3.407 | 0.9770 | 0.9981 | 0.6093 | 0.904134, 0.551951 |
 | 14 | 3 | 2.8 | 2 | 0.791731595 | 0.909453 | 0.5652 | 0.905049 | +0.2496 | +3.494 | 0.9626 | 0.9974 | 0.6199 | 0.902665, 0.561013 |
+| 16 | 1 | 2.8 | 1 | 0.803643017 | 0.909153 | 0.5373 | 0.905143 | +0.2102 | +3.364 | 0.9620 | 0.9986 | 0.6455 | 0.903897, 0.584254 |
+| 16 | 1 | 2.8 | 2 | 0.795501845 | 0.904653 | 0.5338 | 0.900726 | +0.2155 | +3.449 | 0.9640 | 0.9979 | 0.6401 | 0.898850, 0.576593 |
 | 8 | 1 | 2.8 | 1 | 0.671952823 | 0.967658 | 0.9014 | 0.966769 | +0.6588 | +5.270 | 0.9970 | 0.8995 | 0.4558 | 0.869606, 0.440638 |
 | 8 | 1 | 2.8 | 2 | 0.751398424 | 0.955065 | 0.8192 | 0.953664 | +0.5364 | +4.292 | 0.9931 | 0.9553 | 0.5535 | 0.911000, 0.527833 |
 | 8 | 1 | 2.8 | 3 | 0.622718737 | 0.906206 | 0.7514 | 0.901507 | +0.5863 | +4.690 | 0.9801 | 0.9204 | 0.3946 | 0.829727, 0.355767 |
@@ -151,17 +155,18 @@ every seed and both operators; the machine's own 2|C(mu)| beside the fit):
 | 8 | 1 | 2.8 | 6 | 0.732588475 | 0.966148 | 0.8734 | 0.963182 | +0.7877 | +6.302 | 0.9546 | 0.8984 | 0.6057 | 0.865319, 0.583398 |
 | 8 | 1 | 2.8 | 7 | 0.842254091 | 0.973397 | 0.8314 | 0.900320 | +0.3727 | +2.982 | 0.1778 | 0.9978 | 0.7759 | 0.898332, 0.698601 |
 
-The slope against N (seed 1, the first operator, t = 2.8): N m* = +2.314 at N = 8, +2.641 at N = 10, +2.980 at N = 12, +3.404 at N = 14, against the coupling's exact 3.
+The slope against N (seed 1, the first operator, t = 2.8): N m* = +2.314 at N = 8, +2.641 at N = 10, +2.980 at N = 12, +3.404 at N = 14, +3.364 at N = 16, against the coupling's exact 3.
 
-Per size, N = 14, three seeds, t = 1 to 6, the first operator, from the machines' lines (the exact values rounded to five places):
+Per size, N = 16, seed 1, t = 1 to 6, the first operator, from the machines' lines (the exact values rounded to five places):
 
-l = 1 p 0.57560 |q| 0.57422 arg-arg1 +0.000 r_l 0.9976
-- l = 3 p 0.16726 |q| 0.16636 arg-arg1 +1.552 r_l 0.9946
-- l = 5 p 0.23016 |q| 0.18110 arg-arg1 +0.175 r_l 0.7868
-- l = 7 p 0.02020 |q| 0.01699 arg-arg1 +1.789 r_l 0.8411
-- l = 9 p 0.00669 |q| 0.00484 arg-arg1 +0.223 r_l 0.7234
-- l = 11 p 0.00007 |q| 0.00005 arg-arg1 +1.843 r_l 0.7372
-- l = 13 p 0.00001 |q| 0.00000 arg-arg1 -0.027 r_l 0.9460
+l = 1 p 0.53283 |q| 0.53173 arg-arg1 -0.000 r_l 0.9979
+- l = 3 p 0.14209 |q| 0.14127 arg-arg1 +1.514 r_l 0.9943
+- l = 5 p 0.27967 |q| 0.23177 arg-arg1 +0.211 r_l 0.8287
+- l = 7 p 0.02886 |q| 0.02452 arg-arg1 +1.758 r_l 0.8497
+- l = 9 p 0.01611 |q| 0.01236 arg-arg1 +0.284 r_l 0.7671
+- l = 11 p 0.00039 |q| 0.00030 arg-arg1 +1.866 r_l 0.7625
+- l = 13 p 0.00006 |q| 0.00005 arg-arg1 +0.303 r_l 0.8300
+- l = 15 p 0.00000 |q| 0.00000 arg-arg1 -2.126 r_l 0.9234
 
 The raw WINDING and C(mu) lines of one machine: `results/2_syk_winding_board1.txt`.
 <!-- pair-end -->
