@@ -414,7 +414,8 @@ int main(int argc, char **argv)
             printf("WHRELAXT p0 row %d (t = %s): U = %s, B = %s, V = %s; deviations u = %s, v = %s, b = %s\n", j, r1, r2, r3, r4, r5, r6, r7);
         }
         { char c1[48], c2[48], c3[48]; fmt56(UR56[N] + ((F[0][0][N] + 8) >> 4), c1); fmt60(LNS0 + F[1][0][N], c2); fmt60(LNL3 + F[2][0][N], c3);   /* B + ln sinh(-y) = (Br + b) + ln sinh z = ln L3 + b */
-          printf("WHRELAXT p0 centre (the deep end, y = -14): U_c = %s, V_c = %s, B + ln sinh(-y) = %s\n", c1, c2, c3); }
+          const int64_t c2r = exp60(F[0][0][N] + 2 * F[1][0][N]); char c4[48]; fmt60(c2r - ONE60, c4);   /* c2_eff/c2 - 1 = e^{u_c + 2 v_c} - 1 */
+          printf("WHRELAXT p0 centre (the deep end, y = -14): U_c = %s, V_c = %s, B + ln sinh(-y) = %s; the central charge against the AdS3 x S2 fixed point's: c2_eff/c2 - 1 = e^{u_c + 2 v_c} - 1 = %s (c2_eff = 3 L_c e^{U_c + 2 V_c}/G5 with L_c = 2 pi, c2 = 6 pi L3 S*^2/G5; the reviewer's law 1 + 5.19 (l_B/L_x)^2 with l_B = lhat a, L_x = 2 pi)\n", c1, c2, c3, c4); }
         printf("WHRELAXT p0: the column spread (x-independent data must give identical columns) = %lld units of 2^-60\n", (long long)spread);
     }
     printf("WHRELAXT: chain %016llx\n", (unsigned long long)chain);

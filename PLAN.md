@@ -204,7 +204,8 @@ its format, its bounds and its seed. None of them builds a door, and each write-
   solution (zero corrections at sweep 1) and bumps of 0.01 and 0.1 relax back to it in 3,921 sweeps at N = 128 and 5,284 at N = 256; with the
   defect left in, the end deviation is the reference's discretization error, 4.8e-3 and 2.1e-2 (U and B) at N = 64, 1.2e-3 and 5.3e-3 at 128,
   3.0e-4 and 1.3e-3 at 256: 4.0x per doubling on every row including the Neumann one, while V's defect is exactly zero (its bracket vanishes
-  for the reference by construction). All PC build (whrelaxt_x86 8a5322b0); the pair runs the four configurations in the sixth queue. The real
+  for the reference by construction). MEASURED on the pair at 6:14 to 6:18 AM: the four configurations (the exact test at N = 128, the
+  perturbed reference at N = 128, the defect left in at N = 128 and 64) each identical on the two machines with the PC build's chains. The real
   P0 takes this form with the brane's cut data (the reviewer's series in the conformal coordinate, with the v^4 log term) at Q2 = 6, where
   the reference's w solves 12 w^2 - 3 w - 12 = 0, and rows in Q.56 for the deep cut (t = -11 passes the Q.60 ceiling); the reviewer's spec
   (4:00 AM) is under its verifier. DONE on the PC at 4:41 AM (`results/1b_p0.md`): the data cannot be imposed at once (every direct start

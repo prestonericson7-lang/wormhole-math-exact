@@ -109,22 +109,17 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   by 1.4 to 1.6 at the peak, and the paper's own layout and ours agree to 7e-11 across 270 numbers at N = 10; then the size-winding signature (part 3,
   `results/2_syk_winding.md`), computed exactly from the same states and verified on the PC against the reviewer's independent float64 at
   N = 14 (the teleporting sign reaches 99.8 percent of the best possible line, the wrong sign 62 percent), on the machines tonight.
-- **1b, the patched five-dimensional geometry**: started. The reviewer derives the reduced Einstein-Maxwell system in verified stages (its
-  first stage finds that only the rotationally symmetric reductions are well-posed two-dimensional problems, and that the paper's fine-tuned
-  circle of mouths has no static solution without both extra positive energy and a positive cosmological constant on the brane, or
-  matter with rho + 3p below zero: `results/1b_nogo.md`, the first result of 1b, a derivation with its checking scripts); the relaxation kernel that will solve it is built and
-  verified on a problem with a known answer, now with a Robin boundary option and grids stretched toward a boundary, both exact; the
-  kernel in the geometry's own rows (`code/wh_relaxt.c`) holds the AdS3 x S2 reference with the three sources exactly (zero corrections from
-  the exact start; perturbations relax back in 3,921 sweeps at N = 128) and measures the reference's own discretization error falling 4.0x
-  per doubling of the rows at N = 64, 128 and 256 (PC build, 4:12 AM; the pair runs it in the sixth queue); and the first solution of the
-  reduced problem's simplest case, the one with no dependence on the circle direction (`results/1b_p0.md`, 4:41 AM): the brane's data from
-  the Fefferman-Graham series at the cut, the deep end free, the brane radius ramped in ten doublings because the direct start leaves the
-  basin; the centre value U_c = -0.594115, -0.594579 and -0.594695 at N = 128, 256 and 512 (4.00x per doubling), extrapolating to
-  -0.594734, which is the reviewer's own independent extrapolation to six digits; the N = 128 solution is MEASURED on the two machines
-  (26,011 sweeps each, 191 identical lines, the PC's chain), the finer grids are the PC's until the queue reaches them. And the near-brane
-  throat (`results/1b_p3.md`, 6:25 AM): the paper's log ln(L_IR/R5) as an integer shot at three charges, bit-identical to the reviewer's
-  independent integer mimic in all three; at the paper's charge L_IR = 1.13679 l_B (its "L_IR ~ l_B" made exact) and the AdS2 radius
-  exceeds the S2 radius at the brane by 1.77 percent; PC build, the pair runs it in the eighth queue.
+- **1b, the patched five-dimensional geometry** (`results/1b_nogo.md`, `results/1b_p0.md`, `results/1b_p3.md`): the reviewer derived the
+  reduced Einstein-Maxwell system in verified stages, and it is being solved piece by piece. Done so far: the no-go for the paper's circle of
+  mouths on its fine-tuned brane (a derivation with its checking scripts); the relaxation kernels, each verified on a problem with a known
+  answer and run on the two machines; the first solution of the reduced problem's simplest case, the one with no dependence along the
+  circle (P0): the centre value U_c = -0.594115, -0.594579 and -0.594695 at N = 128, 256 and 512 rows, falling 4.00x per doubling toward
+  -0.594734, the reviewer's independent extrapolation to six digits, and a central charge 5.3e-5 above the fixed point's where the
+  reviewer's law gives 5.26e-5; MEASURED on the two machines at N = 128 (26,011 sweeps each, 191 identical lines, the PC's chain), the
+  finer grids the PC's until the queue reaches them. And the near-brane throat (P3): the paper's log ln(L_IR/R5) as an integer shot at
+  three charges, bit-identical to the reviewer's independent integer mimic in all three; at the paper's charge L_IR = 1.13679 l_B (its
+  "L_IR ~ l_B" made exact) and the AdS2 radius exceeds the S2 radius at the brane by 1.77 percent; PC build, the pair runs it in the
+  eighth queue. The circle-direction problem (P1, the mouths) is next.
 
 Next: the pair's remaining P0, P3, N = 18 and size-winding runs, the reviewer's cross-check of P0, then the circle-direction problem
 (P1). See `PLAN.md`.
