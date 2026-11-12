@@ -29,8 +29,16 @@ paper beside each program.
 
 ## Status
 
-Computation 1a (the Maldacena-Milekhin flow, arXiv:2008.06618 eq. 3.19 and A.30) is built and waiting for its first run. Nothing in
-`results/` yet. Computation 3 (the energy conditions of the published warp metrics) has its exact recipe written in `PLAN.md`.
+Two results are in `results/`, each run on two separate ARM machines at once with byte-identical output (2026-11-11, 4:26-4:28 PM):
+
+- **1a, the Maldacena-Milekhin flow** (`results/1a_flow.md`): their eq. (3.19) and (A.30) integrated exactly from the AdS3 x R2
+  throat to AdS5; their Figure 3 as a table to twelve places; the sphere flow's exact IR radius 1.0643 against their expansion's 1.0625.
+- **3a, the Alcubierre negative-energy integral** (`results/3a_alcubierre.md`): the exact integral for seven wall thicknesses, the
+  flattening theorem checked in two dimensions, and the law behind "a factor of about three": I = R sigma / 3 + (pi^2 - 6)/(36 R sigma)
+  plus exponentially small terms, with the constant identified to ten digits.
+
+Next: 3b (the 2024 warp shell's energy conditions, exactly, with the shift limit its authors left open), then 2 (the SYK protocol), then
+4 (the Casimir sums), then 1b (the patched five-dimensional geometry). See `PLAN.md`.
 
 ## Licenses
 
