@@ -28,6 +28,10 @@ N7 per side, proper-volume version 2G INT rho_x dV = 25.6166 (dr-weighted is the
 N7 at MM re: rho_x(r*) = 4.501e+9 kg/m^3 ; extra mass per side = 8.181e+34 kg ; whole circle = 1.636e+35 kg
 N7 circle length > 2 (X* - X(1.001)) = 56.98 re ; 2D CFT share of the floor 2/r*^2 <= 2.63e-15 ; of the extra needed <= 1.39e-15
 N7 min extra on a 2000-point grid over (re, r*]: 1.33e-5
+N9 anomaly with ln(re/R5)/2 : 1/(2 ln) = 0.03784 ; R_A/S - 1 = (1 - 1/(2 ln))^(-1/2) - 1 = 0.019474 ; re/(2 ln) = 5.676e+5 m = 0.0378 re
+N9 anomaly with ln(l_B/R5)  : 1/(2 ln) = 0.03495 ; R_A/S - 1 = (1 - 1/(2 ln))^(-1/2) - 1 = 0.017946 ; re/(2 ln) = 5.242e+5 m = 0.0349 re
+N9 MM configuration: r*/re at d = 0.5 ly = 1.004e+8 ; r* - re over re/(2 ln) = 2.65e+9 or more
+N9 flat Casimir pi c2/(6L) at L = re over Me = 4.27e-12 ; MM-form pi c2/(8L) = 3.2e-12
 N8 k = 2.0: extra at r* over the bound = 2.6529 ; r''(r*) = -0.08182 ; per side 2G INT = 8.1
 N8 k = 0.25: extra at r* over the bound = 1.4674 ; r''(r*) = -0.02313 ; per side 2G INT = 8.1
 N8 k = 0.01: extra at r* over the bound = 1.3594 ; r''(r*) = -0.01779 ; per side 2G INT = 8.1
