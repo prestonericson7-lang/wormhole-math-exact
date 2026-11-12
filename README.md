@@ -90,8 +90,10 @@ program, with the run named), COMPUTED (derived, with the inputs named) or ESTIM
   by 1.4 to 1.6 at the peak, and the paper's own layout and ours agree to 7e-11 across 270 numbers at N = 10; then the size-winding signature (part 3,
   `results/2_syk_winding.md`), computed exactly from the same states and verified on the PC against the reviewer's independent float64 at
   N = 14 (the teleporting sign reaches 99.8 percent of the best possible line, the wrong sign 62 percent), on the machines tonight.
-- **1b, the patched five-dimensional geometry**: started. The reviewer derives the reduced Einstein-Maxwell system in verified stages; the
-  relaxation kernel that will solve it is built and verified.
+- **1b, the patched five-dimensional geometry**: started. The reviewer derives the reduced Einstein-Maxwell system in verified stages (its
+  first stage finds that only the rotationally symmetric reductions are well-posed two-dimensional problems, and that the paper's fine-tuned
+  circle of mouths has no static solution without extra positive energy on the brane); the relaxation kernel that will solve it is built and
+  verified on a problem with a known answer, now with a Robin boundary option and grids stretched toward a boundary, both exact.
 
 Next: the pair's N = 18 and its size-winding runs, 1b's equations into the kernel. See `PLAN.md`.
 
