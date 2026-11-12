@@ -15,7 +15,8 @@ and their eq. (A.30), the same flow on a two-sphere of unit radius (the extra -e
 from deep in the IR (AdS3 x R2, where sigma is at its fixed point and lambda' = sqrt 3) to the UV (AdS5, where sigma and lambda grow
 like rho), starting on the growing linearized mode, as the paper prescribes.
 
-- Program: `code/wh_flow.c` on `code/whq.h`; binary md5 e72cb881 (ARM build, -O2).
+- Program: `code/wh_flow.c` on `code/whq.h`; binary md5 e72cb881 (ARM build, -O2) for this first run; the file in `code/` is now version 3
+  (its section below), whose first-run-equivalent lines differ from these by the gauge and the sphere's mode, as that section explains.
 - Arithmetic: Q.40 fixed point in 64-bit integers with 128-bit intermediates, products and divisions rounded to nearest, exp by
   range reduction on ln 2 with 24 Taylor terms, square roots exact to the floor. RK4 with step h = 2^-12 in rho.
 - Gauge: the linear mode has amplitude 2^-10 at rho = -8 (sigma - sigma* = 2^-10 e^{k (rho + 8)}, k = sqrt 19 - sqrt 3 =
@@ -114,6 +115,46 @@ result, recorded here before the program is rerun:
 
 None of this changes the two machines' bit-equality, which checks the arithmetic, not the bound; it changes how many of the printed digits
 are the equation's. v3 of `wh_flow.c` carries the remainder, starts the sphere flow on its own mode and prints the invariants.
+
+## Version 3, 2026-11-11 10:05 PM: the review's three points answered
+
+The reviewer wrote the specification and a reference program; version 3 of `code/wh_flow.c` is that specification, four changes and none to
+the arithmetic header:
+
+1. **One rounding per update.** Each variable's RK4 increment h X / 6 (X = k1 + 2 k2 + 2 k3 + k4, an exact int64) is one exact int64
+   floor division by 6 x 2^12, and the remainder is carried to the next step in an int64 per variable. After n steps the state is exactly
+   the starting value plus the running sum of the increments rounded once (proved by induction, checked by the reviewer with a 128-bit
+   accumulator at every one of the 74,674 + 74,023 steps): the accumulated rounding error is in [-1/2, 1/2) unit at every step and never
+   grows. The UV slopes now settle at exactly 1.000000000000: the dead zone of the first run is gone.
+2. **Each flow starts on its own unstable manifold** at rho = -8 with the linear coordinate x = 2^-10, from the manifold's series to
+   order 4 (the first order whose Q.40 integers are final), lambda in the canonical gauge; the start integers are hard-coded (COMPUTED by
+   the reviewer in 60-digit arithmetic and re-derived by its verifier). The sphere flow's own growing exponent is 2.830105157, not the flat
+   flow's 2.627.
+3. **Stop at sigma > 16** (was 12), so the sphere flow's sigma - rho has converged too.
+4. **The gauge invariants are printed:** K_sigma = (sigma - rho)_end + GAMMA_sigma and K_lambda = (lambda - rho)_end + GAMMA_lambda, the UV
+   constants carried to the gauge in which the IR mode is e^{k rho} with unit amplitude; GAMMA are the reviewer's exact gauge constants
+   (COMPUTED; the same in eight gauges to 2e-15). sigma - rho alone depends on where rho = 0 is put; K does not.
+
+**Run (MEASURED):** the pair, both machines at once, 10:17:38 to 10:18:09 PM on 11-11 (31 seconds), 160 output lines each, identical line
+for line; chains 24d2f870a2abea59 (flat) and 85a3df31c75d8935 (sphere), equal to the PC build's and to the reviewer's reference program's,
+so three builds of the arithmetic on two architectures agree bit for bit. The raw output of one machine: `results/1a_flow_v3_board1.txt`
+(`1a_flow_board1.txt` stays the first run's). Binary md5 5c7a26b9 (ARM build).
+
+| | flat flow | sphere flow |
+|---|---|---|
+| start at rho = -8 (sigma, sigma', lambda) | 0.000975399492, 0.002559176054, -13.857071005204 | -0.061363013201, 0.002756975087, -14.496374133760 |
+| steps to sigma > 16 | 74,674 (rho = 10.2310) | 74,023 (rho = 10.0720) |
+| UV slopes at the end, sigma' and lambda' | 1.000000000000, 1.000000000000 | 1.000000000000, 1.000000000000 |
+| sigma - rho, lambda - rho, lambda - sigma at the end | 5.769097209892, -4.196441803900, -9.965539013793 | 5.928170409940, -4.804059361524, -10.732229771464 |
+| K_sigma, K_lambda (this program) | 0.407800114165, -0.271699935356 | 0.377362726326, -0.297030895771 |
+| K_sigma, K_lambda (the reviewer, 40 digits) | 0.40780011419036, -0.27169993536963 | 0.37736272634195, -0.29703089577475 |
+| this program minus the 40-digit value | -2.5e-11, +1.4e-11 | -1.6e-11, +0.4e-11 |
+
+The differences from the first run's table are the gauge and the mode, not errors: the flat flow's sigma - rho moves by -5.9e-4 because
+the first run's start was off the manifold at second order by that much in rho, and the sphere's constants move by +0.0073 (sigma - rho),
+-0.0067 (lambda - rho) and -0.0139 (lambda - sigma) because it now starts on its own mode. The invariants are the numbers to quote: they
+agree with an independent 40-digit integration to 2.5e-11, which is this arithmetic's whole error (the reviewer's error table: the v3 rule
+leaves at most 3.7e-11 in the UV constants and the error no longer depends on the step).
 
 ## Lineage
 

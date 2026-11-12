@@ -3,14 +3,16 @@
 Each result is a page (`*.md`) with the numbers, the error bound on paper, and the comparison with the paper it checks, plus the raw
 output of one machine (`*_board1.txt`); the second machine's output was byte-identical in every case, as the page states.
 
-- `1a_flow.md`, `1a_flow_board1.txt`: the Maldacena-Milekhin flow (arXiv:2008.06618 eq. 3.19 and A.30), 2026-11-11.
+- `1a_flow.md`, `1a_flow_board1.txt`: the Maldacena-Milekhin flow (arXiv:2008.06618 eq. 3.19 and A.30), 2026-11-11; with a review note
+  and a version-3 section (one rounding per step with the remainder carried, each flow on its own manifold, the gauge invariants K_sigma
+  and K_lambda, which agree with an independent 40-digit integration to 2.5e-11).
 - `3a_alcubierre.md`, `3a_alcubierre_board1.txt`: the Alcubierre negative-energy integral and the law behind the optimal-wall factor
   (arXiv:2102.06824 eq. 3, A.7), 2026-11-11.
 - `3b_shell.md`, `3b_shell_board1.txt`: the 2024 warp shell without its shift, the construction reproduced as integer sums, the energy
   conditions judged exactly with their floor (arXiv:2405.02709 section 3), 2026-11-11.
 - `4a_casimir.md`, `4a_casimir_board1.txt`: the Casimir energy of one scalar field as a finite lattice sum, no divergent subtraction,
-  and the lattice law 1 + (5 pi^2/24)/N^2 + O(1/N^4), exact to N = 32 (version 4 of the program; the version-2 table it replaces had
-  lost digits past N = 16), 2026-11-11.
+  and the lattice law 1 + (5 pi^2/24)/N^2 + 9.376/N^4 + ..., the ratio to eleven decimals at N = 32 (version 5 of the program; version 2
+  had lost digits past N = 16 and version 4 one unit in the ninth decimal, both caught in review), 2026-11-11.
 - `2_syk.md`, `2_syk_board1.txt`: the SYK traversable-wormhole teleportation protocol exact at N = 8 (three seeds, both signs of the
   coupling, mu = 0 as the exact zero) and the 2022 experiment's five-term model at its own parameters (arXiv:1911.07416, 2302.07897),
   2026-11-11; its density-matrix formulas are the paper's ensemble-averaged forms evaluated per seed (labelled so after review); the
