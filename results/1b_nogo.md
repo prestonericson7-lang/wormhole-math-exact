@@ -1,5 +1,15 @@
 # 1b, a first result: the paper's circle of mouths has no static solution on its fine-tuned brane
 
+**In plain words.** In Maldacena and Milekhin's wormhole the two mouths are joined by a tube of magnetic field lines, and in their
+picture the field lines close into a loop through the space outside. This page asks a yes-or-no question about that picture: can the
+whole closed loop stand still (be static) in the paper's own theory? The answer, derived on paper by the reviewer (the independent AI
+session that checks every program and page here) and checked by two further independent rebuilds with symbolic-algebra and
+high-precision scripts, is no: at the loop's widest point the curvature of space needs more energy than the magnetic field supplies, and
+extra positive energy alone, or a positive cosmological constant (an energy of empty space itself) alone, cannot make up the difference.
+Nothing was run on the two machines (the two small ARM computers that run this repository's programs) and nothing here builds anything;
+it is a derivation with exact identities and estimated sizes, under the assumptions listed near the end (static, round, the paper's
+theory and regime).
+
 **What this page is.** Maldacena and Milekhin's humanly traversable wormhole (arXiv:2008.06618) lives on a Randall-Sundrum brane whose
 tension is tuned so that the four-dimensional cosmological constant vanishes; the two mouths are the ends of a tube of magnetic field lines,
 and the configuration they draw closes the field lines in a circle through the exterior. Before any of that geometry is solved numerically
@@ -14,7 +24,7 @@ four-dimensional theory, and so does this repository's next computation (P1 on `
 
 Nothing here was computed on the two machines: it is a derivation with exact identities and estimated magnitudes, and it is labelled as the
 review labels it. The scripts that check every formula and print every number are in `code/p2_nogo/`, with their printed output beside
-them. The text below is the review's, as delivered at 2:25 AM on 11-12-2026 after its verifier's second pass, unchanged.
+them. The text below is the review's, as delivered at 2:25 AM on 11-12-2026 after its second independent check, unchanged.
 
 ---
 
@@ -157,5 +167,5 @@ MM = Maldacena and Milekhin, "Humanly traversable wormholes", arXiv:2008.06618.
 ## Files
 
 `code/p2_nogo/p2_checks.py` (the exact identities in sympy, with its output `p2_checks.out`), `code/p2_nogo/p2_numbers.py` (the numbers at the
-paper's parameters and the worked profile, in 30-digit arithmetic, with `p2_numbers.out`), and the second builder's independent rebuild
+paper's parameters and the worked profile, in 30-digit arithmetic, with `p2_numbers.out`), and a second, independent rebuild
 `code/p2_nogo/p2v_sym.py` and `p2v_num.py` with their outputs. Run any of them with Python 3 and the sympy and mpmath packages.

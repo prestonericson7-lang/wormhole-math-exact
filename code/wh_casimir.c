@@ -1,4 +1,5 @@
-/* wh_casimir.c (11-11-2026; v4 9:05 PM; v5 10:10 PM) -- WORMHOLE MATH 4a: the negative energy itself, the textbook case, exact on a lattice.
+/* In plain words: the Casimir energy (the energy of empty space between two close plates, which is below zero) as lattice sums in fixed-point integers.
+ * wh_casimir.c (11-11-2026; v4 9:05 PM; v5 10:10 PM) -- WORMHOLE MATH 4a: the negative energy itself, the textbook case, exact on a lattice.
  *
  * A massless field between two perfectly reflecting plates a distance d apart has LESS zero-point energy than the open vacuum:
  * E_C / A = -pi^2 hbar c / (720 d^3) per unit area for the electromagnetic field (Casimir 1948), half that for one massless scalar.
@@ -163,7 +164,7 @@ int main(void)
         }
     }
     printf("WHCASIMIR: chain %016llx\n", (unsigned long long)hash);
-    printf("WHCASIMIR: SI (DERIVED, not computed here): electromagnetic E_C/A = -pi^2 hbar c / (720 d^3), hbar c = 3.16153e-26 J m: d = 1 um -> -4.33e-10 J/m^2 (a pressure of 1.3 mPa); d = 10 nm -> -4.33e-4 J/m^2 (1.3 kPa); the one scalar computed here gives half of each\n");
+    printf("WHCASIMIR: SI (DERIVED, not computed here): electromagnetic E_C/A = -pi^2 hbar c / (720 d^3), hbar c = 3.16153e-26 J m: d = 1 um -> -4.33e-10 J/m^2 (a pressure of 1.3 mPa); d = 10 nm -> -4.33e-4 J/m^2 (1.3e5 Pa, about 1.3 atmospheres); the one scalar computed here gives half of each\n");
     printf("WHCASIMIR: done\n");
     return 0;
 }

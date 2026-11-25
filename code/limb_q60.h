@@ -23,9 +23,9 @@
  *     2 L (2^24 - 1)^2 <= 2^63 - 1  (L <= 16384)   and two weaker conditions on C2 and C3 of P3 (L <= 32513 and L <= 4194304 at
  *     Ba = Bb = 63), i.e.  L <= lq60_lmax(Ba, Bb) = 16384 for every operand size.
  * Under it every T_P is exact modulo 2^128, so re and im are the s128 kernel's 128-bit sums exactly, and the result is BIT-EQUAL to
- * the main program's s128 kernel (wh_syk5.c:61-75 and mmul 155-173) for every input, including results too large for an int64 (same bits).
+ * the main program's s128 kernel (wh_syk5.c:63-78 and mmul 155-182) for every input, including results too large for an int64 (same bits).
  *   ANY Q.60 operands (|raw| <= 2^63 - 1, values below 8), any L <= 16384 k terms per finalize: bit-equal. (D = 512 needs L = 512.)
- * INT64_MIN is excluded because the s128 kernel's own -a.im (wh_syk5.c:167) and conj (142, 147) negate it, which C leaves undefined.
+ * INT64_MIN is excluded because the s128 kernel's own -a.im (wh_syk5.c:176) and conj (147, 152) negate it, which C leaves undefined.
  */
 #ifndef LIMB_Q60_H
 #define LIMB_Q60_H

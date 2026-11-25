@@ -1,4 +1,4 @@
-/* limb_tile.c (11-12-2026) -- C = op(A) B with the three-limb kernel, tiled as the main program's v5.1 mmul (wh_syk5.c:150-173): the output in
+/* limb_tile.c (11-12-2026) -- C = op(A) B with the three-limb kernel, tiled as the main program's v5.1 mmul (wh_syk5.c:155-182): the output in
  * 32 x 32 tiles, the k index in blocks of 32, the accumulators of each output entry carried across the k blocks, and ONE finalize (one
  * rounding) per entry after the last k block. The sums are exact (mod 2^128), so neither the tiling, nor the order of the k blocks,
  * nor the order of k inside them, nor skipping exact zeros changes a bit: the result equals the untiled s128 product exactly
@@ -44,7 +44,7 @@ long lq60_mmul_tiled(const lq_c64 *A, int mode, const lq_c64 *B, lq_c64 *C, int 
             for (int kk = 0; kk < D; kk++) {
                 const int k = perm ? perm[kk] : kk; lq_c64 a;
                 if (mode == 0) a = A[(long)(i0 + i) * D + k];
-                else { a = A[(long)k * D + i0 + i]; a.im = (int64_t)((uint64_t)0 - (uint64_t)a.im); }   /* conj, as wh_syk4.c:158, wh_syk5.c:142 */
+                else { a = A[(long)k * D + i0 + i]; a.im = (int64_t)((uint64_t)0 - (uint64_t)a.im); }   /* conj, as wh_syk4.c:164, wh_syk5.c:147 */
                 lq60_split_left(a, &Al[((long)(kk / T) * T + i) * T + kk % T]);     /* k-block-major, as Bt */
                 if (nz(a)) { if (kk < s) s = kk; e = kk + 1; }
             }

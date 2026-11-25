@@ -2,6 +2,7 @@
 # MM inputs [M]: re = 1.5e7 m (MM:536, (3.26)); R5 = 5e-5 m (MM:442-443); smallest mouth separation d = 0.5 ly (MM:707);
 # c2 and ell as functions of re, R5 (MM:541-545); E_Casimir = -c2/(8 ell) (MM:188-189).
 # Physical constants [E: CODATA values from memory].
+# MM:NNN = line NNN of the plain-text arXiv:2008.06618 used here (not published).
 from mpmath import mp, mpf, pi, log, sqrt, quad, diff
 mp.dps = 30
 

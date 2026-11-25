@@ -1,8 +1,21 @@
-# Result 4a: the negative energy itself, the Casimir sum on a lattice, exact, 2026-11-11 (v5 of the program, the evening)
+# Result 4a: the negative energy itself, the Casimir sum on a lattice in integer fixed-point arithmetic, bit-identical on two machines, 2026-11-11 (v5 of the program, the evening)
 
-**First line:** the Casimir effect is real, measured since 1997, and its negative energy density is of the order of nanojoules per
-cubic metre at micron spacings; nothing here makes it larger. This result computes the textbook case for one scalar field as a finite sum
-with no divergent subtraction at all, and finds, in exact arithmetic, the law by which the lattice sum approaches the continuum:
+**In plain words.** Wormhole and warp-drive papers lean on negative energy, and one form of it, measured in the laboratory since 1997, is
+the Casimir effect: the energy of empty space between two close surfaces, which is below zero (for the electromagnetic field at a
+1 micrometre gap, -4.3e-10 joules per square metre of plate; COMPUTED from the textbook formula). This page computes the textbook case
+for one simple field on a lattice (a grid of points), as a finite sum that needs no subtraction of infinite quantities, in fixed-point
+integer arithmetic (every calculation done with whole numbers in a set format, so any computer prints the same digits; the two machines,
+two small ARM computers, printed identical output). It finds the law by which the lattice answer approaches the smooth-space answer as
+the grid gets finer: their ratio is 1 + 2.0561676/N^2 + 9.3762182/N^4 + ... for N lattice spacings between the plates. The law was
+derived in review (by the independent AI session that checks every program and page here) and matches the review's exact sums to 8e-18
+at N = 32 (COMPUTED), and the machines' own ratio at N = 32 (MEASURED) is within 8.4e-12 of the exact value that review certified by
+three independent routes. Nothing here makes the effect larger: at micrometre gaps it stays of the order of a nanojoule per square
+metre of plate.
+
+**First line:** the Casimir effect is real, measured since 1997, and its negative energy is of the order of a nanojoule per square metre
+of plate at micron spacings (electromagnetic, at 1 um: -4.3e-10 J/m^2; the energy density between the plates is -4.3e-4 J/m^3); nothing
+here makes it larger. This result computes the textbook case for one scalar field as a finite sum with no divergent subtraction at all,
+and finds, in integer arithmetic, the law by which the lattice sum approaches the continuum:
 1 + (5 pi^2/24)/N^2 + [pi^2 (2600 + 291 pi^2)/5760]/N^4 + 52.5/N^6 + ... = 1 + 2.0561676/N^2 + 9.3762182/N^4 + ..., the coefficients
 derived in review and matched by the exact sums to 8e-18 at N = 32.
 
@@ -27,8 +40,8 @@ is the Casimir energy's own second difference, with nothing divergent subtracted
     F2(N) / M^2  ->  -(pi^2 / 1440) [ (N+1)^-3 - 2 N^-3 + (N-1)^-3 ]  ~  -pi^2 / (120 N^5),
 
 and the lattice's deviation from that is itself exact and printed as a ratio. The transverse box is kept at M >= 6 N so that its own
-finite-size term, which goes as e^{-pi M/N}, is below the arithmetic (M = 128 and 256 agree to 8e-5 in (ratio - 1) N^2 at N = 20, where
-M/N is 6.4 and 12.8).
+finite-size term, which goes as e^{-pi M/N}, is small: 2.0e-7 in the ratio at M/N = 6.4 (N = 20, M = 128) and 1.3e-9 at N = 32,
+M = 256 (against the review's M -> infinity value). The table's M = 256 values include it.
 
 **What "exact" had to mean here, learned the hard way.** F2 at N = 32 is one part in 10^10 of E(N), so every mode frequency, each used
 M^2 times coherently, must carry far more than the printing precision. The first three versions of the program computed the
@@ -56,7 +69,8 @@ floor roundings in Q.60 (ten decimals at N = 20 to 32, twelve at N = 12 and 16).
 
 ## The numbers
 
-M = 256 (A = 65536), MEASURED on the pair (the M = 128 rows for N = 4..20 are in the raw output and agree to 2e-9 in the ratio):
+M = 256 (A = 65536), MEASURED on the pair (the M = 128 rows for N = 4..20 are in the raw output; they agree exactly at N <= 12, to
+1.5e-9 in the ratio at N = 16 and 2.0e-7 at N = 20, the box's own term):
 
 | N | E(N)/M^2 | F2(N), the whole box | F2(N)/M^2 | continuum, per unit area | ratio lattice/continuum | (ratio - 1) N^2 |
 |---|---|---|---|---|---|---|
@@ -84,7 +98,7 @@ values at M -> infinity are 2.12396, 2.09362, 2.07994, 2.07261, 2.06537 at N = 1
 M = 256 values agree with them to the box's own term and the arithmetic's residual. The lattice's dispersion omega = 2 sin(k/2) softens
 every mode relative to omega = k, so the lattice sum carries slightly more negative energy than the continuum at any finite N: the energy's
 own excess is (pi^2/12)/N^2 = 0.822/N^2, and the second-difference ratio's is the 2.056/N^2 above. The bulk energy per site, the slope of
-E(N)/M^2 in N, is 1.19384 from the table, and the surface term is what remains after it: both cancel exactly in F2, which is why no
+E(N)/M^2 in N, is 1.193801 from the table (the slope from N = 24 to 32), and the surface term is what remains after it: both cancel exactly in F2, which is why no
 subtraction is needed.
 
 ## Error bound, on paper
@@ -99,12 +113,14 @@ three extra roundings had left 1.7e-9 to 2.5e-9. So the ratio is good to twelve 
 gave +1.1e-12 there). F2's printed twelve places are its own single rounding to Q.40 for printing, with the ratio taken from the unrounded
 value. The two machines' bit-equality checks the arithmetic, not this bound.
 
-## In SI, for the record (DERIVED, not computed here)
+## In SI, for the record (COMPUTED from the textbook formula, not by the program)
 
 Electromagnetic: E_C / A = -pi^2 hbar c / (720 d^3) with hbar c = 3.16153e-26 J m: at d = 1 um, -4.33e-10 J/m^2 (a pressure of 1.3 mPa);
-at d = 10 nm, -4.33e-4 J/m^2 (1.3 kPa). The one scalar computed here gives half of each. The energy density between the plates,
--pi^2 hbar c / (720 d^4) electromagnetic: -4.3e-4 J/m^3 at 1 um. A traversable wormhole of a metre needs negative energy of planetary-mass
-scale (computation 1's own papers say so); this is the gap, stated in numbers.
+at d = 10 nm, -4.33e-4 J/m^2 (1.3 x 10^5 Pa, about 1.3 atmospheres; the run's SI line printed 1.3 kPa, a slip). The one scalar
+computed here gives half of each. The energy density between the plates, -pi^2 hbar c / (720 d^4) electromagnetic: -4.3e-4 J/m^3 at
+1 um. In Maldacena and Milekhin's construction (computation 1), a wormhole with a one-metre mouth has a binding energy of minus
+1.7e17 kg, and the negative energy that holds it open is twice that (COMPUTED, [`1b_cost.md`](1b_cost.md)); this is the gap, stated in
+numbers.
 
 ## Lineage
 

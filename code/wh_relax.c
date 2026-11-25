@@ -1,6 +1,7 @@
-/* wh_relax.c (11-11-2026, 10:55 PM; v2 nl=1; v3 two cores 11:47 PM; v4 11-12 1:35 AM) -- WORMHOLE MATH 1b, the solver kernel:
+/* In plain words: the basic grid solver (one field, red-black relaxation), built ahead of the patched geometry's equations and checked on a test problem with a known exact answer.
+   wh_relax.c (11-11-2026, 10:55 PM; v2 nl=1; v3 two cores 11:47 PM; v4 11-12 1:35 AM) -- WORMHOLE MATH 1b, the solver kernel:
    VERSION 4 (what the reviewer's float tests of the 1b boundary problems asked for; the default path is v3 bit for bit, its chains
-   unchanged): (1) omega= a decimal or 'auto' (the formula, the default). An adaptive omega keyed to the residual was tried and
+   unchanged until the 11-12 fix below): (1) omega= a decimal or 'auto' (the formula, the default). An adaptive omega keyed to the residual was tried and
    dropped: SOR's residual grows through its first tens of sweeps at any omega, which such a rule reads as divergence, and the
    rule then backed off to 1.0 and crawled (1744 sweeps to a poor floor at G = 128); the production solver takes omega from measured
    sweeps instead;
@@ -16,6 +17,9 @@
    multiplied by D_j = 2j (2j - 1)(2j + 1) so that every stencil weight is an INTEGER (G^4 (2j + 1), G^4 (2j - 1), G^2 D_j) and the
    Gauss-Seidel value is one 128-by-64-bit division rounded once: no weight is ever rounded. With stretch=1 the Robin row reads
    u_0 = (16 u_1 - u_2)/3 - 4 g/G^2. The nonlinear option (nl=1) stays on the uniform grid.
+   11-12, found by the reviewer: the uniform-grid residual's negated terms now carry their 128-bit sign word, and its read saturates as said above
+   (past 2^63 units it wrapped). The early residual lines of the runs that use it change, and so their chains (G = 32: 932bb0ce712df6a4,
+   was a583f23edabfc19f; COMPUTED, PC development runs); no converged line changes, and the stretched runs are unchanged.
    The original header follows. WORMHOLE MATH 1b, the solver kernel: a two-dimensional elliptic relaxation in exact fixed point,
    built and verified before the 1b equations arrive (Maldacena-Milekhin's patched five-dimensional geometry reduces, with its S2 symmetry,
    to a 2D elliptic system; PLAN.md section 1, "1b": "a relaxation solver in fixed point"). This program is the kernel on a problem with a
@@ -61,10 +65,10 @@ static inline void mulprod(int64_t a, int64_t b, int64_t *hi, uint64_t *lo)
     mul128(ua, ub, &h, &l); if (neg) { l = ~l + 1; h = ~h + (l == 0); } *hi = (int64_t)h; *lo = l;
 }
 static inline void s128_addp(s128 *a, int64_t x, int64_t y) { int64_t h; uint64_t l; mulprod(x, y, &h, &l); s128_add(a, h, l); }
-static inline int64_t s128_round_sh(s128 a, int sh)
+static inline int64_t s128_round_sh(s128 a, int sh)   /* round(a / 2^sh) to nearest, ties away from zero; 0 <= sh <= 63 */
 {
     int neg = a.hi < 0; if (neg) { a.lo = ~a.lo + 1; a.hi = ~a.hi + (a.lo == 0); }
-    uint64_t r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;
+    uint64_t r = sh ? ((a.lo >> sh) | ((uint64_t)a.hi << (64 - sh))) : a.lo; if (sh && (a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;   /* sh = 0: the low word (a shift by 64 is undefined) */
     return neg ? -(int64_t)r : (int64_t)r;
 }
 static inline int64_t mul60(int64_t a, int64_t b) { s128 s = {0, 0}; s128_addp(&s, a, b); return s128_round_sh(s, F60); }
@@ -89,11 +93,13 @@ static int64_t parse60(const char *s)                 /* v4: a decimal into Q.60
     if (fp) { uint64_t h, l, rem; mul128(fp, (uint64_t)1 << F60, &h, &l); uint64_t qq = div128(h, l, scale, &rem); if (2 * rem >= scale) qq++; v += (int64_t)qq; }
     return neg ? -v : v;
 }
-static int64_t div128s(s128 num, int64_t den)         /* v4: round(num / den), num signed 128-bit, 0 < den < 2^63, the quotient an int64 */
+static int64_t div128s(s128 num, int64_t den)         /* v4: round(num / den), num signed 128-bit, 0 < den < 2^63, the quotient an int64; both checked */
 {
+    if (den <= 0) { printf("WHRELAX: div128s by a non-positive value -- stop\n"); exit(1); }
     int neg = num.hi < 0; if (neg) { num.lo = ~num.lo + 1; num.hi = ~num.hi + (num.lo == 0); }
     if ((uint64_t)num.hi >= (uint64_t)den) { printf("WHRELAX: a quotient does not fit -- stop\n"); exit(1); }
     uint64_t rem; uint64_t q = div128((uint64_t)num.hi, num.lo, (uint64_t)den, &rem); if (2 * rem >= (uint64_t)den) q++;
+    if (q > (uint64_t)INT64_MAX) { printf("WHRELAX: a quotient does not fit -- stop\n"); exit(1); }   /* the check above passes quotients up to 2^64; from 2^63 they came back with the wrong sign */
     return neg ? -(int64_t)q : (int64_t)q;
 }
 static int64_t div128sat(s128 num, int64_t den)       /* v4: as div128s but a quotient that does not fit saturates (the residual measure) */
@@ -130,25 +136,27 @@ static void sweep_rows(void *p)
     rjob *jb = (rjob *)p; const int color = jb->color; int64_t maxchg = 0;
     for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1 + ((i + color) & 1); j < Gg; j += 2) {
         const int64_t fh2 = rdiv64(Fv[i][j], G2g);
-        const int64_t S = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1];
+        s128 Ss = {0, 0}; s128_addp(&Ss, 1, U[i - 1][j]); s128_addp(&Ss, 1, U[i + 1][j]); s128_addp(&Ss, 1, U[i][j - 1]); s128_addp(&Ss, 1, U[i][j + 1]);   /* the four neighbours in 128 bits: their int64 sum passed 8 once the field passed 2 (the review, 9:06 AM 11-12) */
         int64_t gs;
         if (ROBIN && j == 1 && STRETCH) {                /* v4: row 1 with the Robin row eliminated, stretched: 18 G^2 (E + W) + 4 G^4 u_2 + 12 G^2 g - 18 f over 36 G^2 + 28 G^4 */
             const int64_t G4 = G2g * G2g; s128 num = {0, 0};
-            s128_addp(&num, 18 * G2g, U[i - 1][1] + U[i + 1][1]); s128_addp(&num, 4 * G4, U[i][2]); s128_addp(&num, 12 * G2g, Gx[i]); s128_addp(&num, -18, Fv[i][1]);
+            s128_addp(&num, 18 * G2g, U[i - 1][1]); s128_addp(&num, 18 * G2g, U[i + 1][1]); s128_addp(&num, 4 * G4, U[i][2]); s128_addp(&num, 12 * G2g, Gx[i]); s128_addp(&num, -18, Fv[i][1]);
             gs = div128s(num, 36 * G2g + 28 * G4);
         }
         else if (ROBIN && j == 1) {                      /* v4: row 1 with the Robin row eliminated, uniform: (E + W + 2 u_2 + 2 h g - f h^2) / 8 */
-            gs = rdiv64(U[i - 1][1] + U[i + 1][1] + 2 * U[i][2] + mul60(2 * HQ, Gx[i]) - fh2, 8);
+            { s128 num = {0, 0}; s128_addp(&num, 1, U[i - 1][1]); s128_addp(&num, 1, U[i + 1][1]); s128_addp(&num, 2, U[i][2]); s128_addp(&num, 1, mul60(2 * HQ, Gx[i])); s128_addp(&num, 1, -fh2); gs = div128s(num, 8); }   /* the sum in 128 bits (its 64-bit form wraps once the field passes 2) */
         }
         else if (STRETCH) {                              /* v4: D_j (u_xx + u_yy) = D_j f with integer weights; one rounding */
             s128 num = {0, 0};
-            s128_addp(&num, WX[j], U[i - 1][j] + U[i + 1][j]); s128_addp(&num, WS[j], U[i][j - 1]); s128_addp(&num, WN[j], U[i][j + 1]);
+            s128_addp(&num, WX[j], U[i - 1][j]); s128_addp(&num, WX[j], U[i + 1][j]); s128_addp(&num, WS[j], U[i][j - 1]); s128_addp(&num, WN[j], U[i][j + 1]);   /* one product per neighbour */
             s128_addp(&num, -DJ[j], Fv[i][j]);
             gs = div128s(num, WD[j]);
         }
-        else if (!NL) gs = rdiv64(S - fh2, 4);
+        else if (!NL) { s128 t = Ss; s128_addp(&t, 1, -fh2); gs = s128_round_sh(t, 2); }   /* round((S - f h^2)/4), the same rounding as before */
         else { const int64_t u = U[i][j], u2h2 = rdiv64(mul60(u, u), G2g);
-               const int64_t res = 4 * u + u2h2 - S + fh2, dres = 4 * ONE60 + 2 * rdiv64(u, G2g); gs = u - div60(res, dres); }
+               s128 r = {0, 0}; s128_addp(&r, 4, u); s128_addp(&r, 1, u2h2); s128 nS = Ss; nS.lo = ~nS.lo + 1; nS.hi = ~nS.hi + (nS.lo == 0); s128_add(&r, nS.hi, nS.lo); s128_addp(&r, 1, fh2);   /* res = 4u + h^2 u^2 - S + f h^2 in 128 bits */
+               const int64_t dres = 4 * ONE60 + 2 * rdiv64(u, G2g);
+               s128 r60 = { (int64_t)((uint64_t)r.hi << 60) | (int64_t)(r.lo >> 4), r.lo << 60 }; gs = u - div128s(r60, dres); }   /* round(res 2^60 / dres): div60's rounding, without its int64 argument */
         const int64_t nu = U[i][j] + mul60(OMEGA, gs - U[i][j]);
         int64_t ch = nu - U[i][j]; if (ch < 0) ch = -ch; if (ch > maxchg) maxchg = ch;
         U[i][j] = nu;
@@ -161,28 +169,28 @@ static void resid_rows(void *p)
     for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1; j < Gg; j++) {
         if (ROBIN && j == 1 && STRETCH) {                /* v4: the eliminated row-1 equation's residual, divided back by 18 */
             const int64_t G4 = G2g * G2g; s128 r = {0, 0};
-            s128_addp(&r, 18 * G2g, U[i - 1][1] + U[i + 1][1]); s128_addp(&r, 4 * G4, U[i][2]); s128_addp(&r, 12 * G2g, Gx[i]); s128_addp(&r, -18, Fv[i][1]);
+            s128_addp(&r, 18 * G2g, U[i - 1][1]); s128_addp(&r, 18 * G2g, U[i + 1][1]); s128_addp(&r, 4 * G4, U[i][2]); s128_addp(&r, 12 * G2g, Gx[i]); s128_addp(&r, -18, Fv[i][1]);
             s128_addp(&r, -(36 * G2g + 28 * G4), U[i][1]);
             int64_t rv = div128sat(r, 18); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
             continue;
         }
         if (ROBIN && j == 1) {                           /* v4: (E + W + 2 u_2 - 8 u_1 + 2 h g) G^2 - f */
-            const int64_t lap1 = U[i - 1][1] + U[i + 1][1] + 2 * U[i][2] - 8 * U[i][1] + mul60(2 * HQ, Gx[i]);
-            s128 r = {0, 0}; s128_addp(&r, lap1, G2g); s128_add(&r, -(Fv[i][1] >> 63) - (Fv[i][1] < 0), (uint64_t)(-Fv[i][1]));
+            s128 r = {0, 0}; s128_addp(&r, G2g, U[i - 1][1]); s128_addp(&r, G2g, U[i + 1][1]); s128_addp(&r, 2 * G2g, U[i][2]); s128_addp(&r, -8 * G2g, U[i][1]); s128_addp(&r, G2g, mul60(2 * HQ, Gx[i]));   /* the Laplacian's terms one by one in 128 bits */
+            s128_add(&r, -(int64_t)(Fv[i][1] > 0), (uint64_t)0 - (uint64_t)Fv[i][1]);             /* - f, with the sign word of -f */
             int64_t rv = div128sat(r, 1); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
             continue;
         }
         if (STRETCH) {                                   /* v4: the weighted residual divided back by D_j, in units of 2^-60 (saturating) */
             s128 r = {0, 0};
-            s128_addp(&r, WX[j], U[i - 1][j] + U[i + 1][j]); s128_addp(&r, WS[j], U[i][j - 1]); s128_addp(&r, WN[j], U[i][j + 1]);
+            s128_addp(&r, WX[j], U[i - 1][j]); s128_addp(&r, WX[j], U[i + 1][j]); s128_addp(&r, WS[j], U[i][j - 1]); s128_addp(&r, WN[j], U[i][j + 1]);
             s128_addp(&r, -WD[j], U[i][j]); s128_addp(&r, -DJ[j], Fv[i][j]);
             int64_t rv = div128sat(r, DJ[j]); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
             continue;
         }
-        const int64_t lap = U[i - 1][j] + U[i + 1][j] + U[i][j - 1] + U[i][j + 1] - 4 * U[i][j];
-        s128 r = {0, 0}; s128_addp(&r, lap, G2g); s128_add(&r, -(Fv[i][j] >> 63) - (Fv[i][j] < 0), (uint64_t)(-Fv[i][j]));
-        if (NL) { const int64_t u2 = mul60(U[i][j], U[i][j]); s128_add(&r, -(u2 >> 63) - (u2 < 0), (uint64_t)(-u2)); }
-        int64_t rv = s128_round_sh(r, 0); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;
+        s128 r = {0, 0};   /* the Laplacian's five terms, one product each: their int64 sum passed 8 once the field passed 2 (the review, 9:06 AM 11-12) */
+        s128_addp(&r, U[i - 1][j], G2g); s128_addp(&r, U[i + 1][j], G2g); s128_addp(&r, U[i][j - 1], G2g); s128_addp(&r, U[i][j + 1], G2g); s128_addp(&r, U[i][j], -4 * G2g); s128_add(&r, -(int64_t)(Fv[i][j] > 0), (uint64_t)0 - (uint64_t)Fv[i][j]);   /* - f, with the sign word of -f */
+        if (NL) { const int64_t u2 = mul60(U[i][j], U[i][j]); s128_add(&r, -(int64_t)(u2 > 0), (uint64_t)0 - (uint64_t)u2); }
+        int64_t rv = div128sat(r, 1); if (rv < 0) rv = -rv; if (rv > maxres) maxres = rv;       /* saturating, as the header says */
     }
     jb->maxres = maxres;
 }
@@ -259,8 +267,9 @@ int main(int argc, char **argv)
         if (maxres <= thr || maxchg == 0 || (sweep > 8 * G && sweep - lastimp >= G)) break;
     }
     printf("WHRELAX: the residual reached its floor (%lld units, about %lld x G^2) at sweep %d; the rounding floor on paper is a few units x G^2 = a few x %lld\n", (long long)best, (long long)(best / G2), floor_sweep, (long long)G2);
-    if (robin) for (int i = 1; i < G; i++)                   /* v4: the Robin row from the converged row 1 (u_e = 0 there) */
-        U[i][0] = stretch ? rdiv64(rdiv64(12 * Gx[i], G2) - 16 * U[i][1] + U[i][2], 9) : U[i][2] - 4 * U[i][1] + mul60(2 * hq, Gx[i]);
+    if (robin) for (int i = 1; i < G; i++) {                 /* v4: the Robin row from the converged row 1 (u_e = 0 there) */
+        if (stretch) { s128 t = {0, 0}; s128_addp(&t, 12, Gx[i]); const int64_t q1 = div128s(t, G2); s128 t2 = {0, 0}; s128_addp(&t2, 1, q1); s128_addp(&t2, -16, U[i][1]); s128_addp(&t2, 1, U[i][2]); U[i][0] = div128s(t2, 9); }
+        else { s128 t = {0, 0}; s128_addp(&t, 1, U[i][2]); s128_addp(&t, -4, U[i][1]); s128_addp(&t, 1, mul60(2 * hq, Gx[i])); U[i][0] = div128s(t, 1); } }   /* 128-bit forms: 16 u and 4 u pass the ceiling once |u| reaches 1/2 or 2 */
     /* the error against the exact solution */
     int64_t maxerr = 0; int ei = 0, ej = 0;
     for (int i = 0; i <= G; i++) for (int j = 0; j <= G; j++) { int64_t e = U[i][j] - Ex[i][j]; if (e < 0) e = -e; if (e > maxerr) { maxerr = e; ei = i; ej = j; } }

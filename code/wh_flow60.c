@@ -1,4 +1,5 @@
-/* wh_flow60.c (11-12-2026, 3:10 AM) -- WORMHOLE MATH 1a, THE FLOW IN Q.56: wh_flow.c version 3's two Maldacena-Milekhin flows (flat (3.19)/(A.28-29),
+/* In plain words: the same two flows as wh_flow.c with 56 fraction bits instead of 40, so that their key constants come out to twelve digits or more instead of ten.
+ * wh_flow60.c (11-12-2026, 3:10 AM) -- WORMHOLE MATH 1a, THE FLOW IN Q.56: wh_flow.c version 3's two Maldacena-Milekhin flows (flat (3.19)/(A.28-29),
  * sphere (A.30)) and the constant Xi of the flat flow (defined in wh_ode.c; it fixes the constant inside the paper's eq. 3.24), integrated in a fixed-point format with 56 fraction bits instead of 40,
  * so that the gauge invariants K_sigma, K_lambda and Xi come out to twelve digits instead of ten. The state (sigma, sigma', lambda, J) is held
  * in Q.56 (values below 128: sigma reaches 16 at the stop, past Q.60's ceiling of 8); every product is a 128-bit product rounded once to
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
     const int64_t worst = whq60_selftest("WHFLOW60"); printf("WHFLOW60 selftest: largest deviation %lld units of 2^-60\n", (long long)worst);
     for (int sphere = 0; sphere < 2; sphere++) {
         uint64_t hash = 0xcbf29ce484222325ull;
-        int64_t y[4] = { START40[sphere][0] << 16, START40[sphere][1] << 16, START40[sphere][2] << 16, J0_40 << 16 }, rho = -8 * ONE56;
+        int64_t y[4] = { START40[sphere][0] * ((int64_t)1 << 16), START40[sphere][1] * ((int64_t)1 << 16), START40[sphere][2] * ((int64_t)1 << 16), J0_40 * ((int64_t)1 << 16) }, rho = -8 * ONE56;   /* x 2^16 as a product: a left shift of a negative value is undefined in C */
         if (!sphere) for (int i = 0; i < 4; i++) y[i] = START56F[i];   /* the exact Q.56 start */
         memset(REM, 0, sizeof REM);
         const char *name = sphere ? "sphere" : "flat";
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
         printf("WHFLOW60 %s: END at rho = %s after %d steps: sigma' = %s (UV: 1), lambda' = %s (UV: 1), sigma - rho = %s, lambda - rho = %s, lambda - sigma = %s; chain %016llx\n",
                name, a, steps, b, c, d, e, f, (unsigned long long)hash);
         if (sphere) {
-            fmt56(y[0] - rho + (GAMMA40[sphere][0] << 16), a); fmt56(y[2] - rho + (GAMMA40[sphere][1] << 16), b);
+            fmt56(y[0] - rho + GAMMA40[sphere][0] * ((int64_t)1 << 16), a); fmt56(y[2] - rho + GAMMA40[sphere][1] * ((int64_t)1 << 16), b);
             printf("WHFLOW60 %s: invariants K_sigma = %s (0.377362726342), K_lambda = %s (-0.297030895775)   [v3's Q.40 start and constants scaled]\n", name, a, b);
         } else {
             fmt56_15(y[0] - rho + GAMMA56F[0], a); fmt56_15(y[2] - rho + GAMMA56F[1], b);

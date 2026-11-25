@@ -1,4 +1,5 @@
-/* wh_relaxs.c (11-12-2026, 2:00 AM) -- WORMHOLE MATH 1b, THE SYSTEM KERNEL: the relaxation of several coupled fields at once, each with a
+/* In plain words: the grid solver for several coupled nonlinear fields at once, checked on a test problem with a known exact answer.
+   wh_relaxs.c (11-12-2026, 2:00 AM) -- WORMHOLE MATH 1b, THE SYSTEM KERNEL: the relaxation of several coupled fields at once, each with a
    nonlinear source, with a Newton step per point over the fields' local Jacobian block, in exact fixed point; built and verified on a
    problem with a known answer before the 1b equations arrive. The single-field kernel (wh_relax.c, versions 1-4) proved the sweep, the
    residual accounting, the two cores, a Robin boundary and stretched grids. The 1b system has three unknown functions in the conformal
@@ -12,7 +13,8 @@
    with the exact solution u_k = c_k x(1-x) y(1-y), c = (1, 2, 3)/scale (scale = 4 by default), and f_k defined from it on the grid with the
    same products, so the discrete solution equals u_k at the nodes to the arithmetic (the five-point Laplacian is exact for this u; the
    products are rounded once). lam, an integer, sets the self-nonlinearity: lam = 1 is mild; THE STRESS CASE is scale = 40 with
-   lam = 150000, where the source lam u^2 stays below the Q.60 ceiling (3.3) while its own derivative 2 lam h^2 u reaches a third of the
+   lam = 150000, where the source lam u^2 is 3.3 at the solution (it passes 8 in the first sweeps from zero; the source is formed in
+   128 bits) while its own derivative 2 lam h^2 u reaches a third of the
    Laplacian's diagonal 4 at G = 32 (the regime where the reviewer's float tests overshot with a lagged source); lam = 0 leaves the
    linear coupling only.
 
@@ -76,7 +78,7 @@ static inline void s128_addv(s128 *a, int64_t v) { s128_add(a, v < 0 ? -1 : 0, (
 static inline int64_t s128_round_sh(s128 a, int sh)
 {
     int neg = a.hi < 0; if (neg) { a.lo = ~a.lo + 1; a.hi = ~a.hi + (a.lo == 0); }
-    uint64_t r = sh ? ((a.lo >> sh) | ((uint64_t)a.hi << (64 - sh))) : a.lo;
+    uint64_t r = sh ? ((a.lo >> sh) | ((uint64_t)a.hi << (64 - sh))) : (a.hi ? (uint64_t)INT64_MAX : a.lo);   /* sh = 0: 2^64 units or more saturate too */
     if (sh && (a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;
     if (r > (uint64_t)INT64_MAX) r = (uint64_t)INT64_MAX;                        /* the residual measure saturates */
     return neg ? -(int64_t)r : (int64_t)r;
@@ -127,11 +129,12 @@ static inline int64_t UE(int k, int i, int j) { return i < Gg ? U[k][i + 1][j] :
 static inline int64_t US(int k, int i, int j) { return j > 0 ? U[k][i][j - 1] : U[k][i][j + 1]; }
 static inline int64_t UN(int k, int i, int j) { return j < Gg ? U[k][i][j + 1] : U[k][i][j - 1]; }
 /* the source of field k at a point from the current fields: f_k + lam u_k^2 + SUM_{m != k} u_m (Q.60, the square rounded once) */
-static inline int64_t source(int k, int i, int j)
+static inline int64_t source(int k, int i, int j)               /* formed in 128 bits; a source past the Q.60 ceiling stops the run (it wrapped before) */
 {
-    int64_t s = Fv[k][i][j] + LAM * mul60(U[k][i][j], U[k][i][j]);
-    for (int m = 0; m < NF; m++) if (m != k) s += U[m][i][j];
-    return s;
+    s128 s = {0, 0}; s128_addv(&s, Fv[k][i][j]); s128_addp(&s, LAM, mul60(U[k][i][j], U[k][i][j]));
+    for (int m = 0; m < NF; m++) if (m != k) s128_addv(&s, U[m][i][j]);
+    if (s.hi != ((int64_t)s.lo < 0 ? -1 : 0)) { printf("WHRELAXS: a source passed the Q.60 ceiling -- stop\n"); exit(1); }
+    return (int64_t)s.lo;
 }
 /* J d = -R for the 3 x 3 local block by Gaussian elimination in Q.60 (the diagonal 4 dominates: no pivoting) */
 static void solve_block(int64_t J[NF][NF], int64_t R[NF], int64_t d[NF])

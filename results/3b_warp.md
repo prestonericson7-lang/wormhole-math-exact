@@ -1,8 +1,21 @@
-# Result 3b, part 2: the 2024 warp shell with its shift, judged exactly, and the shift limit its authors left open, 2026-11-11
+# Result 3b, part 2: the 2024 warp shell with its shift, judged in integer fixed-point arithmetic, bit-identical on two machines, and the shift limit its authors left open, 2026-11-11
+
+**In plain words.** The 2024 paper adds to the shell of part 1 a "shift" along one direction inside it, the ingredient that makes it
+"move", and shows that the four energy conditions (tests that the matter behaves like ordinary matter, for example that no observer
+measures a negative energy density) still hold at a shift of 2 percent of the speed of light; how far the shift can be raised it calls
+"a future direction of work". This page computes that limit for the paper's own object, in fixed-point integer arithmetic (every
+calculation done with whole numbers in a set format, so any computer prints the same digits; the two machines, two small ARM computers,
+printed identical output): the conditions hold up to a shift of about 0.03035 of the speed of light (just over 3 percent) and all four
+fail together just above it, 12.3 m from the centre on the shell's equator (COMPUTED by the reviewer, the independent AI session that
+checks every program and page here; the machines' finer-grid run, MEASURED, gives an upper bound of 0.030358). Review found an error in
+version 2 of the program that put every computed breaking point 3.25e-5 too low (COMPUTED by the reviewer); the page keeps version 2's
+numbers as the record, but version 3's, from the fixed program run on the two machines, replace them. The object is still a
+2.4-Jupiter-mass shell that nobody can build, and, like the paper, the page says nothing about how it could get up to speed
+(acceleration).
 
 **First line:** a shell of positive-energy matter with a shift of three percent of the speed of light inside it is a solution of
-Einstein's equations on paper and a 2.4-Jupiter-mass object nobody can build; nothing here changes that. This result computes, exactly,
-how far the shift of the 2024 construction can be raised before the first energy condition breaks, a number the paper calls "a future
+Einstein's equations on paper and a 2.4-Jupiter-mass object nobody can build; nothing here changes that. This result computes, in integer
+arithmetic bit-identical on two machines, how far the shift of the 2024 construction can be raised before the first energy condition breaks, a number the paper calls "a future
 direction of work", and finds it just above 0.03.
 
 ## What was computed
@@ -26,7 +39,8 @@ not an upper limit". The upper limit is computed here.
   only below -F. Cells where the declared matter is exactly zero are reported apart as residuals of the declared object.
 - Self-tests, all printed: beta0 = 0 against the shell's closed form (agreement to 1-2 units in the twelfth place); flat space with a
   constant shift (every frame component zero to 2e-12); the warped-product code against the earlier four-index code off the axis.
-- Program: `code/wh_warp.c` with `code/wh_prof.h` on `code/whq.h` (v2); binary md5 48e33083 (ARM build).
+- Program: `code/wh_warp.c` with `code/wh_prof.h` on `code/whq.h` (v2); binary md5 48e33083 (ARM build of version 2; version 3's is in
+  its block below).
 - Runs: the pair, both machines at once, at r every 400 table midpoints (0.2 m = 0.01 R2) and 31 theta cells, 4278 cells, 8:56 to
   9:21 PM on 11-11 (25 minutes), the two outputs identical line for line, chain cd537a1c30e7ddc9 (`results/3b_warp_board1.txt`); and
   the pair again on the fine grid, r every 100 midpoints (0.05 m) and 31 cells, 17,112 cells, 10:22 PM to 11:58 PM (96 minutes), identical
@@ -42,10 +56,10 @@ tabulated S'' is 1.0011585 times its exact value and every cell's crossing sits 
 defects that only a finer angular grid would show: a doubly rounded mass table that fakes a DEC violation at beta0 = 0 near the inner edge,
 and a near-axis floor term five to seven times too small), the limits become, COMPUTED by the reviewer on copies and to be printed digit for
 digit by version 3 of the program on the pair: 0.030362854005 to 0.030362930299 on the 0.2 m grid and 0.030358123781 to 0.030358200075 on
-the 0.05 m grid, at 12.32 m on the equator, where all four conditions fail together for a null observer along the shift. The object's
-true minimum, at a node rather than a midpoint, is 0.0303537. The reviewer's earlier acceptance value, 0.03035, was right for the object
-as intended; the 2.4e-5 we had attributed to the object was this bug. Version 3 and the pair's rerun follow tonight; this note is updated
-with the measured lines when they land.
+the 0.05 m grid, at 12.35 m and 12.30 m on the equator respectively (the object's own minimum is at 12.32 m), where all four conditions
+fail together for a null observer along the shift. The object's true minimum, at a node rather than a midpoint, is 0.0303537. The
+reviewer's earlier acceptance value, 0.03035, was right for the object as intended; the 2.4e-5 we had attributed to the object was this
+bug.
 
 <!-- v3-begin -->
 **Version 3 on the pair (MEASURED, 11-12).** The reviewer's full fix (`code/wh_warp.c` and `code/wh_prof.h` version 3: the exact dr^2,
@@ -54,10 +68,14 @@ beta0 = 0 already fails, a whole-grid re-scan at both ends of the bracket, the c
 - The 0.2 m grid (r every 0.2 m (400 midpoints), 31 theta cells; started 01:52:07 AM, both machines line for line, 35 min): DEC first fails between 0.030362854005 and 0.030362930299 at r = 0.617601791436 R2 (12.35 m) on the equator; the bracket is confirmed on the whole grid; the S' jump self-test 1 unit; chain `09f6b75f837adef2` = the PC build's and the reviewer's.
 - The 0.05 m grid (r every 0.05 m (100 midpoints), 31 theta cells; started 02:27:19 AM, both machines line for line, 137 min): DEC first fails between 0.030358123781 and 0.030358200075 at r = 0.615064553421 R2 (12.30 m) on the equator; the bracket is confirmed on the whole grid; the S' jump self-test 1 unit; chain `4f27e30f55bd65b8` = the PC build's and the reviewer's.
 The brackets equal those of the dr^2 fix alone to every printed digit, as the review predicted; the other fixes change the verdict cells (the
-false DEC violation at beta0 = 0 and the false NEC cells on fine angular grids are gone) and the chains. The number to quote: the 0.05 m grid's
-0.030358, about 0.03036 c, 12.30 m from the centre on the equator. The raw lines of one machine: `results/3b_warp_v3_board1.txt`.
+false DEC violation at beta0 = 0 and the false NEC cells on fine angular grids are gone) and the chains. The number to quote: 0.03035 c,
+the object's limit (0.0303542 at midpoints, 12.32 m; 0.0303537 at a node; COMPUTED by the reviewer); the 0.05 m grid's MEASURED bracket,
+0.030358, bounds it from above. The output's banner still reads "WHWARP v2 ... wh_prof.h v2": the text was left unchanged; both files
+are version 3 (ARM binary md5 85232c00). The raw lines of one machine: `results/3b_warp_v3_board1.txt` (its first line is a
+label added when the output was saved, not program output).
 <!-- v3-end -->
 
+## Version 2's numbers (superseded by version 3 above; kept as published)
 
 On the pair (MEASURED; r every 0.2 m, 31 theta cells): all four conditions hold at beta0 = 0, 0.02, 0.025 and 0.03 within the floor, with
 no matter cell below it (the worst margin at 0.03 is -2.7e-10 against a floor of 3.6e-9, at r = 0.14 R2 next to the axis); at 0.035 all
@@ -74,7 +92,7 @@ On the fine grid (MEASURED on the pair; r every 0.05 m, 31 cells): the limiting 
 
     beta0 = 0.030325622559 to 0.030325698853   at r = 0.61506 R2 = 12.30 m, theta = pi/2,
 
-570 candidate cells of 17,112; chain ce224896a73d0e49, the PC build's exactly. So the radial grid moves the limit by 4.8e-6, downward, as
+570 candidate cells of 17,112; chain ce224896a73d0e49, the PC build's exactly. So the radial grid moves the limit by 4.7e-6, downward, as
 a finer grid can only do, and the fine grid's value is the one to quote: 0.030326. An independent review with its own derivation of the curvature and its own reduced grids
 found 0.03035 at 12.32 m for its own copy of the object (its total mass taken as exactly 1/6 where the tables' trapezoid sum gives
 0.16666023, and its own smoothing); the review is now computing the acceptance for this object, and that difference of 2.4e-5 is the
@@ -84,7 +102,7 @@ object, not the grid.
 
 The round-trip difference 4 INT beta e^{-2a} dr between a ray with the shift and one against it: 6.839932 ns in coordinate time at
 beta0 = 0.02 (R2 = 20 m) on the pair's grid (6.839926 on the coarse grid: the integral's own grid dependence, in the sixth digit),
-6.365734 ns in the proper time of an emitter at the grid's edge; both are delays, and both scale linearly in beta0 to 34.2 and 31.8 ns
+6.365733 ns in the proper time of an emitter at the grid's edge (version 3; version 2 printed 6.365734); both are delays, and both scale linearly in beta0 to 34.2 and 31.8 ns
 at beta0 = 0.1. The paper's 7.6 ns at 0.02 c is
 reproduced by neither definition (its Table 1 is captioned 0.04 c; the same definition does reproduce the paper's Alcubierre row of
 8.0 ns): an open discrepancy, stated as such.
@@ -93,13 +111,14 @@ reproduced by neither definition (its Table 1 is captioned 0.04 c; the same defi
 
 The floor F is the bound: at the limiting cell (r = 0.62 R2, equator) it is 2.2e-9 in the margin, and the margin's slope in beta0 there
 is about 1.5 (from -0.00687 at 0.035 to zero at 0.03033), so the floor contributes about 1.5e-9 to beta0; the bisection's bracket is
-7.6e-8; the radial grid is the largest term: from 0.2 m to 0.05 m spacing the limiting cell moved by 0.0025 R2 and the limit by 4.8e-6.
-The two grids' limits, 0.030330 and 0.030326, differ by the grid's own term, 4.8e-6; the fine grid's 0.0303256 is good to its fifth
+7.6e-8; the radial grid is the largest term: from 0.2 m to 0.05 m spacing the limiting cell moved by 0.0025 R2 and the limit by 4.7e-6.
+The two grids' limits, 0.030330 and 0.030326, differ by the grid's own term, 4.7e-6; the fine grid's 0.0303256 is good to its fifth
 decimal, and a still finer grid would lower it by less than that. The two machines' bit-equality checks the arithmetic, not this bound.
+(These are version 2's grids, before the dr^2 fix raised every crossing by 3.25e-5.)
 
 ## What it says and does not say
 
-The construction of the 2024 paper holds its four energy conditions up to a shift of about 0.0303 c and fails them, all together, just
+The construction of the 2024 paper holds its four energy conditions up to a shift of about 0.03035 c and fails them, all together, just
 above it, at 12.3 m from the centre on the equator, for a null observer moving along the shift. That is the paper's open question
 answered with the paper's own object, exactly. It does not make the object buildable, and it says nothing about acceleration, which the
 paper does not have either.

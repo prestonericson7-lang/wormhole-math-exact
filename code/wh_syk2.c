@@ -1,4 +1,5 @@
-/* wh_syk2.c (11-11-2026, 9:10 PM) -- WORMHOLE MATH 2, v2: the SYK traversable-wormhole teleportation protocol (Gao-Jafferis, arXiv:1911.07416,
+/* In plain words: the SYK teleportation protocol, version 2: the same calculation in a factorized layout that made N = 14 take minutes instead of weeks.
+   wh_syk2.c (11-11-2026, 9:10 PM) -- WORMHOLE MATH 2, v2: the SYK traversable-wormhole teleportation protocol (Gao-Jafferis, arXiv:1911.07416,
    sections 2.1-2.3) exact at finite N, with the FACTORIZED evolution, so N = 14-16 Majoranas a side take minutes on the pair instead of weeks.
 
    THE IDEA. The two SYK systems l and r act on disjoint qubits once the left Majoranas live on qubits 0..h-1 and the right on h..N-1
@@ -21,11 +22,15 @@
    index (exact). Inner products in 128-bit, rounded once. The couplings J_{ijkl} ~ N(0, 6/N^3) from xorshift64* with the declared seed in the
    same order as v1, so v1 and v2 share them bit for bit.
 
-   THE PROTOCOL AND THE OUTPUT: exactly v1's (rho11, rho14, K, I_RT/(2 ln 2) from (2.63)-(2.66) and (2.13)); the same command line:
+   THE PROTOCOL AND THE OUTPUT: exactly v1's (rho11, rho14, K, I_RT/(2 ln 2) from (2.63)-(2.66) and (2.13)); v1's command line, but integer
+   t and t' only (v2 builds U(1)^t; the 2022 model at t = 2.8 is v1's run):
        whsyk2 N=14 model=syk seeds=1,2,3 beta=4 mu=-12,12,0 t=1,2,3,4,5,6 [tp=...] [pair=1,2] [vnorm=N]
-       whsyk2 N=8 model=m1 beta=4 mu=-12,12 t=2.8
+       whsyk2 N=8 model=m1 beta=4 mu=-12,12 t=3
    Self-tests printed: |I>'s annihilation, exactly; H_L Psi_I = Psi_I H_R^T exactly (the built matrices against the built state); the norm of
-   every real-time evolution; mu = 0 -> I_RT = 0. */
+   every real-time evolution; mu = 0 -> I_RT = 0.
+   SUPERSEDED (11-11 evening, from review): (2.63)-(2.66) are the paper's ensemble-averaged forms; for one realization of the couplings
+   they hold only approximately (I_RT off by -12.9% to +5.2% at N = 8, COMPUTED by the reviewer over four seeds; results/2_syk.md). The
+   arithmetic here is exact; the formula is not. The exact six-element rho_TR is wh_syk3.c onward. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -234,13 +239,14 @@ static cq inner(cq A[MAXD][MAXD], cq B[MAXD][MAXD])
 static void normalize(cq Psi[MAXD][MAXD]) { const q n = sqrtq(norm2(Psi)); for (int L = 0; L < D; L++) for (int R = 0; R < D; R++) { Psi[L][R].re = divq(Psi[L][R].re, n); Psi[L][R].im = divq(Psi[L][R].im, n); } }
 static void copy(cq A[MAXD][MAXD], cq B[MAXD][MAXD]) { memcpy(B, A, sizeof(cq) * MAXD * MAXD); }
 static q maxabs(cq A[MAXD][MAXD]) { q m = 0; for (int L = 0; L < D; L++) for (int R = 0; R < D; R++) { q a = A[L][R].re < 0 ? -A[L][R].re : A[L][R].re, b = A[L][R].im < 0 ? -A[L][R].im : A[L][R].im; if (a > m) m = a; if (b > m) m = b; } return m; }
-static void hashq(q v) { chain = fnv(chain, &v, 8); }
+static void hashq(q v) { uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i)); chain = fnv(chain, b, 8); }   /* v's bytes least significant first: the same chain on any byte order */
 static q parseq(const char *s)
 {
     int neg = 0; if (*s == '-') { neg = 1; s++; }
-    q ip = 0; while (*s >= '0' && *s <= '9') ip = ip * 10 + (*s++ - '0');
+    q ip = 0; while (*s >= '0' && *s <= '9') { ip = ip * 10 + (*s++ - '0'); if (ip >= ((q)1 << 23)) { printf("WHSYK2: number too large (Q.40 holds magnitudes below 2^23)\n"); exit(1); } }
     q fp = 0, scale = 1; if (*s == '.') { s++; while (*s >= '0' && *s <= '9' && scale < 1000000000000ll) { fp = fp * 10 + (*s++ - '0'); scale *= 10; } }
-    q v = ip * ONE + (fp ? divq(fp * ONE, scale * ONE) : 0); return neg ? -v : v;
+    q f40 = 0; if (fp) { uint64_t h, l, rem; mul128((uint64_t)fp, (uint64_t)ONE, &h, &l); f40 = (q)div128(h, l, (uint64_t)scale, &rem); if (2 * rem >= (uint64_t)scale) f40++; }   /* round(fp 2^40 / scale) in 128 bits */
+    q v = ip * ONE + f40; return neg ? -v : v;
 }
 static int parselist(const char *s, q *out, int max) { int n = 0; char buf[256]; strncpy(buf, s, 255); buf[255] = 0; for (char *tok = strtok(buf, ","); tok && n < max; tok = strtok(NULL, ",")) out[n++] = parseq(tok); return n; }
 
@@ -264,6 +270,7 @@ int main(int argc, char **argv)
     if (!nseed) { seeds[0] = 1; nseed = 1; }
     if (model) { N = 8; nseed = 1; if (!vnormN) vnormN = 10; }
     if (!vnormN) vnormN = N;
+    if (pa < 1 || pa > N || pb < 1 || pb > N || pa == pb) { printf("WHSYK2: pair must be two different Majorana indices in 1..N\n"); return 1; }
     H = N / 2; D = 1 << H;
     char A[32], B[32], C[32], Dd[32], E[32], F[32], G[32];
     fmt(beta, A);
@@ -306,7 +313,7 @@ int main(int argc, char **argv)
             for (int ti = 0; ti < nt; ti++) {
                 const q tq = ts[ti], tpq = ntp ? tps[ti < ntp ? ti : ntp - 1] : tq;
                 const int t = (int)(tq / ONE), tp = (int)(tpq / ONE);
-                if ((q)t * ONE != tq || (q)tp * ONE != tpq) { printf("WHSYK2: v2 takes integer t and t' (U(1)^t); got non-integer -- skipped\n"); continue; }
+                if ((q)t * ONE != tq || (q)tp * ONE != tpq || t < 0 || tp < 0) { printf("WHSYK2: v2 takes integer t and t' >= 0 (U(1)^t); got a non-integer or negative value -- skipped\n"); continue; }
                 drift_max = 0;
                 /* a1 = e^{-iHt'} m_l^a e^{iHt'} T; a2 likewise with m_l^b; a21 = A2 a1; a12 = A1 a2 */
                 copy(T, WG); evolve(WG, tp, 1, WE);                              /* w = e^{iHt'} T */

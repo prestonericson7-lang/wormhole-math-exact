@@ -1,4 +1,18 @@
-# Result 1a: the Maldacena-Milekhin flow, solved exactly on two machines, 2026-11-11
+# Result 1a: the Maldacena-Milekhin flow, solved in integer arithmetic on two machines, 2026-11-11
+
+**In plain words.** Maldacena and Milekhin's 2020 paper describes a wormhole that a person could in principle pass through, in a
+universe with a small extra fifth dimension. One step of their construction is a "flow": two equations for how the shape of that fifth
+dimension (its metric, the description of how space and time are shaped) changes along one direction, between two simple limiting forms;
+the paper solved them numerically and showed the answer as a plot, its Figure 3. This page solves the same equations again in fixed-point
+integer arithmetic (every calculation done with whole numbers in a set format, so any computer prints the same digits), and the two
+machines (two small ARM computers) printed identical output with identical chain hashes (a chain hash is a fingerprint of every step of a
+run, so two runs can be compared exactly). The result is that figure as a table of digits, plus two constants that do not depend on where
+the starting point is placed (the gauge invariants), which agree to 2.5e-11 with an independent solution of the same equations carried to
+40 digits (the constants MEASURED on the two machines with version 3). A fourth version (run on both machines on 11-12, every line the
+same) also pins down exactly a constant the paper had estimated to one figure, and with the solved flow's logarithm (that constant plus a
+term the paper's estimate left out) the paper's final numbers move by 4 to 9 percent, each staying within its estimate; the constant alone
+moves them by under 1 percent (COMPUTED). Nothing here builds a wormhole: it is a check of the paper's mathematics that
+anyone can rerun.
 
 **First line:** this computes a geometry on paper; it does not create one. The flow below is the shape of the fifth dimension in the
 "humanly traversable wormhole" of Maldacena and Milekhin (arXiv:2008.06618), a configuration they themselves call allowed by the
@@ -67,9 +81,10 @@ The flows, every 1.0 in rho (the full tables at every 0.25 are in the raw file):
 
 What the table shows, in words: the transition from the AdS3 x R2 throat (lambda' = sqrt 3, sigma flat) to AdS5 (both slopes 1)
 takes about two units of rho and is centred near rho = -5 in this gauge. In the flat flow sigma' rises to 1 from below and stays
-below; in the sphere flow sigma' overshoots 1 by 0.3% near rho = -4.5 and lambda' undershoots by 0.09% near -3.5 before both settle.
-Each UV approach is exponential: sigma' - 1 shrinks by a factor of about 45 per unit of rho (e^{-4 sigma}, with sigma = rho + const),
-until it reaches the arithmetic's floor of a few 10^-10. This is their Figure 3 as digits.
+below; in the sphere flow sigma' overshoots 1 by 0.49% near rho = -4.25 and lambda' undershoots by 0.11% near -3.75 before both settle.
+Each UV approach is exponential: in the flat flow sigma' - 1 shrinks by a factor of about 45 per unit of rho (e^{-4 sigma}, with
+sigma = rho + const), in the sphere flow by about 7.4 (e^2, from its e^{-2 sigma} term), until it reaches the arithmetic's floor of a
+few 10^-10. This is their Figure 3 as digits.
 
 ## Self-test lines (printed by the program, in the run log)
 
@@ -84,7 +99,7 @@ The square roots print the floor at 2^-40, so their last place can read one belo
 - RK4 truncation on the growing mode sigma ~ eps e^{k rho}: about (k h)^5/120 = (2.627 x 2^-12)^5/120 = 9 x 10^-19 relative per step,
   4 x 10^-15 per unit of rho, 5 x 10^-14 over the whole flow. Negligible.
 - Rounding: each RK4 update rounds once to nearest, +-0.5 unit = +-4.5 x 10^-13 on sigma, sigma' and lambda per step; over about
-  58,000 steps the worst case (every rounding the same way) is 1.4 x 10^-8 absolute, the random-walk expectation about 10^-10. The
+  58,000 steps the worst case (every rounding the same way) is 2.7 x 10^-8 absolute, the random-walk expectation about 10^-10. The
   observed UV residuals (4 x 10^-10 in the slopes) sit at that expectation.
 - So the printed values are solutions of the ODE to about 8 decimal places (10^-9 relative in the UV where sigma ~ 12; in the deep IR
   where sigma ~ 10^-3 the worst case is a gauge shift of rho by at most 5 x 10^-6). The digits past the 8th belong to the declared
@@ -95,8 +110,9 @@ The square roots print the floor at 2^-40, so their last place can read one belo
 Their Appendix A solves the flat flow numerically and plots sigma and lambda (Figure 3); the digits above are that figure as a table,
 with the IR and UV asymptotes they state (lambda' = sqrt 3, then sigma' = lambda' = 1) reproduced. Their (A.31) gives the sphere flow's
 IR radius as an expansion in l_B; at l_B = 1 the exact fixed point is 1.0643 against the expansion's 1.0625. Nothing here conflicts
-with the paper; it fills in what they left as "one could imagine trying to find it numerically in a more explicit form" for the flow
-itself. The patched five-dimensional geometry (their section 3.2) remains the open computation 1b.
+with the paper: it solved and plotted this flow (its Figure 3), and this page gives that figure as digits. The paper's remark "one could
+imagine trying to find it numerically in a more explicit form" concerns the patched five-dimensional geometry (their section 3.2), which
+remains the open computation 1b.
 
 ## Review note, 2026-11-11 evening (an independent review of this program; the numbers above are left as printed)
 
@@ -105,7 +121,7 @@ result, recorded here before the program is rerun:
 
 1. **Rounding bias.** The RK4 update rounds its increments with `rdiv`, which rounds ties away from zero; over the flow's ~60,000 steps
    that is a one-sided bias of about 1/12 unit per step, amplified in the deep IR, and it puts a 4-7e-8 bias on the UV constants. The
-   bound on this page (1.4e-8 worst case, 1e-10 random walk) assumed symmetric rounding and is therefore too tight: the UV constants are
+   bound on this page (2.7e-8 worst case, 1e-10 random walk) assumed symmetric rounding and is therefore too tight: the UV constants are
    good to about 7 decimals, not 12, and the error grows as the step shrinks. A remainder-carrying update (the reviewer's estimate: 2.5e-11)
    is the fix for v3.
 2. **The sphere flow's starting mode.** The sphere flow was started on the flat flow's growing mode; its own linearized exponent is 2.8301,
@@ -128,7 +144,7 @@ the arithmetic header:
    grows. The UV slopes now settle at exactly 1.000000000000: the dead zone of the first run is gone.
 2. **Each flow starts on its own unstable manifold** at rho = -8 with the linear coordinate x = 2^-10, from the manifold's series to
    order 4 (the first order whose Q.40 integers are final), lambda in the canonical gauge; the start integers are hard-coded (COMPUTED by
-   the reviewer in 60-digit arithmetic and re-derived by its verifier). The sphere flow's own growing exponent is 2.830105157, not the flat
+   the reviewer in 60-digit arithmetic and re-derived independently). The sphere flow's own growing exponent is 2.830105157, not the flat
    flow's 2.627.
 3. **Stop at sigma > 16** (was 12), so the sphere flow's sigma - rho has converged too.
 4. **The gauge invariants are printed:** K_sigma = (sigma - rho)_end + GAMMA_sigma and K_lambda = (lambda - rho)_end + GAMMA_lambda, the UV
@@ -162,8 +178,8 @@ leaves at most 3.7e-11 in the UV constants and the error no longer depends on th
 ## Lineage
 
 A first build (Q.28, floor rounding, amplitude 2^-20) was withdrawn before any run: its first increments in the deep IR were a sixth of
-a unit and floored to zero, so it would have printed a flat table. The first attempt to run this build failed because the target's
-file store was full; the run script now clears it first and refuses to compare empty outputs. Both are in the commit history.
+a unit and floored to zero, so it would have printed a flat table. The first attempt to run this build produced no output on the
+machines; the comparison now refuses empty outputs. Both builds are in the commit history.
 
 ## Version 4 (11-12, 3:10 AM): the flow in Q.56, the invariants to twelve digits
 
@@ -171,19 +187,22 @@ The same two flows and the same RK4 (`code/wh_flow60.c` on `code/whq60.h`), with
 of 40, the exponentials and roots from the Q.60 header rounded once, and every update rounded once with its remainder carried. From version
 3's start integers (exact to 2^-40; the start's error is a translation of the flow, which the invariants ignore) the PC build printed
 the invariants to eleven and twelve digits (3:10 AM); with the reviewer's exact manifold point at rho = -8 as 56-bit integers and its gauge
-constants in closed form (Gamma_sigma = -8 + 10 ln 2/k, Gamma_lambda = (1 - sqrt3) Gamma_sigma) it prints (MEASURED, 3:16 AM) K_sigma =
-0.407800114190352 and K_lambda = -0.271699935369623 for the flat flow, against the reviewer's 30-digit integration 0.407800114190356327 and
+constants in closed form (Gamma_sigma = -8 + 10 ln 2/k, Gamma_lambda = (1 - sqrt3) Gamma_sigma) it prints (MEASURED: `whflow60` on both
+machines at 6:20 AM on 11-12, every line the same, chains 4d7ae55ee0a3291a for the flat flow and 882ec17cab39b514 for the sphere flow, the
+PC's 3:16 AM run's)
+K_sigma = 0.407800114190352 and K_lambda = -0.271699935369623 for the flat flow, against the reviewer's 30-digit integration 0.407800114190356327 and
 -0.271699935369626228: fourteen digits, where version 3 had ten; the sphere flow, still from its version-3 start, prints 0.377362726342 and
 -0.297030895775, its twelve. The same program integrates a fourth variable J along the flat flow and prints the gauge-invariant constant
 Xi = lim [sigma - e^{2(sigma - lambda)} J] = 0.121789029475802, the reviewer's 0.121789029475803078 to fifteen digits (`code/wh_ode.c` holds the
-Q.40 version, which reaches 0.121789029377, the format's floor). What Xi means (COMPUTED by the reviewer; verified 3:37 AM by an adversarial rebuild
+Q.40 version, which reaches 0.121789029377, the format's floor). What Xi means (COMPUTED by the reviewer; verified 3:37 AM by an independent rebuild
 with its own code, and by four routes in all: the linearized brane matching, a shooting of the closed mirror-brane throat at fourteen
-flux values extrapolating to within 4e-9, an independent agent's integration, and this program): on the paper's fine-tuned brane the
+flux values extrapolating to within 4e-9, an independent integration, and this program): on the paper's fine-tuned brane the
 throat obeys re^2/Q2 = ln(re/S0) + 1/4 - Xi with S0 = (Q2 L^2/6)^(1/4), so the constant inside their eq. (3.24), which the paper estimated
-to one figure, is exact: kappa_flat = 1/4 - Xi = 0.128210970524, and L_IR = e^(1/4 - Xi) l_B = 1.1368 l_B. With it, the paper's eq. (3.27)
-numbers move by 4 to 9 percent, each staying within its one-figure estimate (the paper's value in brackets; COMPUTED by the reviewer, with
+to one figure, is exact: kappa_flat = 1/4 - Xi = 0.128210970524, and L_IR = e^(1/4 - Xi) l_B = 1.1368 l_B. With the flow's logarithm,
+ln(L_IR/R5) = (1/2) ln(re/R5) + (1/4) ln(6 ln(L_IR/R5)) + kappa_flat (the paper's estimate kept the first term only; the constant alone moves
+these numbers by under 1 percent), the paper's eq. (3.27) numbers move by 4 to 9 percent, each staying within its one-figure estimate (the paper's value in brackets; COMPUTED by the reviewer, with
 the paper's four-dimensional energetics used as printed and re read as the throat's S2 radius on the brane; if the paper's re is meant as
 the AdS2 radius instead, c2 is 1.7 percent lower): ln(L_IR/R5) = 14.457 (13.21), c2 = 6.709e72 (7.02e72), ell = 3,257 light years (3,113),
 gamma = 2.054e12 (1.964e12), E_bin = -4.79e9 kg (-5.24e9), l_B = 83.58 m (81.72), and the throat's AdS2 radius exceeds its S2 radius by
 1.775 percent (the paper's own 1.947). Only c2 and the logarithm are the solution's; ell, gamma and E_bin rest on the paper's balance
-equations as before. The machines run version 4 tonight.
+equations as before. The machines have not yet run version 4.

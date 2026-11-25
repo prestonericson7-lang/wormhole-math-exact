@@ -23,10 +23,10 @@ static inline void mulprod(int64_t a, int64_t b, int64_t *hi, uint64_t *lo)
     mul128(ua, ub, &h, &l); if (neg) { l = ~l + 1; h = ~h + (l == 0); } *hi = (int64_t)h; *lo = l;
 }
 static inline void s128_addp(s128 *a, int64_t x, int64_t y) { int64_t h; uint64_t l; mulprod(x, y, &h, &l); s128_add(a, h, l); }
-static inline int64_t s128_round_sh(s128 a, int sh)   /* round(a / 2^sh) to nearest, ties away from zero; 1 <= sh <= 63 */
+static inline int64_t s128_round_sh(s128 a, int sh)   /* round(a / 2^sh) to nearest, ties away from zero; 0 <= sh <= 63 */
 {
     int neg = a.hi < 0; if (neg) { a.lo = ~a.lo + 1; a.hi = ~a.hi + (a.lo == 0); }
-    uint64_t r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;
+    uint64_t r = sh ? ((a.lo >> sh) | ((uint64_t)a.hi << (64 - sh))) : a.lo; if (sh && (a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;   /* sh = 0: the low word (a shift by 64 is undefined) */
     return neg ? -(int64_t)r : (int64_t)r;
 }
 static inline int64_t mul60(int64_t a, int64_t b) { s128 s = {0, 0}; s128_addp(&s, a, b); return s128_round_sh(s, F60); }
@@ -40,11 +40,13 @@ static int64_t div60(int64_t a, int64_t b)             /* round(a 2^60 / b), b >
     if (qq > (uint64_t)INT64_MAX) { printf("WHQ60: div60 overflow (|a| at or above 8 b) -- stop\n"); exit(1); }   /* the check above alone stops only at 16 b; between 8 b and 16 b the result came back with the wrong sign (found by the reviewer, 4:00 AM, 11-12) */
     return neg ? -(int64_t)qq : (int64_t)qq;
 }
-static int64_t div128s(s128 num, int64_t den)         /* round(num / den), num signed 128-bit, 0 < den < 2^63, the quotient an int64 */
+static int64_t div128s(s128 num, int64_t den)         /* round(num / den), num signed 128-bit, 0 < den < 2^63, the quotient an int64; both checked */
 {
+    if (den <= 0) { printf("WHQ60: div128s by a non-positive value -- stop\n"); exit(1); }
     int neg = num.hi < 0; if (neg) { num.lo = ~num.lo + 1; num.hi = ~num.hi + (num.lo == 0); }
     if ((uint64_t)num.hi >= (uint64_t)den) { printf("WHQ60: a quotient does not fit -- stop\n"); exit(1); }
     uint64_t rem; uint64_t q = div128((uint64_t)num.hi, num.lo, (uint64_t)den, &rem); if (2 * rem >= (uint64_t)den) q++;
+    if (q > (uint64_t)INT64_MAX) { printf("WHQ60: a quotient does not fit -- stop\n"); exit(1); }   /* the check above passes quotients up to 2^64; from 2^63 they came back with the wrong sign */
     return neg ? -(int64_t)q : (int64_t)q;
 }
 static uint64_t isqrt128(uint64_t hi, uint64_t lo)     /* floor(sqrt(hi:lo)), digit by digit */
@@ -72,7 +74,9 @@ static int64_t artanh2_60(int64_t z)                  /* 2 artanh z for |z| < 1/
 }
 static int64_t LN2_60_cache = 0;
 static int64_t ln2_60(void) { if (!LN2_60_cache) LN2_60_cache = artanh2_60(div60(ONE60, 3 * ONE60)); return LN2_60_cache; }   /* ln 2 = 2 artanh(1/3) */
-static int64_t ln60(int64_t x)                         /* ln x for x > 0: x = 2^k m, m in [1/2, 1); ln m = 2 artanh((m-1)/(m+1)) */
+static int64_t ln60(int64_t x)                         /* ln x for x >= e^-8 = 3.4e-4 (the result is a Q.60 value, so it must stay above -8;
+                                                          below 2^-12 the k ln 2 product alone passes the ceiling): x = 2^k m, m in [1/2, 1);
+                                                          ln m = 2 artanh((m-1)/(m+1)) */
 {
     if (x <= 0) { printf("WHQ60: ln of a non-positive value -- stop\n"); exit(1); }
     int k = 0; int64_t m = x;

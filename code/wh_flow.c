@@ -1,4 +1,5 @@
-/* wh_flow.c (11-11-2026; v2 4:10 PM; v3 10:05 PM) -- WORMHOLE MATH 1a: the Maldacena-Milekhin flow, exact.
+/* In plain words: solves Maldacena and Milekhin's equations for the shape of their five-dimensional geometry (flat, eq. 3.19, and sphere) in fixed-point integers.
+ * wh_flow.c (11-11-2026; v2 4:10 PM; v3 10:05 PM) -- WORMHOLE MATH 1a: the Maldacena-Milekhin flow, exact.
  *
  * Maldacena & Milekhin, "Humanly traversable wormholes", arXiv:2008.06618, eq. (3.19) with l_B = 1 (their Appendix A, eq. A.28-A.29):
  *   0 = -6 + 3 e^{-4s} + L'^2 + 4 L' s' + s'^2            (so  L' = -2 s' + sqrt(3 s'^2 + 6 - 3 e^{-4s}),  the root with L' = sqrt3 at s = s' = 0)

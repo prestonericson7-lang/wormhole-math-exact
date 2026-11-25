@@ -1,4 +1,5 @@
-/* wh_dtk.c (11-12-2026, 6:50 AM; v2 7:10 AM) -- WORMHOLE MATH 1b, the kernel for the two-dimensional production problems (P1, the mouths;
+/* In plain words: the grid solver for the five fields of the two-dimensional problems (the mouths, P1, first), built ahead of their equations and tested on a problem with a known answer.
+ * wh_dtk.c (11-12-2026, 6:50 AM; v2 7:10 AM) -- WORMHOLE MATH 1b, the kernel for the two-dimensional production problems (P1, the mouths;
  * P4) in the Einstein-DeTurck form (G2) of the reviewer's stage 1 (b.5): five unknowns on a grid in (eta, zeta), each equation's principal
  * part the SAME variable-coefficient operator h^ab d_a d_b (the inverse metric of the orbit space), the rest first order and lagged. Built
  * ahead of the equations, as the P0 kernel was: this file holds the machinery the equations will not change and proves it on a manufactured
@@ -13,8 +14,9 @@
  *     operator on R is formed once per point (LR = SUM w R_nb + w_X cross(R) - R), the sources are evaluated on the full field R + D, and the
  *     Dirichlet rows hold the data minus the reference. With defect=1 the reference's own discrete defect is subtracted (the P0 form: zero
  *     deviation is then the exact discrete solution of the reference's problem; only right when the reference solves the continuum problem).
- *   - Red-black Gauss-Seidel over (i + j) parity, all five fields updated from one state at a point; the diagonal neighbours have the point's
- *     own colour, so the cross term is Jacobi-like, which is fine while it is small. A fixed omega with the change guard; the P0 stops.
+ *   - Four-colour Gauss-Seidel by (i parity, j parity), all five fields updated from one state at a point: every neighbour, the four diagonal
+ *     ones included, has another colour, so a colour pass reads nothing it writes and the two halves give the same bits in either order or
+ *     at once. A fixed omega with the change guard; the P0 stops.
  *   - Q.60 end to end, every product and quotient through 128 bits and rounded once; the coordinates below 8 (eta up to 2 pi, zeta in [-1, 1]).
  * THE MANUFACTURED TEST: the reference inverse metric h^ee = 1 + p sin(eta) cos(zeta), h^zz = 1 + p cos(eta) sin(zeta), h^ez = q sin(eta) sin(zeta)
  * (positive definite for p + q < 1); the exact fields F_k = A_k cos(m_k eta + c_k) g(zeta)/8 (periodic) or A_k cos(m_k eta) g/8 for the even
@@ -78,17 +80,17 @@ static inline int64_t source(int k, int i, int j)       /* the lagged source on 
 static inline int64_t opw(int64_t (*A)[MAXGE + 1][MAXN + 1], int k, int i, int j)   /* SUM w A_nb + w_X cross(A), rounded once: the operator's neighbour part in correction units */
 {
     s128 r = {0, 0};
-    s128_addp(&r, WE[i][j], Av(A, k, i + 1, j) + Av(A, k, i - 1, j));
-    s128_addp(&r, WN[i][j], Av(A, k, i, j + 1) + Av(A, k, i, j - 1));
-    s128_addp(&r, WX[i][j], Av(A, k, i + 1, j + 1) + Av(A, k, i - 1, j - 1) - Av(A, k, i - 1, j + 1) - Av(A, k, i + 1, j - 1));
+    s128_addp(&r, WE[i][j], Av(A, k, i + 1, j)); s128_addp(&r, WE[i][j], Av(A, k, i - 1, j));                                   /* one product per neighbour (a 64-bit sum of two fields can pass 8) */
+    s128_addp(&r, WN[i][j], Av(A, k, i, j + 1)); s128_addp(&r, WN[i][j], Av(A, k, i, j - 1));
+    s128_addp(&r, WX[i][j], Av(A, k, i + 1, j + 1)); s128_addp(&r, WX[i][j], Av(A, k, i - 1, j - 1)); s128_addp(&r, -WX[i][j], Av(A, k, i - 1, j + 1)); s128_addp(&r, -WX[i][j], Av(A, k, i + 1, j - 1));
     return s128_round_sh(r, F60);
 }
 static inline int64_t correction(int k, int i, int j)       /* d = [SUM w F_nb + w_X cross] - S/D + LR - DEF - F, each piece rounded once */
 {
     s128 r = {0, 0};
-    s128_addp(&r, WE[i][j], Fv(k, i + 1, j) + Fv(k, i - 1, j));
-    s128_addp(&r, WN[i][j], Fv(k, i, j + 1) + Fv(k, i, j - 1));
-    s128_addp(&r, WX[i][j], Fv(k, i + 1, j + 1) + Fv(k, i - 1, j - 1) - Fv(k, i - 1, j + 1) - Fv(k, i + 1, j - 1));
+    s128_addp(&r, WE[i][j], Fv(k, i + 1, j)); s128_addp(&r, WE[i][j], Fv(k, i - 1, j));                                           /* one product per neighbour */
+    s128_addp(&r, WN[i][j], Fv(k, i, j + 1)); s128_addp(&r, WN[i][j], Fv(k, i, j - 1));
+    s128_addp(&r, WX[i][j], Fv(k, i + 1, j + 1)); s128_addp(&r, WX[i][j], Fv(k, i - 1, j - 1)); s128_addp(&r, -WX[i][j], Fv(k, i - 1, j + 1)); s128_addp(&r, -WX[i][j], Fv(k, i + 1, j - 1));
     s128_addp(&r, -WD[i][j], source(k, i, j));
     return s128_round_sh(r, F60) + (REF ? LR[k][i][j] : 0) - (DEFECT ? DEF[k][i][j] : 0) - F[k][i][j];
 }
@@ -102,7 +104,7 @@ typedef struct { int color, i_begin, i_end; int64_t maxchg, maxcorr, maxres; } r
 static void sweep_rows(void *p)
 {
     rjob *jb = (rjob *)p; const int color = jb->color; int64_t maxchg = 0, maxcorr = 0;
-    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1; j <= N; j++) if (((i + j) & 1) == color) {
+    for (int i = jb->i_begin; i < jb->i_end; i++) for (int j = 1; j <= N; j++) if ((((i & 1) << 1) | (j & 1)) == color) {
         int64_t d[NF];
         for (int k = 0; k < NF; k++) d[k] = fixed_point(k, i, j) ? 0 : correction(k, i, j);
         for (int k = 0; k < NF; k++) {
@@ -181,7 +183,7 @@ int main(int argc, char **argv)
     }
     const int nn = GE > N ? GE : N; int64_t omega = nn > 90 ? 2 * ONE60 - (ONE60 / nn) * 90 : ONE60; if (omega_in) omega = omega_in; OMEGA = omega;
     fmt60(PP, a); fmt60(QQ, b); fmt60(hmin, c); fmt60(omega, d); char lamb[48], rpb[48]; fmt60(lam, lamb); fmt60(RP, rpb);
-    printf("WHDTK: Q.60 fixed point; %d fields on eta %s (Ge = %d) by zeta in [-1, 1] (N = %d; the cutoff Dirichlet, the deep end %s); the principal part h^ab d_a d_b with the reference inverse metric h^ee = 1 + p sin eta cos zeta, h^zz = 1 + p cos eta sin zeta, h^ez = q sin eta sin zeta (p = %s, q = %s; the smallest determinant %s); per-point weights formed once; red-black with all fields from one state; omega %s%s; the guard %s; lam = %s; %s\n",
+    printf("WHDTK: Q.60 fixed point; %d fields on eta %s (Ge = %d) by zeta in [-1, 1] (N = %d; the cutoff Dirichlet, the deep end %s); the principal part h^ab d_a d_b with the reference inverse metric h^ee = 1 + p sin eta cos zeta, h^zz = 1 + p cos eta sin zeta, h^ez = q sin eta sin zeta (p = %s, q = %s; the smallest determinant %s); per-point weights formed once; four colours with all fields from one state; omega %s%s; the guard %s; lam = %s; %s\n",
            NF, REFLECT ? "in [0, pi] with reflection lines (parity + + - + -)" : "periodic (De = 2 pi/Ge)", GE, N, TOPNEU ? "Neumann" : "Dirichlet", a, b, c, d, omega_in ? " (given)" : " (2 - 90/max(Ge, N) or 1)", guard ? "on" : "off", lamb,
            REF ? (DEFECT ? "deviations from the reference (1 + rp) F + rp g/8 with its defect subtracted" : "deviations from the reference (1 + rp) F + rp g/8") : "the fields themselves");
     if (REF) printf("WHDTK: rp = %s\n", rpb);
@@ -193,7 +195,7 @@ int main(int argc, char **argv)
     memcpy(CKP, F, sizeof F);
     for (sweep = 1; sweep <= 200000; sweep++) {
         maxchg = 0; maxcorr = 0;
-        for (int color = 0; color < 2; color++) {
+        for (int color = 0; color < 4; color++) {
             rjob x = { color, 0, mid, 0, 0, 0 }, y = { color, mid, IMAX + 1, 0, 0, 0 };
             par2(sweep_rows, &x, &y);
             if (x.maxchg > maxchg) maxchg = x.maxchg; if (y.maxchg > maxchg) maxchg = y.maxchg;

@@ -1,4 +1,5 @@
-/* wh_warp.c (11-11-2026; v2 9:05 PM, after the review W1-W10; v3 11-12 1:00 AM) -- WORMHOLE MATH 3b, part 2: the 2024 warp
+/* In plain words: the 2024 warp shell with its shift: checks the four energy conditions on a grid and brackets the largest shift for which they all hold.
+ * wh_warp.c (11-11-2026; v2 9:05 PM, after the reviewer's points W1-W10; v3 11-12 1:00 AM) -- WORMHOLE MATH 3b, part 2: the 2024 warp
  * shell WITH its shift, judged exactly; the shift limit its authors left open.
  *
  * VERSION 3 (11-12, 1:00 AM): the reviewer's full fix after its third review of v2 (the 12:03 AM entry), written as whole files by the
@@ -10,7 +11,7 @@
  * own floor; (6) no bisection when beta0 = 0 already fails ("none" is printed); (7) a whole-grid re-scan at both ends of the bracket,
  * confirming it; (8) the cavity and the exterior reported on separate lines, a residual above its floor flagged. The brackets at both
  * published grids equal those of the dr^2 fix alone to every printed digit; the chains change with the new printed values.
- * The banner line below still says v2: it names the arithmetic (Q.40 on whq.h v2), not this file's version.
+ * The banner line below still reads "WHWARP v2 ... wh_prof.h v2": its text was not updated in version 3, and both files are version 3.
  *
  * Fuchs et al., "Constant velocity physical warp drive solution", Class. Quantum Grav. 41, 095013 (2024), arXiv:2405.02709, section 4: the
  * matter shell of section 3 (wh_prof.h reproduces its construction as integer sums) with a shift vector along x inside it, their eq. (26):
@@ -57,7 +58,7 @@
  * is 4 INT beta e^{-2a} dr, printed in coordinate time and in the proper time of an emitter at rmax (times e^{a(rmax)}). The paper's
  * 7.6 ns is reproduced by neither (the review: its Table 1 is captioned 0.04 c; the same definition gives their Alcubierre 8.0 ns); stated as open.
  *
- * EXACT: whq.h v2 + wh_prof.h v2 (Q.40, 128-bit intermediates, round to nearest). ENV: WH_RSTRIDE (midpoints per r step, default 40), WH_NTH
+ * EXACT: whq.h v2 + wh_prof.h v3 (Q.40, 128-bit intermediates, round to nearest). ENV: WH_RSTRIDE (midpoints per r step, default 40), WH_NTH
  * (theta cells on [0, pi], default 61), WH_VARIANT (0 = HYPOTHETICAL, 1 = AS-PUBLISHED, default 1), WH_BETAS (how many of the beta0 values are used,
  * default 7), WH_HALVINGS (default 16). Build: cc -O2 -std=gnu11 -o whwarp wh_warp.c
  */

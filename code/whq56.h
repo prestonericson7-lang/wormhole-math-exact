@@ -12,12 +12,13 @@
  */
 /* whq56.h (11-12-2026, 6:30 AM) -- whq.h's fixed-point primitives at 56 fraction bits (values below 128), generated from whq.h by
  * mk_whq56.py with only the format and its two constants changed: FB 56, ln 2 = 49946518145322874, pi = 226375608064910089 (both
- * round(x 2^56)). mulq and divq round to nearest, sqrtq is the floor root, expq saturates at 64 (k >= 6), lnq by range reduction and
+ * round(x 2^56)). mulq and divq round to nearest, sqrtq is the floor root, expq stops above the Q.56 ceiling, lnq by range reduction and
  * artanh. This is the arithmetic the reviewer's P3 mimic used ("whq.h's semantics at 56 bits"), so wh_p3.c can match its integers. */
 #ifndef WHQ56_H
 #define WHQ56_H
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define FB 56
@@ -58,12 +59,15 @@ static uint64_t div128(uint64_t hi, uint64_t lo, uint64_t b, uint64_t *rem)   /*
 static q divq(q a, q b)                                 /* a / b rounded to nearest; b of either sign (v2 11-11 7:35 PM: v1 assumed b > 0 and
                                                            returned a/2^24-sized garbage for b < 0; 1a, 3a and the shell never divided by a negative) */
 {
+    if (b == 0 || b == INT64_MIN) { printf("WHQ: divq by zero -- stop\n"); exit(1); }
     if (b < 0) { a = -a; b = -b; }
     const int neg = a < 0;
     const uint64_t ua = neg ? -(uint64_t)a : (uint64_t)a;
+    if ((ua >> (64 - FB)) >= (uint64_t)b) { printf("WHQ: divq overflow -- stop\n"); exit(1); }   /* the quotient would not fit 64 bits */
     uint64_t rem;
     uint64_t r = div128(ua >> (64 - FB), ua << FB, (uint64_t)b, &rem);
     if (2 * rem >= (uint64_t)b) r++;
+    if (r > (uint64_t)INT64_MAX) { printf("WHQ: divq overflow -- stop\n"); exit(1); }   /* nor 63: it would come back with the wrong sign */
     return neg ? -(q)r : (q)r;
 }
 static q sqrtq(q x)
@@ -98,7 +102,7 @@ static q expq(q x)
     if (r < -LN2 / 2) { r += LN2; k--; }
     q term = ONE, sum = ONE;
     for (int n = 1; n <= 24; n++) { term = rdiv(mulq(term, r), n); sum += term; }
-    if (k >= 63 - FB - 1) return (q)1 << 62;
+    if (k > 63 - FB || (k == 63 - FB && sum >= ONE)) { printf("WHQ: expq above the Q.%d ceiling -- stop\n", FB); exit(1); }   /* sum 2^k must stay below 2^63 */
     if (k <= -62) return 0;
     if (k >= 0) return sum << k;
     return (sum + ((q)1 << (-k - 1))) >> (-k);
@@ -106,7 +110,7 @@ static q expq(q x)
 static const q PI = 226375608064910089LL;                    /* pi * 2^40 = 3454217652357.64 */
 static q lnq(q x)                                     /* ln x for x > 0: x = 2^k y with y in [1, 2); ln y = 2 artanh((y-1)/(y+1)), 30 terms */
 {
-    if (x <= 0) return -((q)1 << 62);
+    if (x <= 0) { printf("WHQ: lnq of a non-positive value -- stop\n"); exit(1); }
     int k = 0; q y = x;
     while (y >= 2 * ONE) { y >>= 1; k++; }
     while (y < ONE) { y <<= 1; k--; }

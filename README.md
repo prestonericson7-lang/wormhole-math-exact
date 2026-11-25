@@ -1,143 +1,107 @@
 # Wormhole math, exact
 
-**The computations that the traversable-wormhole and warp-drive papers left undone or in dispute, done in exact integer arithmetic on two
-small ARM boards, so that anyone with a C compiler gets the same bits.** By Preston Ericson, working with Claude (Anthropic's AI) as
-research partner. Preston directs the work, owns and runs the machines, and decides what is published; Claude writes the programs and
-the pages with him; a second, independent AI session reviews every program and every page, before and after it goes up, and its
-corrections are recorded here under its own name.
+**Computations that the traversable-wormhole and warp-drive papers left undone or in dispute, done in exact integer arithmetic and checked
+on two small ARM boards, so that anyone with a C compiler gets the same bits.** The largest, the explicit wormhole geometry (1b), is under
+way; results not yet run on the boards are labelled as PC development runs.
 
-The first line, before anything else: **none of this builds a wormhole, a warp drive or a time machine.** Computing a metric does not
-create it. The papers we check say the same about their own results. What this repository does is narrower and checkable: it takes
-equations that were published with "one could imagine finding the solution numerically" or "this upper limit is a future direction of
-work" or a disputed experimental signature, and computes them, exactly, in the open, with every constant written as an integer and
-every result reproducible bit for bit on any machine.
+By Preston Ericson, working with Claude (Anthropic's AI) as research partner. Preston directs the work, owns and runs the machines, and
+decides what is published; Claude writes the programs and the pages with him; a second, independent AI session reviews every program and
+every page, before and after it goes up, and its corrections are recorded here under its own name.
+
+The first line, before anything else: **none of this builds a wormhole, a warp drive or a time machine.** Computing a metric (the
+description of how space and time are shaped) does not create it. The papers we check say the same about their own results. What this
+repository does is narrower and checkable: it takes equations that were published with "one could imagine trying to find it
+numerically" or "this upper limit is a future direction of work" or a disputed experimental signature, and computes them, exactly, in
+the open, with every constant written as an integer and every result reproducible bit for bit on any machine.
+
+**In plain words.** Physics papers since 2016 describe traversable wormholes (tunnels between two places that something could pass
+through) and warp drives that the equations allow on paper, and some leave numbers open or in dispute: a speed limit left as future
+work, a solution its authors left with "one could imagine trying to find it numerically", a quantum-computer experiment whose wormhole
+signature other physicists dispute. The C programs here compute those numbers with fixed-point integer arithmetic (every calculation
+done with whole numbers in a set format, so any computer prints the same digits), and a result counts as measured only when two
+separate small ARM computer boards print it identically. Each C program ends with a chain hash (a fingerprint of a run's results, so
+two runs can be compared exactly), so anyone can rerun it and compare the hash. The three results below show what came out.
+Nothing here builds anything: these are checkable numbers about published equations.
+
+## The results to read first
+
+- **The 2024 warp shell's speed limit, which its paper left open** ([`results/3b_warp.md`](results/3b_warp.md)). Fuchs and co-authors
+  described on paper a warp drive built from a shell of positive-energy matter, moving at a constant 2 percent of the speed of light
+  (0.02 c; the paper gives no way to accelerate it), with all four energy conditions holding (standard tests that the matter behaves like
+  ordinary matter, for example that no observer sees negative energy), and called the upper limit on that speed "a future direction of
+  work". The limit is about **0.03035 c** (COMPUTED by the reviewer for the shell as defined); the boards' finest grid (their most closely
+  spaced set of points) puts it no higher than **0.030358 c** (MEASURED). Just above it all four conditions fail together, 12.3 m from
+  the shell's centre.
+- **The teleportation protocol behind the 2022 quantum-computer wormhole experiment, computed exactly**
+  ([`results/2_syk_exact.md`](results/2_syk_exact.md)). The protocol (a recipe that inserts a quantum bit on one side of two linked
+  systems and reads it out on the other) runs on the SYK model (a model of many interacting particles that physicists use as a stand-in
+  for a wormhole), whose couplings (the strengths of the interactions) are random. The protocol paper's formulas are averages over those
+  couplings; for one draw of the couplings they are off from the exact result by up to **14 percent at N = 8** particles a side and
+  4 percent at N = 12. And teleportation works better when the coupling that links the two sides has the wormhole sign (the one that
+  gives negative energy) than with the opposite sign, at every size from N = 8 to 16, by **1.4 to 1.6 times** at the peak (both
+  COMPUTED from the boards' MEASURED values).
+- **The shape of the extra dimension of the "humanly traversable" wormhole, solved step by step in integer arithmetic**
+  ([`results/1a_flow.md`](results/1a_flow.md)). Maldacena and Milekhin give equations (their eq. 3.19 and A.30) for the shape of the
+  fifth dimension (one that their model adds to the four of space and time) in their wormhole, whose mouths are wide enough that a
+  person would survive its tides (gravity's stretching of a body). The two boards print the same chain hashes (MEASURED), and so do a PC
+  build and the reviewer's separately written program (COMPUTED): builds on two kinds of chip (ARM and x86) agreeing bit for bit. The
+  numbers that do not depend on where the coordinate's zero is placed (the gauge invariants) agree with an independent 40-digit
+  calculation to **2.5e-11** (COMPUTED; 2.5e-11 is 0.000000000025). A later version computes a constant the paper had estimated to one
+  digit, **kappa_flat = 0.128210970524** (MEASURED: both boards printed it to twelve digits, line for line, on 11-12; confirmed four independent
+  ways). With the logarithm the solved flow gives (this constant plus a term from the paper's eq. 3.25 that its estimate left out), the paper's
+  derived numbers move by 4 to 9 percent, each within the paper's one-digit estimate; the constant alone moves them by under 1 percent
+  (COMPUTED by the reviewer).
+
+The rest, including the explicit wormhole geometry still under way, is in [`PLAN.md`](PLAN.md#details-from-the-readme), under "Details from the README".
+
+**Why exactness matters.** Every C program computes with integers in a declared format and no math library (square roots and
+exponentials come from the repository's own integer code), so the same source prints the same digits on any machine: a result is a
+fact about the equations, not about one computer's rounding, and two runs either agree to the last bit or they do not. That is what
+lets two small boards, a PC and the reviewer's own programs check one another line for line ([Why exact](PLAN.md#why-exact), in `PLAN.md`, has the details).
+
+**How it was checked.** Every number is labelled: MEASURED (printed identically by the two boards, or a published value, named),
+COMPUTED (derived, or printed by a PC development run) or ESTIMATE; error bounds (how far each printed number can be from the exact
+answer) are worked out on paper beside each program. The independent reviewer, the second AI named above, checks every program and
+every page from copies, with its own derivations and programs, and real errors it found have been fixed: a truncated term in
+the warp program that put the speed limit 3.25e-5 too low (COMPUTED); a 64-bit sum in a geometry solver that overflowed next to the
+boundary and moved a result by about 3.5e-7 (COMPUTED); a division check a factor of two too weak in seven copies (no published run had
+reached it); a table of the Casimir energy (the energy of empty space between two close surfaces, which can be below zero) that had
+lost digits; and averaged formulas used where the exact single-draw ones were needed. Each correction is written on its page, and the
+earlier numbers are kept ([How it was built, and how it was checked](PLAN.md#how-it-was-built-and-how-it-was-checked), in `PLAN.md`).
 
 ## Check it yourself in two minutes
 
-    cd code && cc -O2 -std=gnu11 -o whflow wh_flow.c && ./whflow | tail -n 4
+These commands are for a Unix shell: Linux, macOS, WSL (Ubuntu) on Windows, or Git Bash. Windows PowerShell does not accept `&&`, and Windows has no `cc` until a C compiler is installed. From PowerShell with WSL installed, the one-liner is `wsl bash -c "cd code && cc -O2 -std=gnu11 -o whflow wh_flow.c && ./whflow | grep -oE 'chain [0-9a-f]+|WHFLOW: done'"`.
 
-The last lines print two chain hashes, `24d2f870a2abea59` for the flat flow and `85a3df31c75d8935` for the sphere flow. They are the hashes
-of every step of the integration; the two ARM machines printed the same two, and so did the reviewer's own build of the same source on a
-third machine. Every program here ends the same way: a chain hash and a `done` line, and every results page quotes the chain its numbers
-came from. If your build prints a different hash, something is different, and we want to know what.
+```sh
+git clone https://github.com/prestonericson7-lang/wormhole-math-exact.git
+cd wormhole-math-exact/code
+cc -O2 -std=gnu11 -o whflow wh_flow.c && ./whflow | grep -oE 'chain [0-9a-f]+|WHFLOW: done'
+```
 
-## Why exact
-
-Every program here uses only 64-bit integers in a declared fixed-point format (40 or 60 fractional bits, with 128-bit intermediates built
-from 32-bit halves; `code/whq.h`). No floating point, no math library. Exponentials come from a range reduction on ln 2 and a Taylor series
-with a declared number of terms; square roots from integer Newton iteration or a digit-by-digit 128-bit root; differential equations from
-a fixed-step Runge-Kutta scheme whose updates are rounded once with the remainder carried; matrix exponentials from powers accumulated in
-128 bits and rounded once. The same source compiled anywhere prints the same digits, so a result is a fact about the equations, not about
-one machine's rounding. We run every program on two separate ARM boards and require the two outputs to agree line for line before a result
-is written down. Error bounds are derived on paper beside each program, and every number on a page is labelled: MEASURED (printed by a
-program, with the run named), COMPUTED (derived, with the inputs named) or ESTIMATE.
-
-## How it was built, and how it was checked
-
-- Each program was sized on paper before its first run (the format, the step, where overflow could sit), and the first run of anything
-  new goes to the two machines at once.
-- An independent reviewer (another AI session working from copies, with its own derivations, its own float and 128-bit float builds and
-  its own symbolic checks) reads every program and every page. In the first evening it found a division the shared header never guarded,
-  a coefficient for the wrong field, a published Casimir table with digits lost past N = 16, a second one off by one unit in the ninth
-  decimal, a flow started off its manifold, and the paper's density-matrix formulas being the ensemble-averaged forms rather than the
-  per-realization ones. Every one of those is on its page, with the reviewer credited, the corrected version run again on the two
-  machines, and the lineage of versions kept. In the second night it found a truncated dr^2 in the warp kernel worth 3.25e-5 in the
-  published shift limit (the correction went up within a minute of its reading, before the fix; the fixed program then ran on the machines),
-  the paper's density-matrix formulas' sign-winding counterpart derived for our layout, and a step of the 1b plan that was a matched
-  approximation rather than a closed problem; the machines' firmware giving the process one core was found by the program's own line and is
-  written where the two-core claim stood. In the third night it found the shared header's division guard a factor of two too weak in all
-  seven copies (it stopped at sixteen times the divisor instead of eight; in between, a quotient with the wrong sign came back silently): every
-  copy now carries two checks, and every published chain of the seven programs reruns identical from the fixed sources, so no published run
-  had passed through the range. The same morning the shared header's cosine was found to square its argument after reducing it only to
-  [-pi, pi], so past 2.83 the square passed the format's ceiling; it now reduces to [-pi/2, pi/2] with a sign flip, and no program had
-  called it past pi/2 before. The record of what was wrong is as public as the record of what is right.
-- A result moves from "computed on a PC" to "measured" only when the two machines have run it and agreed; PC runs on this page are labelled
-  as development runs.
-- The code is written to be read: every file opens with what it computes, from which equation of which paper, in what arithmetic, with
-  what self-tests, and with its own history of versions.
+On a little-endian machine (x86, ARM) the run prints three lines: the two chain hashes, `24d2f870a2abea59` for the flat flow and
+`85a3df31c75d8935` for the sphere flow, and `WHFLOW: done`. They are the hashes of every step of the integration; the two ARM machines
+printed the same two, and so did a PC build of this source and the reviewer's own reference program, written separately from the same
+specification and built for x86 and for 32-bit ARM under an emulator. Every C program here ends the same way: a chain hash and a `done`
+line, and every results page for a run of one of them quotes the chain its numbers came from. If your build prints a different hash,
+something is different, and we want to know what.
 
 ## What is here
 
-- `PLAN.md`: the computations, what each paper left open, what we deliver, in what order, what "exact" means here, and the status of each.
-- `THE_GLUE.md`: the reading that led here: what holds a traversable wormhole open in the post-2016 physics, why those wormholes
-  cannot be time machines by construction, and where the energy scale meets the collider.
-- `results/`: each result as a page with the numbers, the error bound on paper, the comparison with the paper it checks, the program's md5,
-  the chain, and the two machines' agreement line, plus the raw output of one machine.
-- `code/`: the programs, all on `whq.h`, the fixed-point header (Q.40 and Q.60, 128-bit intermediates). By computation:
-  - 1a, the Maldacena-Milekhin flow: `wh_flow.c` (Q.40) and `wh_flow60.c` (the same in a 56-bit format on `whq60.h`, twelve digits).
-  - 1b, the patched five-dimensional geometry: the solver kernels built ahead of the equations, each verified on a problem with a known
-    answer: `wh_relax.c` (one field: red-black SOR, a Robin boundary option, grids stretched toward a boundary with exact integer weights),
-    `wh_relaxs.c` (several coupled nonlinear fields, a Newton step over the local Jacobian block, including the regime where a lagged
-    source stalls), `wh_relaxt.c` (the kernel in the geometry's own rows, uniform in t = ln(-y) from the cut to the deep end, carrying the
-    reviewer's three sources in deviation variables around the AdS3 x S2 reference, whose discretization defect it measures and subtracts),
-    `wh_p3.c` with `whq56.h` (the near-brane throat as an integer shot: three rescaled variables inward from the brane in a 56-bit format,
-    the shot bisected on exact event tests), `wh_dtk.c` (the five-field kernel for the two-dimensional problems in the Einstein-DeTurck
-    form: the variable-coefficient principal part with its cross term, per-point weights formed once, on a manufactured problem),
-    `wh_p1data.c` (P1's boundary data in the cylinder frame: the paper's SO(3) example as a conformal class, blended and expanded to the
-    Fefferman-Graham cutoff, checked against the reviewer's table), and
-    `wh_ode.c` (the flow's exact integrator for a vector state); `wh_cost.py` (the paper's construction at every mouth size, the yardstick page);
-    and `p2_nogo/`, the reviewer's scripts behind the first 1b result, the no-go for the paper's circle of mouths.
-  - 2, the SYK teleportation protocol, seven versions kept as a lineage: `wh_syk.c` (the paper's layout), `wh_syk2.c` (the factorized
-    layout that made N = 14 minutes instead of weeks), `wh_syk3.c` (the exact per-realization density matrix), `wh_syk4.c` (the same in
-    Q.60 end to end, twelve digits against a float implementation), `wh_syk5.c` (the memory layout for N = 18, written to split every
-    product across the machines' two cores through `par2.h`; on the first night the firmware gave the process one core, so those runs
-    fell back to one core with the same bits, and the cause is being traced), `wh_syk6.c` (the size-winding observable of Kobrin, Schuster
-    and Yao from the states version 5 already holds; `wind_summary.py` turns its printed per-size sums into their fit numbers), and
-    `wh_syk7.c` (every matrix product through the reviewer's three-limb kernel `limb_q60.c` and `limb_tile.c`: 24-bit limbs, int64
-    accumulators, the exact 128-bit sums rebuilt, one rounding, bit-equal to the 128-bit kernel for every input, four to five times fewer
-    instructions on the machines).
-  - 3a, the Alcubierre negative-energy integral and the wall-thickness law: `wh_alcub.c`.
-  - 3b, the 2024 warp shell: `wh_shell.c` (the construction and its energy conditions) and `wh_warp.c` with `wh_prof.h` (the shift and the
-    shift limit the paper left open; version 3 carries the reviewer's full fix).
-  - 4a, the Casimir lattice sums: `wh_casimir.c`.
-
-## Status (2026-11-11, one day)
-
-- **1a, the Maldacena-Milekhin flow** (`results/1a_flow.md`): their eq. (3.19) and (A.30) integrated exactly from the AdS3 x R2 throat
-  to AdS5, their Figure 3 as a table; then, after review, a third version with one rounding per step, each flow on its own unstable
-  manifold, and the gauge invariants, which agree with an independent 40-digit integration to 2.5e-11; then a fourth version in a
-  56-bit format that carries the invariants to fourteen digits and prints a new gauge-invariant constant of the flat flow, Xi =
-  0.121789029475802, which fixes the constant inside the paper's eq. (3.24) that it had estimated to one figure (kappa_flat = 1/4 - Xi =
-  0.128210970524, verified by four independent routes); the paper's derived numbers move by 4 to 9 percent with it.
-- **3a, the Alcubierre negative-energy integral** (`results/3a_alcubierre.md`): the exact integral for seven wall thicknesses and the law
-  behind "a factor of about three": I = R sigma / 3 + (pi^2 - 6)/(36 R sigma) plus exponentially small terms.
-- **3b, the 2024 warp shell** (`results/3b_shell.md`, `results/3b_warp.md`): the construction reproduced as integer sums, its four energy
-  conditions judged exactly with a written floor under every verdict; then its shift added and the limit the paper left open computed:
-  the conditions hold to a shift of about 0.0304 c and fail together just above it, 12.3 m from the centre on the equator (the pair's
-  two radial grids first printed 0.03033; a review found a truncated dr^2 in the kernel worth 3.25e-5; version 3 with the reviewer's full fix
-  ran on the pair the same night and printed 0.03036 on both grids, the PC's chains; the correction and the rerun are on the page).
-- **4a, the Casimir sum** (`results/4a_casimir.md`): one scalar field between plates as a finite lattice sum with no divergent subtraction,
-  and the exact law by which the lattice approaches the continuum, 1 + (5 pi^2/24)/N^2 + 9.376/N^4 + ..., the ratio to ten decimals at
-  N = 32 after two corrections from review.
-- **2, the SYK teleportation protocol** (`results/2_syk.md`, `results/2_syk_exact.md`): exact at N = 8 for three seeds and the 2022
-  experiment's model; then the exact per-realization density matrix at N = 8 to 16 on the machines (18 on the PC, labelled), where
-  the paper's averaged formulas are off by 14 percent at N = 8 and 1.6 at N = 14, the wormhole sign wins over the wrong sign at every size
-  by 1.4 to 1.6 at the peak, and the paper's own layout and ours agree to 7e-11 across 270 numbers at N = 10; then the size-winding signature (part 3,
-  `results/2_syk_winding.md`), computed exactly from the same states and verified on the PC against the reviewer's independent float64 at
-  N = 14 (the teleporting sign reaches 99.8 percent of the best possible line, the wrong sign 62 percent), on the machines tonight.
-- **1b, the patched five-dimensional geometry** (`results/1b_nogo.md`, `results/1b_p0.md`, `results/1b_p3.md`): the reviewer derived the
-  reduced Einstein-Maxwell system in verified stages, and it is being solved piece by piece. Done so far: the no-go for the paper's circle of
-  mouths on its fine-tuned brane (a derivation with its checking scripts); the relaxation kernels, each verified on a problem with a known
-  answer and run on the two machines; the first solution of the reduced problem's simplest case, the one with no dependence along the
-  circle (P0): the centre value U_c = -0.594115, -0.594579 and -0.594695 at N = 128, 256 and 512 rows, falling 4.00x per doubling toward
-  -0.594734, the reviewer's independent extrapolation to six digits, and a central charge 5.3e-5 above the fixed point's where the
-  reviewer's law gives 5.26e-5; MEASURED on the two machines at N = 128 and 256 (26,011 and 30,608 sweeps each, identical lines, the
-  PC's chains), N = 512 the PC's. And the near-brane throat (P3): the paper's log ln(L_IR/R5) as an integer shot at
-  three charges, bit-identical to the reviewer's independent integer mimic in all three; at the paper's charge L_IR = 1.13679 l_B (its
-  "L_IR ~ l_B" made exact) and the AdS2 radius exceeds the S2 radius at the brane by 1.77 percent; PC build, the pair runs it in the
-  eighth queue. The circle-direction problem (P1, the mouths) is next: its kernel in the Einstein-DeTurck form, five fields with a
-  variable-coefficient principal part and a cross-derivative term, is built (`code/wh_dtk.c`) and second order on all five fields of a
-  manufactured problem, with its reflection lines, its Neumann deep end and its deviation form, ahead of the equations. And a reading of
-  the paper's construction at every mouth size (`results/1b_cost.md`, `code/wh_cost.py`, computed on the PC from the paper's chain with our
-  constant): the one condition that fixed its size was a human surviving the tides; without it the mouth can shrink to about a hundred
-  times the fifth dimension, but every size needs a monopole charge of 1e31 to 1e45 Dirac units, a field at the mouth of 2e7 T or more,
-  and a negative energy that grows as the mouth shrinks (minus 6.5e19 kg at 5 mm against the paper's minus 4.8e9 kg); even the paper's
-  wormhole takes 10,230 years to cross as seen from outside. The table is the yardstick any proposal to shrink it has to beat.
-
-Next: the pair's remaining P0, P3, N = 18 and size-winding runs, the reviewer's cross-check of P0, then the circle-direction problem
-(P1). See `PLAN.md`.
+- [`PLAN.md`](PLAN.md): the computations, what each paper left open, what we deliver, in what order, what "exact" means here, and the
+  status of each.
+- [`THE_GLUE.md`](THE_GLUE.md): the reading that led here: what holds a traversable wormhole open in the post-2016 physics, why those
+  wormholes cannot be time machines by construction, and where the energy scale meets the collider.
+- [`results/`](results/README.md): each result as a page with the numbers, the error bound on paper and the comparison with the paper it
+  checks; for a run on the machines, the program, its chain, the two machines' agreement and the raw output of one machine
+  (`*_board1.txt`). PC development runs and the one derivation (`1b_nogo.md`) are labelled as such; `1b_cost.md` is a formula
+  evaluation on the PC.
+- [`code/`](code/): the programs, on the fixed-point headers `whq.h` (Q.40), `whq60.h` (Q.60, built on `whq.h`) and `whq56.h` (Q.56), with
+  128-bit intermediates built from 32-bit halves; SYK versions 4 to 7, the kernels `wh_relax.c` and `wh_relaxs.c`, and `wh_casimir.c`
+  carry their Q.60 routines in their own source, and the limb kernel has `limb_common.h`; the Python helpers (`wh_cost.py`,
+  `wind_summary.py` and the scripts in `p2_nogo/`) are not on the headers. The programs by computation are listed in [`PLAN.md`](PLAN.md#the-programs-by-computation).
 
 ## Licenses
 
-Code: MIT (`code/LICENSE`). Text and tables: CC BY 4.0 (`LICENSE-TEXT`). Please cite as: Preston Ericson, "Wormhole math, exact",
+Code: MIT ([`code/LICENSE`](code/LICENSE)). Text and tables: CC BY 4.0 ([`LICENSE-TEXT`](LICENSE-TEXT)). Please cite as: Preston Ericson, "Wormhole math, exact",
 2026, this repository.

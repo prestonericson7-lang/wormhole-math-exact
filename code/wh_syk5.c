@@ -1,6 +1,7 @@
-/* wh_syk5.c (11-11-2026, 11:20 PM) -- WORMHOLE MATH 2, v5: v4.1's arithmetic exactly (the exact six-element rho_TR in Q.60 end to end, the
-   right-hand operators derived from the left by re-indexing), laid out for N = 18 (D = 512 a side, 4 MB a matrix) inside the pair's
-   84 MB process region. NOTHING in the arithmetic changes: at every N <= 16 the output must equal v4.1's bit for bit (checked on the PC
+/* In plain words: the SYK teleportation protocol, version 5: version 4's arithmetic, reorganized for the larger size N = 18.
+   wh_syk5.c (11-11-2026, 11:20 PM) -- WORMHOLE MATH 2, v5: v4.1's arithmetic exactly (the exact six-element rho_TR in Q.60 end to end, the
+   right-hand operators derived from the left by re-indexing), laid out for N = 18 (D = 512 a side, 4 MB a matrix) inside the machines'
+   memory. NOTHING in the arithmetic changes: at every N <= 16 the output must equal v4.1's bit for bit (checked on the PC
    before the first run), and at N = 18 it is the same program on a larger grid.
 
    THE LAYOUT. One static pool of 17 matrices (68 MB at D = 512), carved by use:
@@ -20,7 +21,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "whq.h"
-#include "par2.h"                              /* v5.2 (11:44 PM): the A9's second core takes half the rows of every product (the machines' two-core call); on a
+#include "par2.h"                              /* v5.2 (11:44 PM): the A9's second core takes half the rows of every product (the machines' own version of par2.h); on a
                                                   machine without it, or on the PC, both halves run here one after the other: the same bits either way */
 
 #define MAXN 18
@@ -72,7 +73,7 @@ static inline void s128_addp(s128 *a, int64_t x, int64_t y) { int64_t h; uint64_
 static inline int64_t s128_round_sh(s128 a, int sh)
 {
     int neg = a.hi < 0; if (neg) { a.lo = ~a.lo + 1; a.hi = ~a.hi + (a.lo == 0); }
-    uint64_t r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;
+    uint64_t r; if (sh == 64) r = (uint64_t)a.hi; else { r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++; }   /* sh = 64 (the six rho_TR elements, F60 + 4) truncates the magnitude, as every published chain did */
     return neg ? -(int64_t)r : (int64_t)r;
 }
 static inline int64_t mul60(int64_t a, int64_t b) { s128 s = {0, 0}; s128_addp(&s, a, b); return s128_round_sh(s, F60); }
@@ -134,7 +135,7 @@ static void fmt60(int64_t v, char *out)
     if (dg >= 1000000000000ull) { dg -= 1000000000000ull; ip++; }
     sprintf(out, "%s%llu.%012llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dg);
 }
-static void hash64(int64_t v) { chain = fnv(chain, &v, 8); }
+static void hash64(int64_t v) { uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i)); chain = fnv(chain, b, 8); }   /* v's bytes least significant first: the same chain on any byte order */
 
 /* ---- matrices ---- */
 /* the entry op(A)[i][k]: mode 0 A[i][k]; 1 conj(A[k][i]); 2 the re-indexed right-hand operator R[i][k] = i^{e(~i) - e(~k)} A[~k][~i];
@@ -294,7 +295,7 @@ static void build_syk(uint64_t seed, int check)
     int nt = 0; q first = 0;
     for (int i = 1; i <= N; i++) for (int j = i + 1; j <= N; j++) for (int k = j + 1; k <= N; k++) for (int l = k + 1; l <= N; l++) {
         const q J = mulq(gauss40(), sd), c = -rdiv(J, 4); if (!nt) first = c;
-        const int64_t c60v = (int64_t)c << 20;
+        const int64_t c60v = (int64_t)c * ((int64_t)1 << 20);
         addterm(pmul(pmul(pmul(ML[i], ML[j]), ML[k]), ML[l]), c60v, 0);
         if (check) addterm(pmul(pmul(pmul(MR[i], MR[j]), MR[k]), MR[l]), c60v, 1);
         nt++;
@@ -308,8 +309,8 @@ static void build_model1(int check)
     zero(HL); zero(HR);
     for (int t = 0; t < 5; t++) {
         const double c = cf[t] * (double)ONE / 4.0; const q cq40 = (q)(c < 0 ? c - 0.5 : c + 0.5);
-        addterm(pmul(pmul(pmul(ML[idx[t][0]], ML[idx[t][1]]), ML[idx[t][2]]), ML[idx[t][3]]), (int64_t)cq40 << 20, 0);
-        if (check) addterm(pmul(pmul(pmul(MR[idx[t][0]], MR[idx[t][1]]), MR[idx[t][2]]), MR[idx[t][3]]), (int64_t)cq40 << 20, 1);
+        addterm(pmul(pmul(pmul(ML[idx[t][0]], ML[idx[t][1]]), ML[idx[t][2]]), ML[idx[t][3]]), (int64_t)cq40 * ((int64_t)1 << 20), 0);
+        if (check) addterm(pmul(pmul(pmul(MR[idx[t][0]], MR[idx[t][1]]), MR[idx[t][2]]), MR[idx[t][3]]), (int64_t)cq40 * ((int64_t)1 << 20), 1);
     }
     NM = 7;
     printf("WHSYK5 model 1: 5 terms on 7 Majoranas a side (coefficients -0.36, 0.19, -0.71, 0.22, 0.49 declared in Q.40 as v1 did), V normalized with N = 10\n");
@@ -370,9 +371,10 @@ static int64_t maxabs_diff(c60 A[MAXD][MAXD], c60 B[MAXD][MAXD]) { int64_t m = 0
 static q parseq(const char *s)
 {
     int neg = 0; if (*s == '-') { neg = 1; s++; }
-    q ip = 0; while (*s >= '0' && *s <= '9') ip = ip * 10 + (*s++ - '0');
+    q ip = 0; while (*s >= '0' && *s <= '9') { ip = ip * 10 + (*s++ - '0'); if (ip >= ((q)1 << 23)) { printf("WHSYK5: number too large (Q.40 holds magnitudes below 2^23)\n"); exit(1); } }
     q fp = 0, scale = 1; if (*s == '.') { s++; while (*s >= '0' && *s <= '9' && scale < 1000000000000ll) { fp = fp * 10 + (*s++ - '0'); scale *= 10; } }
-    q v = ip * ONE + (fp ? divq(fp * ONE, scale * ONE) : 0); return neg ? -v : v;
+    q f40 = 0; if (fp) { uint64_t h, l, rem; mul128((uint64_t)fp, (uint64_t)ONE, &h, &l); f40 = (q)div128(h, l, (uint64_t)scale, &rem); if (2 * rem >= (uint64_t)scale) f40++; }   /* round(fp 2^40 / scale) in 128 bits */
+    q v = ip * ONE + f40; return neg ? -v : v;
 }
 static int parselist(const char *s, q *out, int max) { int n = 0; char buf[256]; strncpy(buf, s, 255); buf[255] = 0; for (char *tok = strtok(buf, ","); tok && n < max; tok = strtok(NULL, ",")) out[n++] = parseq(tok); return n; }
 
@@ -398,7 +400,10 @@ int main(int argc, char **argv)
     if (!nseed) { seeds[0] = 1; nseed = 1; }
     if (model) { N = 8; nseed = 1; if (!vnormN) vnormN = 10; }
     if (!vnormN) vnormN = N;
+    if (vnormN < 1 || vnormN > 1024) { printf("WHSYK5: vnorm must be in 1..1024\n"); return 1; }
+    for (int i = 0; i < nmu; i++) if (mus[i] >= (q)16 * vnormN * ONE || mus[i] <= -(q)16 * vnormN * ONE) { printf("WHSYK5: |mu| must be below 16 vnorm (the cosine and sine series hold for |mu|/(8 vnorm) < 2)\n"); return 1; }
     if (dt <= 0 || dt > 4 * ONE) { printf("WHSYK5: dt must be in (0, 4]\n"); return 1; }
+    if (beta < 0 || beta >= 8 * ONE) { printf("WHSYK5: beta must be in [0, 8) (Q.60 holds magnitudes below 8)\n"); return 1; }
     if (PA < 1 || PA > N || PB < 1 || PB > N || PA == PB) { printf("WHSYK5: pair must be two different Majorana indices in 1..N\n"); return 1; }
     int tmax = 0; for (int i = 0; i < nt; i++) { int t = (int)(ts[i] / ONE); if ((q)t * ONE != ts[i] || t < 0 || t > TMAX) { printf("WHSYK5: t must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }
     for (int i = 0; i < ntp; i++) { int t = (int)(tps[i] / ONE); if ((q)t * ONE != tps[i] || t < 0 || t > TMAX) { printf("WHSYK5: tp must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }

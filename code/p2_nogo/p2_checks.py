@@ -1,4 +1,4 @@
-# P2 no-go: exact symbolic checks (sympy). Own Christoffel/Ricci code, independent of g5lib.py and vlib.py.
+# P2 no-go: exact symbolic checks (sympy). Own Christoffel/Ricci code, independent of the unpublished stage-1 scripts.
 # Conventions: signature (-,+,+,+); R^a_bcd = d_c Gam^a_bd - ...; R_bc = d_a Gam^a_bc - d_c Gam^a_ba + Gam^a_ad Gam^d_bc - Gam^a_cd Gam^d_ba.
 # Einstein: G_mn + Lambda g_mn = 8 pi G T_mn. Maxwell action -(1/(4 g4^2)) INT sqrt(-g) F^2.
 import sympy as sp

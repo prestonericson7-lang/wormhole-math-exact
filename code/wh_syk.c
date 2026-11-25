@@ -1,4 +1,5 @@
-/* wh_syk.c (11-11-2026, 7:40 PM) -- WORMHOLE MATH 2: the SYK traversable-wormhole teleportation protocol of Gao and Jafferis
+/* In plain words: simulates the SYK wormhole-teleportation protocol (the SYK model: many interacting particles that physicists use as a stand-in for a wormhole), version 1.
+   wh_syk.c (11-11-2026, 7:40 PM) -- WORMHOLE MATH 2: the SYK traversable-wormhole teleportation protocol of Gao and Jafferis
    (arXiv:1911.07416, sections 2.1-2.3) computed EXACTLY at finite N on the two boards, the same program on both, every line to agree
    bit for bit. Nothing here builds a door: it is the number the 2022 "wormhole on a quantum processor" could not compute, the FULL
    q = 4 SYK protocol, and the same protocol on the 2022 experiment's learned five-term model (Kobrin, Schuster and Yao, arXiv:2302.07897,
@@ -16,11 +17,15 @@
    with A_i = psi_l^i(-t') = e^{-iHt'} psi_l^i e^{iHt'}, B_i = U^dag psi_r^i(t) U, B12 = B1 B2, H = H_l + H_r, all in |tfd>. The mutual
    information I_RT = S(R) + S(T) - S(RT) = 2 ln 2 + SUM lambda ln lambda over the four eigenvalues (rho11 +- |rho14|)/2, (1-rho11)/2 twice;
    K = <{A1, B1}> is printed beside it (their large-N variable; their Table 1: max I_RT/(2 ln 2) = 0.540 at q = 4).
+   SUPERSEDED (11-11 evening, from review): (2.63)-(2.66) are the paper's ensemble-averaged forms; for one realization of the couplings
+   they hold only approximately (I_RT off by -12.9% to +5.2% at N = 8, COMPUTED by the reviewer over four seeds; results/2_syk.md). The
+   arithmetic here is exact; the formula is not. The exact six-element rho_TR is wh_syk3.c onward.
 
    HOW, EXACTLY. Amplitudes are complex Q.40 (whq.h). Majoranas are applied as bare Pauli strings (sqrt2 psi, so each is an involution) and
    the 1/sqrt2 factors are restored at the end as exact shifts (two Majoranas per correlator term: 1/2; four: 1/4). H v is accumulated in
    signed 128-bit per amplitude over every term and rounded ONCE. e^{sH} v by Taylor in steps of dt = 1 (|H| dt < 1.3 for N <= 14, J = 1):
-   term_{k+1} = s H term_k / (k+1), each rounded to nearest, the sum in 128-bit, stopped when a term is below one unit (2^-40). The random
+   term_{k+1} = s H term_k / (k+1), each rounded to nearest, the sum in 128-bit, stopped after two successive terms of at most one unit
+   (2^-40), at most 80 terms. The random
    couplings J_{ijkl} ~ N(0, 6/N^3) come from xorshift64* with a declared seed (twelve 40-bit uniforms summed), so the ensemble is
    reproducible bit for bit. Self-tests printed: (psi_l^j + i psi_r^j)|I> = 0 exactly; {bare_a, bare_b} = 2 delta exactly; (H_l - H_r)|I> = 0
    exactly (the 128-bit sums are exact, so the rounded vectors must be identical); the norm of every real-time evolution (drift printed);
@@ -239,13 +244,14 @@ static void apply_U(cq *v, q c, q s, int sign, cq *w, int vnormN)
     }
 }
 
-static void hashq(q v) { chain = fnv(chain, &v, 8); }
+static void hashq(q v) { uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i)); chain = fnv(chain, b, 8); }   /* v's bytes least significant first: the same chain on any byte order */
 static q parseq(const char *s)                                           /* "-12", "2.8", "0.5" -> Q.40 (decimal part rounded) */
 {
     int neg = 0; if (*s == '-') { neg = 1; s++; }
-    q ip = 0; while (*s >= '0' && *s <= '9') ip = ip * 10 + (*s++ - '0');
+    q ip = 0; while (*s >= '0' && *s <= '9') { ip = ip * 10 + (*s++ - '0'); if (ip >= ((q)1 << 23)) { printf("WHSYK: number too large (Q.40 holds magnitudes below 2^23)\n"); exit(1); } }
     q fp = 0, scale = 1; if (*s == '.') { s++; while (*s >= '0' && *s <= '9' && scale < 1000000000000ll) { fp = fp * 10 + (*s++ - '0'); scale *= 10; } }
-    q v = ip * ONE + (fp ? divq(fp * ONE, scale * ONE) : 0);
+    q f40 = 0; if (fp) { uint64_t h, l, rem; mul128((uint64_t)fp, (uint64_t)ONE, &h, &l); f40 = (q)div128(h, l, (uint64_t)scale, &rem); if (2 * rem >= (uint64_t)scale) f40++; }   /* round(fp 2^40 / scale) in 128 bits */
+    q v = ip * ONE + f40;
     return neg ? -v : v;
 }
 static int parselist(const char *s, q *out, int max) { int n = 0; char buf[256]; strncpy(buf, s, 255); buf[255] = 0; for (char *tok = strtok(buf, ","); tok && n < max; tok = strtok(NULL, ",")) out[n++] = parseq(tok); return n; }
@@ -270,6 +276,9 @@ int main(int argc, char **argv)
     if (!nseed) { seeds[0] = 1; nseed = 1; }
     if (model) { N = 8; nseed = 1; if (!vnormN) vnormN = 10; }
     if (!vnormN) vnormN = N;
+    if (pa < 1 || pa > N || pb < 1 || pb > N || pa == pb) { printf("WHSYK: pair must be two different Majorana indices in 1..N\n"); return 1; }
+    for (int i = 0; i < nt; i++) if (ts[i] < 0) { printf("WHSYK: t must be >= 0\n"); return 1; }
+    for (int i = 0; i < ntp; i++) if (tps[i] < 0) { printf("WHSYK: tp must be >= 0\n"); return 1; }
     DIM = 1 << N;
     char A[32], B[32], C[32], D[32], E[32], F[32], G[32];
     fmt(beta, A); fmt(mus[0], B);
@@ -330,7 +339,7 @@ int main(int argc, char **argv)
                 /* B12 a1 and B2 a1 share e^{-iHt} U a1 */
                 memcpy(up, a1, sizeof(cq) * DIM); apply_U(up, c, s, +1, s1, vnormN); evolve(up, t, -1, s1, s2);
                 papply(&MR[pb], up, s3); papply(&MR[pa], s3, w); evolve(w, t, +1, s1, s2); apply_U(w, c, s, -1, s1, vnormN);   /* w = B12 a1 */
-                cq X2b = inner(a2, w);                                   /* <a2|B12 a1> = -conj<a1|B12 a2>: used as Re X2 = -Re<a2|B12 a1> */
+                cq X2b = inner(a2, w);                                   /* <a2|B12 a1>: computed but not used (X2 below is computed directly); kept so the printed norm drift of the published runs is unchanged */
                 papply(&MR[pb], up, s3); evolve(s3, t, +1, s1, s2); apply_U(s3, c, s, -1, s1, vnormN);                        /* s3 = B2 a1 */
                 cq Y2 = inner(a12, s3);                                  /* <a12|B2 a1> */
                 /* B12 a2 */

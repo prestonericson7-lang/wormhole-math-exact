@@ -1,4 +1,5 @@
-/* wh_ode.c (11-12-2026, 2:20 AM) -- WORMHOLE MATH, THE EXACT ODE INTEGRATOR FOR A VECTOR STATE: wh_flow.c version 3's fixed-step RK4 in Q.40
+/* In plain words: wh_flow.c's fixed-point step-by-step integrator, generalized from its three variables to up to eight (model=flow runs the flow through it).
+ * wh_ode.c (11-12-2026, 2:20 AM) -- WORMHOLE MATH, THE EXACT ODE INTEGRATOR FOR A VECTOR STATE: wh_flow.c version 3's fixed-step RK4 in Q.40
  * (int64 with 128-bit intermediates, products and divisions rounded to nearest; each component's update h (k1 + 2 k2 + 2 k3 + k4)/6 rounded
  * once with its remainder carried to the next step) generalized from the flow's three variables to a state y[0..nv-1] with a right-hand side
  * chosen by model=. Built so that the near-brane throat of 1b (an ODE integrated from the brane and matched to the 1a flow) is a right-hand

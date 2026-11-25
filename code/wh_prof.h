@@ -1,4 +1,4 @@
-/* wh_prof.h (11-11-2026; v2 9:00 PM after the review; v3 11-12 1:00 AM) -- the 2024 warp shell's radial construction (Fuchs et al.,
+/* wh_prof.h (11-11-2026; v2 9:00 PM after review; v3 11-12 1:00 AM) -- the 2024 warp shell's radial construction (Fuchs et al.,
  * VERSION 3 (11-12, the reviewer's whole file, verified by three builds): two changes against v2 and nothing else. (1) The second derivative's
  * dr^2 is kept exact in Q.80 as 2 DR^2 (v2 truncated dr^2 to 707 units of 2^-40 where its value is 707.819049, which divided every S''
  * by a number 0.116 percent too small and lowered every crossing of the shift limit by 3.25e-5: the correction published 12:03 AM).

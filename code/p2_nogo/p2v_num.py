@@ -1,7 +1,8 @@
-# P2 adversarial verifier: numbers. mpmath, 30 digits. Written fresh; does not import or run the worker's p2_numbers.py.
+# P2 independent check: numbers. mpmath, 30 digits. Written fresh; does not import or run p2_numbers.py.
 # MM inputs [M]: re = 1.5e7 m (MM:536), R5 = 5e-5 m (MM:442-443), d_min = 0.5 ly (MM:707, :745),
 # c2 = 4 pi R5 re /(G4 sqrt(ln(re/R5))), ell = (4/pi) re^2 sqrt(ln)/R5 (MM:541-545), E_Cas = -c2/(8 ell) (MM:188).
 # Constants [E: CODATA/IAU values from memory].
+# MM:NNN = line NNN of the plain-text arXiv:2008.06618 used here (not published).
 from mpmath import mp, mpf, pi, log, sqrt, quad, diff, nstr
 mp.dps = 30
 Gn = mpf('6.67430e-11'); cl = mpf('299792458'); hbar = mpf('1.054571817e-34')

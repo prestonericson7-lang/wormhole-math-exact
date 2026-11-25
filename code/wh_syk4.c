@@ -1,10 +1,12 @@
-/* wh_syk4.c (11-11-2026, 10:30 PM) -- WORMHOLE MATH 2, v4: the SYK traversable-wormhole teleportation protocol (Gao-Jafferis, arXiv:1911.07416)
+/* In plain words: the SYK teleportation protocol, version 4: version 3's calculation in 60 fraction bits end to end, to twelve digits.
+   wh_syk4.c (11-11-2026, 10:30 PM) -- WORMHOLE MATH 2, v4: the SYK traversable-wormhole teleportation protocol (Gao-Jafferis, arXiv:1911.07416)
    exact at finite N for ONE realization of the couplings, the full six-element density matrix rho_TR of v3, NOW IN Q.60 END TO END, and
    with the time steps built once per seed. Why v4 (the review's bit-exact emulation, 11-11 10:20 PM): v3's Q.40 chain U(1)^t left up to 21
    units of 2^-40 in the evolved states at t = 6, and the Q.40 cosine and sine of the coupling (c^2 + s^2 - 1 = -2.4 units) moved K by up to
    27 units, so v2/v3's twelve printed places were good to ten. v4 carries everything in Q.60 (int64 with 60 fraction bits, products in
-   128 bits, one rounding per entry per product) and rounds nothing to Q.40 at all: the printed twelve places are rounded from Q.60 values
-   whose own error is about 1e-16.
+   128 bits, one rounding per entry per product) and rounds nothing to Q.40 after the input (the command-line beta, mu and dt are parsed
+   in Q.40: exact for integers; dt = 2.8 is 2.8 + 1.8e-13; wh_syk6.c parses dt in Q.60): the printed twelve places are rounded from Q.60
+   values whose own error is about 1e-16.
 
    THE PROTOCOL AND THE MATRIX: exactly v3's (the derivation is in wh_syk3.c's header): the message is the left Dirac mode
    chi_l = (psi_l^1 + i psi_l^2)/sqrt2 at -t', entangled with the reference R (half of an EPR pair); the readout is the right mode chi_r at t
@@ -17,15 +19,17 @@
    - H_L and H_R: exact integers in Q.60 (the Q.40 coefficients -J/4 of v1-v3 shifted by 20 bits: the same couplings, bit for bit).
    - ONE set of powers per seed and side: P_k = H P_{k-1} / k in Q.60 (one rounding per entry per k), summed twice: S_W = SUM (-i)^k P_k =
      e^{-iH} (the rotation by (-i)^k is exact) and S_E = SUM (-beta/4)^k P_k = e^{-beta H/4} (exact for beta = 4), both accumulated in
-     128 bits and rounded once; the series stops when a term is below one unit of 2^-60 twice (about 22 terms at N = 14).
+     128 bits and rounded once; the series stops when a term is below one unit of 2^-60 twice (at most 18 terms at N = 14, MEASURED
+     on the machines: results/2_syk_exact_v4_board1.txt).
    - W(t) = W(1) W(t-1) for t = 2..tmax, once per seed, in Q.60; e^{+iHt} is W(t)^dag, the conjugate transpose, no new rounding; an
      evolution by t is then ONE pair of products W_L(t) Psi W_R(t)^T whatever t is (v3 took t pairs and recomputed them for every point).
    - Products skip exact zeros, so the block structure of H, W and E (fermion parity) is used without bookkeeping: half the multiplies.
    - The coupling's cosine and sine of mu/(8 N) in Q.60 (Taylor, 128-bit products; c^2 + s^2 - 1 printed in units of 2^-60), the coupling
      applied in Q.60 with one rounding per entry per Majorana pair.
    - The 2M and 2N operators are sums of two Pauli strings with phases: exact. The six elements: twelve inner products in 128 bits, divided
-     by 16 and rounded once to Q.60. The eigenvalues by a 128-bit integer square root; the entropies by a Q.60 logarithm (range reduction
-     by powers of two, then 2 artanh((m-1)/(m+1)) to 2^-60; ln 2 itself computed the same way and printed as a self-test).
+     by 16 and truncated once to Q.60 (within one unit of 2^-60). The eigenvalues by a 128-bit integer square root; the entropies by a
+     Q.60 logarithm (range reduction by powers of two, then 2 artanh((m-1)/(m+1)) to 2^-60; ln 2 itself computed the same way and printed
+     as a self-test).
    - |I> is built normalized exactly (amplitude 2^{-H/2} for H = N/2 even, (1 + i) 2^{-(H+1)/2} for H odd: a global phase, the review's
      trick), so |I|^2 = 1 and no sum of squares approaches 2^127 (the first build's unnormalized |I> had |I|^2 = D 2^120 = 2^127 at D = 128
      and overflowed the 128-bit norm there: found at N = 14 before any run); the thermofield double is then normalized in Q.60 (a 128-bit
@@ -73,11 +77,11 @@ static inline void mulprod(int64_t a, int64_t b, int64_t *hi, uint64_t *lo)
     mul128(ua, ub, &h, &l); if (neg) { l = ~l + 1; h = ~h + (l == 0); } *hi = (int64_t)h; *lo = l;
 }
 static inline void s128_addp(s128 *a, int64_t x, int64_t y) { int64_t h; uint64_t l; mulprod(x, y, &h, &l); s128_add(a, h, l); }
-/* round(a / 2^sh), sh in 56..64, result must fit int64 */
+/* round(a / 2^sh) to nearest for 1 <= sh <= 63; sh = 64 (the six rho_TR elements) truncates the magnitude; the result must fit int64 */
 static inline int64_t s128_round_sh(s128 a, int sh)
 {
     int neg = a.hi < 0; if (neg) { a.lo = ~a.lo + 1; a.hi = ~a.hi + (a.lo == 0); }
-    uint64_t r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;
+    uint64_t r; if (sh == 64) r = (uint64_t)a.hi; else { r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++; }   /* sh = 64 (the six rho_TR elements, F60 + 4) truncates the magnitude, as every published chain did */
     return neg ? -(int64_t)r : (int64_t)r;
 }
 static inline int64_t mul60(int64_t a, int64_t b) { s128 s = {0, 0}; s128_addp(&s, a, b); return s128_round_sh(s, F60); }   /* round(a b / 2^60) */
@@ -129,7 +133,7 @@ static int64_t ln60(int64_t x)
     return artanh2_60(z) + (int64_t)k * LN2_60;
 }
 static int64_t ent60(int64_t lam, int *clamp) { if (lam <= 0) { *clamp = 1; return 0; } return -mul60(lam, ln60(lam)); }
-/* cos and sin of a small x (|x| < 1) in Q.60 by Taylor, 128-bit products */
+/* cos and sin of a small x (|x| < 2: its x^3 and x^4/2 terms reach the Q.60 ceiling of 8 there; checked at the start) in Q.60 by Taylor, 128-bit products */
 static void cossin60(int64_t x, int64_t *c, int64_t *s)
 {
     const int64_t x2 = mul60(x, x); int64_t tc = ONE60, ts = x, sc = ONE60, ss = x;
@@ -148,7 +152,7 @@ static void fmt60(int64_t v, char *out)
     if (dg >= 1000000000000ull) { dg -= 1000000000000ull; ip++; }
     sprintf(out, "%s%llu.%012llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dg);
 }
-static void hash64(int64_t v) { chain = fnv(chain, &v, 8); }
+static void hash64(int64_t v) { uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i)); chain = fnv(chain, b, 8); }   /* v's bytes least significant first: the same chain on any byte order */
 
 /* ---- matrices ---- */
 /* C = op(A) B, op = identity (mode 0) or conjugate transpose (mode 1); exact zeros of op(A) skipped; one rounding per entry */
@@ -281,7 +285,7 @@ static void build_syk(uint64_t seed)
     int nt = 0; q first = 0;
     for (int i = 1; i <= N; i++) for (int j = i + 1; j <= N; j++) for (int k = j + 1; k <= N; k++) for (int l = k + 1; l <= N; l++) {
         const q J = mulq(gauss40(), sd), c = -rdiv(J, 4); if (!nt) first = c;
-        const int64_t c60v = (int64_t)c << 20;                 /* the Q.40 coefficient as an exact Q.60 integer */
+        const int64_t c60v = (int64_t)c * ((int64_t)1 << 20);  /* the Q.40 coefficient as an exact Q.60 integer */
         addterm(pmul(pmul(pmul(ML[i], ML[j]), ML[k]), ML[l]), c60v, 0);
         addterm(pmul(pmul(pmul(MR[i], MR[j]), MR[k]), MR[l]), c60v, 1);
         nt++;
@@ -296,8 +300,8 @@ static void build_model1(void)
     memset(HL, 0, sizeof HL); memset(HR, 0, sizeof HR);
     for (int t = 0; t < 5; t++) {
         const double c = cf[t] * (double)ONE / 4.0; const q cq40 = (q)(c < 0 ? c - 0.5 : c + 0.5);
-        addterm(pmul(pmul(pmul(ML[idx[t][0]], ML[idx[t][1]]), ML[idx[t][2]]), ML[idx[t][3]]), (int64_t)cq40 << 20, 0);
-        addterm(pmul(pmul(pmul(MR[idx[t][0]], MR[idx[t][1]]), MR[idx[t][2]]), MR[idx[t][3]]), (int64_t)cq40 << 20, 1);
+        addterm(pmul(pmul(pmul(ML[idx[t][0]], ML[idx[t][1]]), ML[idx[t][2]]), ML[idx[t][3]]), (int64_t)cq40 * ((int64_t)1 << 20), 0);
+        addterm(pmul(pmul(pmul(MR[idx[t][0]], MR[idx[t][1]]), MR[idx[t][2]]), MR[idx[t][3]]), (int64_t)cq40 * ((int64_t)1 << 20), 1);
     }
     NM = 7;
     printf("WHSYK4 model 1: 5 terms on 7 Majoranas a side (coefficients -0.36, 0.19, -0.71, 0.22, 0.49 declared in Q.40 as v1 did), V normalized with N = 10\n");
@@ -362,9 +366,10 @@ static int64_t maxabs_diff(c60 A[MAXD][MAXD], c60 B[MAXD][MAXD]) { int64_t m = 0
 static q parseq(const char *s)
 {
     int neg = 0; if (*s == '-') { neg = 1; s++; }
-    q ip = 0; while (*s >= '0' && *s <= '9') ip = ip * 10 + (*s++ - '0');
+    q ip = 0; while (*s >= '0' && *s <= '9') { ip = ip * 10 + (*s++ - '0'); if (ip >= ((q)1 << 23)) { printf("WHSYK4: number too large (Q.40 holds magnitudes below 2^23)\n"); exit(1); } }
     q fp = 0, scale = 1; if (*s == '.') { s++; while (*s >= '0' && *s <= '9' && scale < 1000000000000ll) { fp = fp * 10 + (*s++ - '0'); scale *= 10; } }
-    q v = ip * ONE + (fp ? divq(fp * ONE, scale * ONE) : 0); return neg ? -v : v;
+    q f40 = 0; if (fp) { uint64_t h, l, rem; mul128((uint64_t)fp, (uint64_t)ONE, &h, &l); f40 = (q)div128(h, l, (uint64_t)scale, &rem); if (2 * rem >= (uint64_t)scale) f40++; }   /* round(fp 2^40 / scale) in 128 bits */
+    q v = ip * ONE + f40; return neg ? -v : v;
 }
 static int parselist(const char *s, q *out, int max) { int n = 0; char buf[256]; strncpy(buf, s, 255); buf[255] = 0; for (char *tok = strtok(buf, ","); tok && n < max; tok = strtok(NULL, ",")) out[n++] = parseq(tok); return n; }
 
@@ -389,7 +394,10 @@ int main(int argc, char **argv)
     if (!nseed) { seeds[0] = 1; nseed = 1; }
     if (model) { N = 8; nseed = 1; if (!vnormN) vnormN = 10; }
     if (!vnormN) vnormN = N;
+    if (vnormN < 1 || vnormN > 1024) { printf("WHSYK4: vnorm must be in 1..1024\n"); return 1; }
+    for (int i = 0; i < nmu; i++) if (mus[i] >= (q)16 * vnormN * ONE || mus[i] <= -(q)16 * vnormN * ONE) { printf("WHSYK4: |mu| must be below 16 vnorm (the cosine and sine series hold for |mu|/(8 vnorm) < 2)\n"); return 1; }
     if (dt <= 0 || dt > 4 * ONE) { printf("WHSYK4: dt must be in (0, 4]\n"); return 1; }
+    if (beta < 0 || beta >= 8 * ONE) { printf("WHSYK4: beta must be in [0, 8) (Q.60 holds magnitudes below 8)\n"); return 1; }
     if (PA < 1 || PA > N || PB < 1 || PB > N || PA == PB) { printf("WHSYK4: pair must be two different Majorana indices in 1..N\n"); return 1; }
     int tmax = 0; for (int i = 0; i < nt; i++) { int t = (int)(ts[i] / ONE); if ((q)t * ONE != ts[i] || t < 0 || t > TMAX) { printf("WHSYK4: t must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }
     for (int i = 0; i < ntp; i++) { int t = (int)(tps[i] / ONE); if ((q)t * ONE != tps[i] || t < 0 || t > TMAX) { printf("WHSYK4: tp must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }

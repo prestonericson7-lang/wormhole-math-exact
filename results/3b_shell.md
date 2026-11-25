@@ -1,8 +1,19 @@
-# Result 3b, part 1: the 2024 "warp shell" without its shift, reproduced in integers and judged exactly, 2026-11-11
+# Result 3b, part 1: the 2024 "warp shell" without its shift, reproduced and judged in integer fixed-point arithmetic, bit-identical on two machines, 2026-11-11
+
+**In plain words.** A 2024 paper by Fuchs and co-authors designs, on paper, a "physical warp drive" made of a shell of ordinary,
+positive-energy matter, 2.4 times the mass of Jupiter, around an empty region of flat (uncurved) space; this page is part 1, the shell at
+rest, before the ingredient that makes it "move" is added (part 2 is `3b_warp.md`). It rebuilds the shell step by step from the paper
+and its public code, in fixed-point integer arithmetic (every calculation done with whole numbers in a set format, so any computer prints
+the same digits; the two machines, two small ARM computers, printed identical output), and checks the four standard energy conditions
+(tests that the matter behaves like ordinary matter, for example that no observer measures a negative energy density). The paper's
+verdict stands: all four conditions hold, and the few places the program flags outside the matter are within the arithmetic's own
+rounding error, not physics. Two facts the paper does not state come with it (MEASURED on the two machines): the smoothing step in its
+recipe (an averaging that softens the shell's sharp edges) raises the mass by 1.9 percent and spreads the shell from 10-20 m to about
+2.7-27 m. A shell of matter at rest moves nothing, and nothing here builds anything.
 
 **First line:** a shell of positive-energy matter around a flat cavity is not a warp drive and moves nothing; this result reproduces the
 2024 construction as published, declares precisely what object it is, and reports its energy conditions with the arithmetic and its floor
-stated. Part 2 (the shift that makes it "move") is the next program, and is under review before its first run.
+stated. Part 2, the shift that makes it "move", is `3b_warp.md`.
 
 ## What was computed
 
@@ -26,10 +37,11 @@ symmetric formulas), where its first and second derivatives are both defined. No
 
 - Units: R2 = 1 (20 m), G = c = 1; m_total = 1/6; density 1/(7 pi) = 0.045472840883; energies and pressures in c^4 / (G R2^2) =
   3.0256e41 J/m^3 (the paper's ~1e39 J/m^3 is ~3.3e-3 in these units).
-- Program: `code/wh_shell.c` with `code/wh_prof.h` on `code/whq.h`; binary md5 8a874b79 (ARM build).
+- Program: `code/wh_shell.c` on `code/whq.h`; binary md5 8a874b79 (ARM build).
 - Arithmetic: Q.40, 128-bit intermediates, round to nearest; the smoothing means and the trapezoids in 128-bit accumulators, one rounding
   per stored value; the TOV pressure from the closed form with sqrt exact to the floor and the exact mass 1/6 (their code uses the
-  trapezoid of the unsmoothed step density for that mass, about 4e-5 relative away from 1/6: a known deviation, to be matched in v2).
+  trapezoid of the unsmoothed step density for that mass, about 4e-5 relative away from 1/6: a known deviation, kept in this part;
+  part 2's tables, `code/wh_prof.h`, use that trapezoid mass, 0.16666023).
 - Run: 7:36 PM, both machines at once; 148 output lines each; **identical line for line**, chain 375780b722176169. The raw output:
   `3b_shell_board1.txt` (board 2's lines are byte-identical).
 
@@ -60,8 +72,8 @@ where they are read.
 
 **The hypothetical variant** (the TOV pressure kept inside R1, which the paper rules out and its code never does): P(0) = 0.005757, and the
 cavity then has pressure without density, which fails the dominant energy condition genuinely: rho - |P_r| and rho - |P_t| are about -0.0057
-across the cavity (the table rows at r = 0.05 and 0.10 read rho = 0, P_r = 0.00573, P_t = 0.00571). The printed cavity minima of that
-variant (-0.0369, -0.0073 at r = 0.0002) are the 1/r terms of the formulas at the first midpoints and overstate it; the honest number is
+across the cavity (the table rows at r = 0.05 and 0.10 read rho = 0, P_r = 0.00573 and 0.00568, P_t = 0.00571 and 0.00562). The printed
+cavity minima of that variant (-0.0369, -0.0073 at r = 0.0002) are the 1/r terms of the formulas at the first midpoints and overstate it; the honest number is
 -P(0). That is presumably why the paper zeroes the cavity pressure, and the exact computation agrees with the choice.
 
 ## Error bound, on paper
@@ -77,5 +89,5 @@ shell is a million times above it. The two machines' bit-equality checks the ari
 
 A positive-energy shell at rest is ordinary general relativity, and this one obeys all four energy conditions once its construction is
 taken as the declared object. Two exact facts the paper does not state come with it: the smoothing raises the mass by 1.9 percent and
-moves the matter to 2.7-27 m. The paper's claim is about the shifted version; part 2 computes it with the same declared-object method,
-after its review (a division guard in the shared arithmetic, a rounding floor on the sign tests, and the cells next to the axis) is done.
+moves the matter to 2.7-27 m. The paper's claim is about the shifted version; part 2 (`3b_warp.md`) computes it with the same
+declared-object method.

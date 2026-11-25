@@ -1,4 +1,5 @@
-/* wh_syk3.c (11-11-2026, 9:40 PM) -- WORMHOLE MATH 2, v3: the SYK traversable-wormhole teleportation protocol (Gao-Jafferis, arXiv:1911.07416)
+/* In plain words: the SYK teleportation protocol, version 3: adds the full density matrix of the reference qubit and the readout, for each random draw of the couplings.
+   wh_syk3.c (11-11-2026, 9:40 PM) -- WORMHOLE MATH 2, v3: the SYK traversable-wormhole teleportation protocol (Gao-Jafferis, arXiv:1911.07416)
    EXACT AT FINITE N FOR ONE REALIZATION OF THE COUPLINGS: the full reduced density matrix rho_TR of the reference qubit R (half of an EPR
    pair, untouched after the swap) and the right Dirac mode T (the readout; the paper's letters) from its six independent matrix elements (the paper's (2.15)-(2.20)). v1 and v2 printed the paper's (2.63)-(2.66), which
    are the ENSEMBLE-AVERAGED forms: they set rho_22 = rho_33 = 1 - rho_11 and rho_23 = 0 by the SO(N) symmetry of the average, and hold
@@ -272,15 +273,16 @@ static cq inner(cq A[MAXD][MAXD], cq B[MAXD][MAXD])
 static void normalize(cq Psi[MAXD][MAXD]) { const q n = sqrtq(norm2(Psi)); for (int L = 0; L < D; L++) for (int R = 0; R < D; R++) { Psi[L][R].re = divq(Psi[L][R].re, n); Psi[L][R].im = divq(Psi[L][R].im, n); } }
 static void copy(cq A[MAXD][MAXD], cq B[MAXD][MAXD]) { memcpy(B, A, sizeof(cq) * MAXD * MAXD); }
 static q maxabs(cq A[MAXD][MAXD]) { q m = 0; for (int L = 0; L < D; L++) for (int R = 0; R < D; R++) { q a = A[L][R].re < 0 ? -A[L][R].re : A[L][R].re, b = A[L][R].im < 0 ? -A[L][R].im : A[L][R].im; if (a > m) m = a; if (b > m) m = b; } return m; }
-static void hashq(q v) { chain = fnv(chain, &v, 8); }
+static void hashq(q v) { uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i)); chain = fnv(chain, b, 8); }   /* v's bytes least significant first: the same chain on any byte order */
 static q ent(q lam, int *clamp) { if (lam <= 0) { *clamp = 1; return 0; } return -mulq(lam, lnq(lam)); }
 static q qabs(q v) { return v < 0 ? -v : v; }
 static q parseq(const char *s)
 {
     int neg = 0; if (*s == '-') { neg = 1; s++; }
-    q ip = 0; while (*s >= '0' && *s <= '9') ip = ip * 10 + (*s++ - '0');
+    q ip = 0; while (*s >= '0' && *s <= '9') { ip = ip * 10 + (*s++ - '0'); if (ip >= ((q)1 << 23)) { printf("WHSYK3: number too large (Q.40 holds magnitudes below 2^23)\n"); exit(1); } }
     q fp = 0, scale = 1; if (*s == '.') { s++; while (*s >= '0' && *s <= '9' && scale < 1000000000000ll) { fp = fp * 10 + (*s++ - '0'); scale *= 10; } }
-    q v = ip * ONE + (fp ? divq(fp * ONE, scale * ONE) : 0); return neg ? -v : v;
+    q f40 = 0; if (fp) { uint64_t h, l, rem; mul128((uint64_t)fp, (uint64_t)ONE, &h, &l); f40 = (q)div128(h, l, (uint64_t)scale, &rem); if (2 * rem >= (uint64_t)scale) f40++; }   /* round(fp 2^40 / scale) in 128 bits */
+    q v = ip * ONE + f40; return neg ? -v : v;
 }
 static int parselist(const char *s, q *out, int max) { int n = 0; char buf[256]; strncpy(buf, s, 255); buf[255] = 0; for (char *tok = strtok(buf, ","); tok && n < max; tok = strtok(NULL, ",")) out[n++] = parseq(tok); return n; }
 

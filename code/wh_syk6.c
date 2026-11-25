@@ -1,5 +1,6 @@
-/* wh_syk6.c (11-12-2026, 12:45 AM) -- WORMHOLE MATH 2, v6: v5.2 (the exact six-element rho_TR in Q.60 end to end, the 17-matrix pool, the
-   two-core products) PLUS THE SIZE-WINDING OBSERVABLE of Kobrin, Schuster and Yao, derived for this layout by the review (item 7, 12:17 AM)
+/* In plain words: the SYK teleportation protocol, version 6: adds the size-winding signature that the 2022 wormhole experiment reported for its model.
+   wh_syk6.c (11-12-2026, 12:45 AM) -- WORMHOLE MATH 2, v6: v5.2 (the exact six-element rho_TR in Q.60 end to end, the 17-matrix pool, the
+   two-core products) PLUS THE SIZE-WINDING OBSERVABLE as Kobrin, Schuster and Yao state it, derived for this layout by the review (item 7, 12:17 AM)
    and computed here from the states v5 already holds, in the same arithmetic. The protocol lines (WHSYK6 N=...: EXACT ...) and their chain
    are v5's bit for bit at dt = 1; the new lines carry their own chain ("winding chain"). One more change: dt= is parsed straight into Q.60
    (round(dt 2^60)); v4 and v5 parsed it through Q.40, so their dt = 2.8 was 2.8 + 1.8e-13 (the review's finding; it moved K by ~3e-14).
@@ -22,8 +23,9 @@
    SUM_l q(l) e^{i mu l/(4 vnorm)}, because e^{i mu V} multiplies a size-l string by exactly e^{i mu (l - NM/2)/(4 vnorm)}. So 2|C(mu)| is
    KSY's line-fit function at m = -mu/(4 vnorm): the sign of mu that unwinds arg q(l) is the teleporting sign. v6 prints C(mu) from q(l)
    for every mu (the phases e^{i 2 l arg} as powers of the small rotation e^{i arg}, arg = mu/(8 vnorm), one rounding a step: the Q.60
-   series itself only takes angles below 2.8); windcheck=1 also computes C(mu) from the states (<B| e^{i mu V} |A>/2 with B = e^{iHt} g_i^R
-   e^{-iHt} T) and prints the difference in units of 2^-60. K itself is not a function of q(l) (U stands on both sides of it); it stays.
+   series itself only takes angles below 2 (its x^3 and x^4/2 terms reach the Q.60 ceiling of 8 there; checked at the start)); windcheck=1
+   also computes C(mu) from the states (<B| e^{i mu V} |A>/2 with B = e^{iHt} g_i^R e^{-iHt} T) and prints the difference in units of
+   2^-60. K itself is not a function of q(l) (U stands on both sides of it); it stays.
    COST: the transform is D^2 log D additions and 3 D^2 products per operator and time, under 0.1 percent of a protocol point; the state A
    of the first operator is the one K already holds; each further operator costs two products (and the state check four more).
    Command line (v5's, plus): wind=0|1|2 (0 off; 1 the pair's two operators, the default; 2 all operators) windcheck=0|1.
@@ -37,7 +39,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "whq.h"
-#include "par2.h"                           /* v5.2 (11:44 PM): the A9's second core takes half the rows of every product (the machines' two-core call); on a
+#include "par2.h"                           /* v5.2 (11:44 PM): the A9's second core takes half the rows of every product (the machines' own version of par2.h); on a
                                                   machine without it, or on the PC, both halves run here one after the other: the same bits either way */
 
 #define MAXN 18
@@ -89,7 +91,7 @@ static inline void s128_addp(s128 *a, int64_t x, int64_t y) { int64_t h; uint64_
 static inline int64_t s128_round_sh(s128 a, int sh)
 {
     int neg = a.hi < 0; if (neg) { a.lo = ~a.lo + 1; a.hi = ~a.hi + (a.lo == 0); }
-    uint64_t r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++;
+    uint64_t r; if (sh == 64) r = (uint64_t)a.hi; else { r = (a.lo >> sh) | ((uint64_t)a.hi << (64 - sh)); if ((a.lo & ((((uint64_t)1) << sh) - 1)) >= (((uint64_t)1) << (sh - 1))) r++; }   /* sh = 64 (the six rho_TR elements, F60 + 4) truncates the magnitude, as every published chain did */
     return neg ? -(int64_t)r : (int64_t)r;
 }
 static inline int64_t mul60(int64_t a, int64_t b) { s128 s = {0, 0}; s128_addp(&s, a, b); return s128_round_sh(s, F60); }
@@ -151,7 +153,7 @@ static void fmt60(int64_t v, char *out)
     if (dg >= 1000000000000ull) { dg -= 1000000000000ull; ip++; }
     sprintf(out, "%s%llu.%012llu", neg ? "-" : "", (unsigned long long)ip, (unsigned long long)dg);
 }
-static void hash64(int64_t v) { chain = fnv(chain, &v, 8); }
+static void hash64(int64_t v) { uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i)); chain = fnv(chain, b, 8); }   /* v's bytes least significant first: the same chain on any byte order */
 
 /* ---- matrices ---- */
 /* the entry op(A)[i][k]: mode 0 A[i][k]; 1 conj(A[k][i]); 2 the re-indexed right-hand operator R[i][k] = i^{e(~i) - e(~k)} A[~k][~i];
@@ -311,7 +313,7 @@ static void build_syk(uint64_t seed, int check)
     int nt = 0; q first = 0;
     for (int i = 1; i <= N; i++) for (int j = i + 1; j <= N; j++) for (int k = j + 1; k <= N; k++) for (int l = k + 1; l <= N; l++) {
         const q J = mulq(gauss40(), sd), c = -rdiv(J, 4); if (!nt) first = c;
-        const int64_t c60v = (int64_t)c << 20;
+        const int64_t c60v = (int64_t)c * ((int64_t)1 << 20);
         addterm(pmul(pmul(pmul(ML[i], ML[j]), ML[k]), ML[l]), c60v, 0);
         if (check) addterm(pmul(pmul(pmul(MR[i], MR[j]), MR[k]), MR[l]), c60v, 1);
         nt++;
@@ -325,8 +327,8 @@ static void build_model1(int check)
     zero(HL); zero(HR);
     for (int t = 0; t < 5; t++) {
         const double c = cf[t] * (double)ONE / 4.0; const q cq40 = (q)(c < 0 ? c - 0.5 : c + 0.5);
-        addterm(pmul(pmul(pmul(ML[idx[t][0]], ML[idx[t][1]]), ML[idx[t][2]]), ML[idx[t][3]]), (int64_t)cq40 << 20, 0);
-        if (check) addterm(pmul(pmul(pmul(MR[idx[t][0]], MR[idx[t][1]]), MR[idx[t][2]]), MR[idx[t][3]]), (int64_t)cq40 << 20, 1);
+        addterm(pmul(pmul(pmul(ML[idx[t][0]], ML[idx[t][1]]), ML[idx[t][2]]), ML[idx[t][3]]), (int64_t)cq40 * ((int64_t)1 << 20), 0);
+        if (check) addterm(pmul(pmul(pmul(MR[idx[t][0]], MR[idx[t][1]]), MR[idx[t][2]]), MR[idx[t][3]]), (int64_t)cq40 * ((int64_t)1 << 20), 1);
     }
     NM = 7;
     printf("WHSYK6 model 1: 5 terms on 7 Majoranas a side (coefficients -0.36, 0.19, -0.71, 0.22, 0.49 declared in Q.40 as v1 did), V normalized with N = 10\n");
@@ -387,9 +389,10 @@ static int64_t maxabs_diff(c60 A[MAXD][MAXD], c60 B[MAXD][MAXD]) { int64_t m = 0
 static q parseq(const char *s)
 {
     int neg = 0; if (*s == '-') { neg = 1; s++; }
-    q ip = 0; while (*s >= '0' && *s <= '9') ip = ip * 10 + (*s++ - '0');
+    q ip = 0; while (*s >= '0' && *s <= '9') { ip = ip * 10 + (*s++ - '0'); if (ip >= ((q)1 << 23)) { printf("WHSYK6: number too large (Q.40 holds magnitudes below 2^23)\n"); exit(1); } }
     q fp = 0, scale = 1; if (*s == '.') { s++; while (*s >= '0' && *s <= '9' && scale < 1000000000000ll) { fp = fp * 10 + (*s++ - '0'); scale *= 10; } }
-    q v = ip * ONE + (fp ? divq(fp * ONE, scale * ONE) : 0); return neg ? -v : v;
+    q f40 = 0; if (fp) { uint64_t h, l, rem; mul128((uint64_t)fp, (uint64_t)ONE, &h, &l); f40 = (q)div128(h, l, (uint64_t)scale, &rem); if (2 * rem >= (uint64_t)scale) f40++; }   /* round(fp 2^40 / scale) in 128 bits */
+    q v = ip * ONE + f40; return neg ? -v : v;
 }
 static int parselist(const char *s, q *out, int max) { int n = 0; char buf[256]; strncpy(buf, s, 255); buf[255] = 0; for (char *tok = strtok(buf, ","); tok && n < max; tok = strtok(NULL, ",")) out[n++] = parseq(tok); return n; }
 
@@ -424,7 +427,7 @@ static void cmul60(int64_t a, int64_t b, int64_t c, int64_t d, int64_t *re, int6
 #define WSHIFT 4                                            /* Q.60 -> Q.56 for the transform's int64 sums */
 static int64_t fre[MAXD], fim[MAXD];                        /* one diagonal of O' */
 static uint64_t wchain = 0xcbf29ce484222325ull;             /* the winding lines' own chain */
-static void whash64(int64_t v) { wchain = fnv(wchain, &v, 8); }
+static void whash64(int64_t v) { uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i)); wchain = fnv(wchain, b, 8); }   /* as hash64: byte-order independent */
 static inline int64_t rsh_round(int64_t v, int sh) { s128 a = { v < 0 ? -1 : 0, (uint64_t)v }; return s128_round_sh(a, sh); }
 static int wind_size(uint32_t x, uint32_t z)                /* the Majorana size of sigma_{x,z} */
 {
@@ -561,7 +564,10 @@ int main(int argc, char **argv)
     if (!nseed) { seeds[0] = 1; nseed = 1; }
     if (model) { N = 8; nseed = 1; if (!vnormN) vnormN = 10; }
     if (!vnormN) vnormN = N;
+    if (vnormN < 1 || vnormN > 1024) { printf("WHSYK6: vnorm must be in 1..1024\n"); return 1; }
+    for (int i = 0; i < nmu; i++) if (mus[i] >= (q)16 * vnormN * ONE || mus[i] <= -(q)16 * vnormN * ONE) { printf("WHSYK6: |mu| must be below 16 vnorm (the cosine and sine series hold for |mu|/(8 vnorm) < 2)\n"); return 1; }
     if (dt <= 0 || dt > 4 * ONE) { printf("WHSYK6: dt must be in (0, 4]\n"); return 1; }
+    if (beta < 0 || beta >= 8 * ONE) { printf("WHSYK6: beta must be in [0, 8) (Q.60 holds magnitudes below 8)\n"); return 1; }
     if (PA < 1 || PA > N || PB < 1 || PB > N || PA == PB) { printf("WHSYK6: pair must be two different Majorana indices in 1..N\n"); return 1; }
     int tmax = 0; for (int i = 0; i < nt; i++) { int t = (int)(ts[i] / ONE); if ((q)t * ONE != ts[i] || t < 0 || t > TMAX) { printf("WHSYK6: t must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }
     for (int i = 0; i < ntp; i++) { int t = (int)(tps[i] / ONE); if ((q)t * ONE != tps[i] || t < 0 || t > TMAX) { printf("WHSYK6: tp must be an integer in 0..%d\n", TMAX); return 1; } if (t > tmax) tmax = t; }

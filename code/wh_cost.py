@@ -1,4 +1,5 @@
-"""wh_cost.py (11-12-2026, 7:35 AM) -- what Maldacena-Milekhin's wormhole costs at each mouth size, with the paper's human-traversability
+"""In plain words: what Maldacena and Milekhin's wormhole would cost at each mouth size (charge, field, binding energy, crossing time), from the paper's formula chain with our constant in place of its estimate.
+wh_cost.py (11-12-2026, 7:35 AM) -- what Maldacena-Milekhin's wormhole costs at each mouth size, with the paper's human-traversability
 condition (3.26) dropped: a portal nothing living goes through can be smaller. The construction itself (section 3.2) needs re >> R5 and
 lhat = l_B/re << 1. Every row is COMPUTED on the PC from the paper's own formula chain with our exact constant kappa_flat in place of its
 estimate (the reviewer's chain for the paper's eq. 3.27, our 1a and P3 results):
@@ -6,7 +7,8 @@ estimate (the reviewer's chain for the paper's eq. 3.27, our 1a and P3 results):
   Q2/R5^2 = (re/R5)^2 / ln_eff;  w = (3 + sqrt(9 + 96 Q2))/(4 Q2);  S* = R5/sqrt(w);  L3 = R5/sqrt(3 + w/4)
   c2 = 6 pi L3 S*^2/G5 with G5 = G4 R5/2 (3.23); l_B = sqrt(re R5) (6 ln_eff)^{1/4}; lhat = l_B/re
   ell = 16 re^3/(G4 c2) (2.12);  E_bin = -c2/(16 ell) (2.13);  gamma = ell/re (2.14)
-  q (the integer magnetic charge, Dirac units) = re g4/(sqrt(pi) l_p) (2.5) with g4 = e (alpha = 1/137.036)
+  q (the integer magnetic charge, Dirac units) = re g4/(sqrt(pi) l_p) (2.5) with g4 = e (alpha = 1/137.036) (outside the paper's
+    weak-coupling condition, sqrt(R5)/g5 > 1 after its 3.21, for re above about 14 km)
   B at the mouth: the extremal horizon field, B = c^2 sqrt(mu0/(4 pi G))/re (gauge-coupling independent; = (2.6) in SI)
   tidal acceleration on a 0.5 m body: a = c^2 (0.5 m)/re^2 (3.26); the proper traversal time pi re/c; the outside traversal time pi ell/c.
 SI constants CODATA 2018; G4 = l_p^2 (hbar = c = 1), l_p = 1.616255e-35 m; R5 = 5e-5 m (the paper's choice, the experimental bound).
@@ -48,7 +50,7 @@ def tm(s):
     if s >= mp.mpf('1e-3'): return fm(s*1000, 4) + " ms"
     if s >= mp.mpf('1e-6'): return fm(s*1e6, 4) + " us"
     return fm(s*1e9, 4) + " ns"
-sizes = [("100 R5, the construction's floor", mp.mpf('5e-3')), ("5 cm", mp.mpf('5e-2')), ("1 m", mp.mpf(1)), ("1 km", mp.mpf(1000)),
+sizes = [("100 R5, the smallest size tabulated", mp.mpf('5e-3')), ("5 cm", mp.mpf('5e-2')), ("1 m", mp.mpf(1)), ("1 km", mp.mpf(1000)),
          ("1,000 km", mp.mpf('1e6')), ("the paper's: a human survives the tides", mp.mpf('1.5e7')), ("one astronomical unit", AU)]
 print("| mouth radius re | ln_eff | lhat = l_B/re | charge q (Dirac units) | field at the mouth B | c2 | throat length ell | traversal time, outside (pi ell/c) | proper traversal time (pi re/c) | binding energy E_bin | tidal acceleration, 0.5 m body | what bites |")
 print("|---|---|---|---|---|---|---|---|---|---|---|---|")
@@ -56,9 +58,10 @@ for name, re in sizes:
     r = row(re)
     flags = []
     if r['lhat'] > mp.mpf('0.1'): flags.append("lhat %s: the construction's small-lhat premise is marginal" % fm(r['lhat'], 2))
-    if r['tidal'] > 20: flags.append("tides %s g: no human" % fm(r['tidal'], 2))
+    if re < mp.mpf('1.5e7'): flags.append("tides %s g: no human" % fm(r['tidal'], 2))
+    elif re == mp.mpf('1.5e7'): flags.append("the human limit (the paper's 20 g)")
     if r['B'] > Bsch: flags.append("B is %s x the Schwinger field" % fm(r['B']/Bsch, 2))
-    if not flags: flags.append("the paper's own point")
+    if not flags: flags.append("the field alone")
     print("| %s (%s) | %s | %s | %s | %s T | %s | %s | %s | %s | %s kg | %s g | %s |" % (length(re), name, fm(r['L'], 5), fm(r['lhat'], 3), fm(r['q'], 3), fm(r['B'], 3), fm(r['c2'], 4),
           length(r['ell']), tm(r['tout']), tm(r['tprop']), fm(r['Eb'], 4), fm(r['tidal'], 3), "; ".join(flags)))
 print()

@@ -1,4 +1,5 @@
-/* wh_relaxt.c (11-12-2026, 3:20 AM) -- WORMHOLE MATH 1b, THE P0 KERNEL: the relaxation of several coupled fields on the (x, t) grid of the
+/* In plain words: the grid solver in the geometry's own coordinates: problem P0 (the patched geometry's first problem) and its test cases.
+ * wh_relaxt.c (11-12-2026, 3:20 AM) -- WORMHOLE MATH 1b, THE P0 KERNEL: the relaxation of several coupled fields on the (x, t) grid of the
  * patched geometry's first problem, in the form the reviewer's reconciled sizing (3:14 AM) prescribes, built on an exact test ahead of the
  * equations so that P0's three sources drop into one callback when its specification lands.
  *
@@ -46,7 +47,9 @@
  * (its weighted source) is subtracted once (the manufactured-solution form; in the real P0 that defect is the source that drives the
  * deviation from a reference that is not a solution). Dirichlet zero at the cut, Neumann zero at the deep end and on the x sides. A start
  * pert= away from zero must relax back to zero: that checks the sources, the stencil, the ghosts and the guard in P0's own variables.
- * Usage: whrelaxt [model=quad|ads3|p0] [N=128] [Gx=4] [lam=0] [pert=0.01] [defect=1] [Q2=6] [a=0.02] [fu4=0] [fb4=0] [fv4=0] [ramp=10] [scale=1] [omega=auto|value] [tol=1048576] [t0=-7.0] [guard=1]    N 4..1024 (ads3: 64 or more; defect=0 leaves the reference's discretization defect in); Gx up to 64. */
+ * Usage: whrelaxt [model=quad|ads3|p0] [N=128] [Gx=4] [lam=0] [pert=0.01] [defect=1] [Q2=6] [a=0.02] [fu4=0] [fb4=0] [fv4=0] [ramp=10] [scale=1] [omega=auto|value] [tol=1048576] [t0=-7.0] [guard=1]    N 4..1024 (ads3: 64 or more; defect=0 leaves the reference's discretization defect in); Gx up to 64 (quad: up to 7).
+ * CHECK (11-12, after the int64 wrap in correction() was fixed, see there): model=p0 N=128 t0=-10.85 a=0.02 prints U_c = -0.594115611065 and the
+ * chain 09d5ac7eddb94cd4 (COMPUTED, PC development run; the machines' outputs in results/ were printed by the build with the wrap). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -147,7 +150,7 @@ static inline int64_t correction(int k, int i, int j)            /* d_k = w_S F_
 {
     s128 r = {0, 0};
     s128_addp(&r, WS[j], Fv(k, i, j - 1)); s128_addp(&r, WN[j], Fv(k, i, j + 1));
-    s128_addp(&r, WX[j], Fv(k, i - 1, j) + Fv(k, i + 1, j));
+    s128_addp(&r, WX[j], Fv(k, i - 1, j)); s128_addp(&r, WX[j], Fv(k, i + 1, j));   /* one product per neighbour: their 64-bit sum passed 8 where the V deviation is above 4 (the cut rows) and wrapped; found by the reviewer 6:45 AM 11-12 */
     if (MODEL == 0) { s128_addp(&r, -WD[j], source(k, i, j)); return s128_round_sh(r, F60) - F[k][i][j]; }
     int64_t ws[NF]; ads3_wsource(i, j, ws);                          /* the operator's action on the reference, minus its weighted source */
     return s128_round_sh(r, F60) - ws[k] + (k == 0 ? GU[j] : k == 2 ? GB[j] : 0) - (DEFECT ? DEF[k][j] : 0) - F[k][i][j];
@@ -206,7 +209,7 @@ static int p0_cutdata(int64_t a, int full, int64_t *u0, int64_t *v0, int64_t *b0
         { s128 r = {0, 0}; s128_addp(&r, P0_FV4, v4); f4v = s128_round_sh(r, 48); }
     }
     s128 vs = ln_s128(a); s128_addp(&vs, -16, T056); s128_addv(&vs, -LNS0);          /* V0 - ln S0 without the small terms: ln a - t0 - ln S0 (7.00 at the reconciled cut and a = 0.02) */
-    if (vs.hi > 0 || vs.hi < -1 || (vs.hi == 0 && vs.lo >= (uint64_t)(8 * ONE60)) || (vs.hi == -1 && vs.lo < (uint64_t)(-8 * ONE60))) return 0;
+    if (vs.hi > 0 || vs.hi < -1 || (vs.hi == 0 && vs.lo >= ((uint64_t)1 << 63)) || (vs.hi == -1 && vs.lo < (uint64_t)(-8 * ONE60))) return 0;
     const int64_t vlarge = (int64_t)vs.lo;                                           /* within (-8, 8): the low word is the value */
     int64_t u = ((-T056 - UR56[0]) << 4) + fg_ub + logt + f4u, b = ((-T056 - BR56[0]) << 4) + fg_ub + logt + f4b, vv = vlarge - fg_v - rdiv64(3 * logt, 2) + f4v;
     if (P0_SCALE != ONE60) { u = mul60(u, P0_SCALE); vv = mul60(vv, P0_SCALE); b = mul60(b, P0_SCALE); }
@@ -249,11 +252,14 @@ int main(int argc, char **argv)
     }
     if (N < 4 || N > MAXN || (N & (N - 1))) { printf("WHRELAXT: N must be a power of two in 4..%d\n", MAXN); return 1; }
     if (GX < 2 || GX > MAXGX) { printf("WHRELAXT: Gx must be 2..%d\n", MAXGX); return 1; }
+    if (MODEL == 0 && GX > 7) { printf("WHRELAXT: model=quad needs Gx <= 7 (x itself must stay below the Q.60 ceiling)\n"); return 1; }
     char a[48], b[48], c[48], d[48], e[48];
     if (MODEL == 2 && ramp == 0) ramp = 10;                            /* the real P0 climbs to its brane radius in ten doublings unless told otherwise */
     if (t0 == INT64_MIN) t0 = MODEL == 2 ? parse56("-10.85") : -7 * ONE56;   /* the cut: the exact tests at t0 = -7; the real P0 at y = -1.94e-5 (the reviewer's reconciled depth) */
     const int64_t t1 = ln60(14 * (ONE60 / 16)) + 4 * ln2_60();          /* ln 14 = ln(14/16) + 4 ln 2 (14 itself is past the ceiling) */
-    T056 = t0; DT56 = rdiv64(((t1 + 8) >> 4) - t0, N); DT = DT56 << 4; T0 = 0; DX = ONE60; LAM = lam;   /* the rows in Q.56: the span t1 - t0 (9.6, or 13.5 at the real cut) passes the Q.60 ceiling; Dt itself is below 8 and goes to Q.60 exactly */
+    T056 = t0; DT56 = rdiv64(((t1 + 8) >> 4) - t0, N);
+    if (DT56 <= 0 || DT56 > parse56("2.82")) { printf("WHRELAXT: Dt = (t1 - t0)/N must lie in (0, 2.82] (Dt^2 below the Q.60 ceiling) -- raise N or move t0\n"); return 1; }
+    DT = DT56 << 4; T0 = 0; DX = ONE60; LAM = lam;   /* the rows in Q.56: the span t1 - t0 (9.6, or 13.5 at the real cut) passes the Q.60 ceiling; Dt itself is below 8 and goes to Q.60 exactly */
     AS = ONE60 + DT / 2; AN = ONE60 - DT / 2; DT2HALF = mul60(DT, DT) / 2;
     for (int j = 0; j <= N; j++) {                                    /* per row: t_j, e^{2 t_j}, c_j, the reciprocal */
         const int64_t tj56 = TROW56(j);

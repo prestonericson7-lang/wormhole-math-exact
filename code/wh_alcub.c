@@ -1,4 +1,5 @@
-/* wh_alcub.c (11-11-2026; v2 on whq.h) -- WORMHOLE MATH 3a: the Alcubierre negative-energy integral, exact.
+/* In plain words: computes the negative energy an Alcubierre warp bubble needs, for several wall thicknesses, by numerical integration in fixed-point integers.
+ * wh_alcub.c (11-11-2026; v2 on whq.h) -- WORMHOLE MATH 3a: the Alcubierre negative-energy integral, exact.
  *
  * Bobrick & Martire, "Introducing physical warp drives", arXiv:2102.06824 (Class. Quantum Grav. 38, 105009, 2021), in G = c = 1 units:
  *   eq. (3)    T^00 = -(1/8pi) (rho^2 v^2 / 4 r^2) f'(r)^2          (negative wherever f' != 0)
@@ -126,7 +127,7 @@ int main(void)
         }
     }
     printf("WHALCUB: chain %016llx\n", (unsigned long long)hash);
-    printf("WHALCUB: SI: E = -(v^2/12) I R c^4/G with c = 299792458 m/s exactly and G = 6.67430e-11 m^3 kg^-1 s^-2 (CODATA 2018): c^4/G = 1.2104e44 J per meter of I R\n");
+    printf("WHALCUB: SI: E = -(v^2/12) I R c^4/G with c = 299792458 m/s exactly and G = 6.67430e-11 m^3 kg^-1 s^-2 (CODATA 2018): c^4/G = 1.2103e44 J per meter of I R\n");
     printf("WHALCUB: done\n");
     return 0;
 }

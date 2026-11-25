@@ -3,7 +3,8 @@
  * usable registers than it has: (1)-(3) classes 0, 1, 2 and 4 of P1 = SUM ar br, P2 = SUM ai bi, P3 = SUM (ar+ai)(br+bi) (seven
  * registers of sums, the three limbs of y and one of x live), (4) class 3 of all three. The sums are signed int64 (see LQ_P in
  * limb_common.h), class 4 a uint32; the contract keeps every signed sum inside int64.
- * Measured on the A9 (qemu instruction counts, count_a9.out): 76.7 instructions a complex MAC at 64 k terms a call, 79.2 at 32;
+ * Counted under qemu for the A9's instruction set (a PC development count, not a board measurement; count_a9.out is not published):
+ * 76.7 instructions a complex MAC at 64 k terms a call, 79.2 at 32;
  * the four-multiplication schedule (limb_m4.c, limb_variants.c v_a4s) needs 86.0 / 87.9, the s128 kernel 235.6 (dot form). */
 #include "limb_q60.h"
 

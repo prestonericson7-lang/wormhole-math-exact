@@ -1,4 +1,5 @@
-/* wh_p3.c (11-12-2026, 6:35 AM) -- WORMHOLE MATH 1b, the near-brane throat (P3) of Maldacena-Milekhin's fine-tuned brane as an integer
+/* In plain words: solves for the throat's shape next to the brane (problem P3) by integrating inward from the brane and bisecting one parameter, in fixed-point integers.
+ * wh_p3.c (11-12-2026, 6:35 AM) -- WORMHOLE MATH 1b, the near-brane throat (P3) of Maldacena-Milekhin's fine-tuned brane as an integer
  * ODE shot, per the reviewer's verified specification (MATH_WORK_01.md, the 4:30 AM entry of 11-12). Three rescaled variables are
  * integrated inward from the brane in the proper depth t: alpha = A - A_b, s = sigma - sigma_b and bh = (sigma' - 1)/Z with
  * Z = Q2 e^{-4 sigma}; A' comes from the constraint's + root as -c/(B + sqrt(B^2 - Z c)) (no cancellation as Z -> 0), the way wh_flow.c

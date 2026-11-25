@@ -2,10 +2,11 @@
  *
  * Every quantity is an int64 in Q.40 (40 fractional bits, 2^-40 = 9.1e-13; magnitudes below 2^23). No floating point, no libm.
  *   mulq(a, b)  round(a b / 2^40) to nearest, ties away from zero, from the full 128-bit product (four 32x32 halves); needs |a b| < 2^103.
- *   divq(a, b)  round(a 2^40 / b) to nearest for b > 0, by a 128-by-64 long division; needs |a / b| < 2^23.
+ *   divq(a, b)  round(a 2^40 / b) to nearest, b nonzero of either sign; |a / b| < 2^23, checked (a stop otherwise).
  *   sqrtq(x)    floor(sqrt(x)) exactly, by integer Newton with a 128-bit fix-up.
  *   rdiv(x, n)  round(x / n) to nearest for a small positive integer n.
- *   expq(x)     e^x by range reduction on ln 2 and a 24-term Taylor series (|r| <= ln2/2, so the 25th term is below 2^-40 / 10^5).
+ *   expq(x)     e^x by range reduction on ln 2 and a 24-term Taylor series (|r| <= ln2/2, so the 25th term is below 2^-40 / 10^5);
+ *               stops above the ceiling.
  *   fmt(v, s)   the value as a decimal with 12 places, exact (two 6-digit stages).
  *   fnv(h,p,n)  the FNV-1a chain hash used to fingerprint every step of a run.
  * The same bits on every machine and every run: the result IS the printed digits.
@@ -14,6 +15,7 @@
 #define WHQ_H
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define FB 40
@@ -54,12 +56,15 @@ static uint64_t div128(uint64_t hi, uint64_t lo, uint64_t b, uint64_t *rem)   /*
 static q divq(q a, q b)                                 /* a / b rounded to nearest; b of either sign (v2 11-11 7:35 PM: v1 assumed b > 0 and
                                                            returned a/2^24-sized garbage for b < 0; 1a, 3a and the shell never divided by a negative) */
 {
+    if (b == 0 || b == INT64_MIN) { printf("WHQ: divq by zero -- stop\n"); exit(1); }
     if (b < 0) { a = -a; b = -b; }
     const int neg = a < 0;
     const uint64_t ua = neg ? -(uint64_t)a : (uint64_t)a;
+    if ((ua >> (64 - FB)) >= (uint64_t)b) { printf("WHQ: divq overflow -- stop\n"); exit(1); }   /* the quotient would not fit 64 bits */
     uint64_t rem;
     uint64_t r = div128(ua >> (64 - FB), ua << FB, (uint64_t)b, &rem);
     if (2 * rem >= (uint64_t)b) r++;
+    if (r > (uint64_t)INT64_MAX) { printf("WHQ: divq overflow -- stop\n"); exit(1); }   /* nor 63: it would come back with the wrong sign */
     return neg ? -(q)r : (q)r;
 }
 static q sqrtq(q x)
@@ -94,7 +99,7 @@ static q expq(q x)
     if (r < -LN2 / 2) { r += LN2; k--; }
     q term = ONE, sum = ONE;
     for (int n = 1; n <= 24; n++) { term = rdiv(mulq(term, r), n); sum += term; }
-    if (k >= 63 - FB - 1) return (q)1 << 62;
+    if (k > 63 - FB || (k == 63 - FB && sum >= ONE)) { printf("WHQ: expq above the Q.%d ceiling -- stop\n", FB); exit(1); }   /* sum 2^k must stay below 2^63 */
     if (k <= -62) return 0;
     if (k >= 0) return sum << k;
     return (sum + ((q)1 << (-k - 1))) >> (-k);
@@ -102,7 +107,7 @@ static q expq(q x)
 static const q PI = 3454217652358;                    /* pi * 2^40 = 3454217652357.64 */
 static q lnq(q x)                                     /* ln x for x > 0: x = 2^k y with y in [1, 2); ln y = 2 artanh((y-1)/(y+1)), 30 terms */
 {
-    if (x <= 0) return -((q)1 << 62);
+    if (x <= 0) { printf("WHQ: lnq of a non-positive value -- stop\n"); exit(1); }
     int k = 0; q y = x;
     while (y >= 2 * ONE) { y >>= 1; k++; }
     while (y < ONE) { y <<= 1; k--; }

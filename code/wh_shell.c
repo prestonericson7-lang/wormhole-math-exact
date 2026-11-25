@@ -1,4 +1,5 @@
-/* wh_shell.c (11-11-2026) -- WORMHOLE MATH 3b, part 1: the 2024 "warp shell" WITHOUT its shift: Fuchs et al.'s matter shell, its
+/* In plain words: rebuilds the 2024 "warp shell" (without its shift) from integer sums and tests the four energy conditions across it.
+ * wh_shell.c (11-11-2026) -- WORMHOLE MATH 3b, part 1: the 2024 "warp shell" WITHOUT its shift: Fuchs et al.'s matter shell, its
  * construction reproduced as finite integer sums, the metric DECLARED as the piecewise interpolant of those tables, the Einstein tensor
  * of that object in closed form at every interval's midpoint, the four energy conditions, and two rules for the cavity.
  *
@@ -19,7 +20,7 @@
  *                            for r <= R1 (the reviewer read the file, 11-11 7:05 PM; v1 of this comment misread it as keeping the pressure);
  *      variant HYPOTHETICAL: P_i kept for every r_i < 1 (neither the paper nor its code: kept only to show what the cavity pressure does).
  *      KNOWN DEVIATION (v2 will fix): TOVconstDensity uses M(end), the cumulative trapezoid of the UNSMOOTHED step density, not the exact
- *      1/6 used here (the sqrt(1 - r^2/3) form): about 4e-5 relative in the pressure (ESTIMATE, the buddy's).
+ *      1/6 used here (the sqrt(1 - r^2/3) form): about 4e-5 relative in the pressure (ESTIMATE, the reviewer's).
  *   4. MATLAB smooth(y, span) = the centred moving average with span rounded down to odd and symmetric shrinking windows at the ends
  *      (y~_i = mean of y_j over |j - i| <= w_i, w_i = min(w, i, N-1-i)); FOUR passes; density span 7159 (1.79 x 4000 as the code), pressure
  *      span 3999 (4000); each mean rounded to nearest in Q.40.
@@ -125,7 +126,7 @@ int main(void)
             const q u = ONE - divq(2 * m, r);                                                /* 1 - 2m/r = 1/B */
             const q bp = divq(mulq(mp, r) - m, r2 - mulq(2 * m, r));                         /* b' */
             const q rhoT = divq(mp, mulq(4 * PI, r2));
-            const q Pr = divq(-divq(2 * m, r3) + divq(mulq(2 * ap, u), r), 8 * PI);
+            const q Pr = divq(-(m ? divq(2 * m, r3) : 0) + divq(mulq(2 * ap, u), r), 8 * PI);   /* 2m/r^3 is 0 where m = 0 (below the matter's inner edge, r = 0.137); r^3 itself rounds to 0 in Q.40 below r = 7.7e-5 (the first three midpoints), and divq stops on a zero divisor */
             const q Pt = divq(mulq(u, app + mulq(ap, ap) - mulq(ap, bp) + divq(ap - bp, r)), 8 * PI);
             const q absPr = Pr < 0 ? -Pr : Pr, absPt = Pt < 0 ? -Pt : Pt;
             const q marg[6] = { rhoT + Pr, rhoT + Pt, rhoT, rhoT + Pr + 2 * Pt, rhoT - absPr, rhoT - absPt };

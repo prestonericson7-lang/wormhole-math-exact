@@ -1,6 +1,6 @@
-# P2 adversarial verifier: independent sympy checks.
-# Own curvature code (Christoffel -> Ricci), written fresh here; nothing imported from the worker's p2_checks.py,
-# stage 1's g5lib.py or the stage-1 verifier's vlib.py.
+# P2 independent check: sympy.
+# Own curvature code (Christoffel -> Ricci), written fresh here; nothing imported from p2_checks.py or the unpublished
+# stage-1 scripts.
 # Conventions: signature (-+++), R^a_bcd = d_c Gam^a_db - d_d Gam^a_cb + Gam^a_ce Gam^e_db - Gam^a_de Gam^e_cb,
 # R_bd = R^a_bad, G_ab = R_ab - g_ab R/2, Einstein: G_ab + Lam g_ab = 8 pi G T_ab.
 import sympy as sp, time
