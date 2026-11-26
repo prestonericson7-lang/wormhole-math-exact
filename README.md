@@ -1,10 +1,16 @@
 # Wormhole math, exact
 
+[![Watch the video](https://img.shields.io/badge/Watch-the_video-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=4lfyN1AOj1o) [![YouTube channel](https://img.shields.io/badge/YouTube-%40LittlebrainsBigmess-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/@LittlebrainsBigmess) [![ORCID](https://img.shields.io/badge/ORCID-0009--0009--9123--2731-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0009-0009-9123-2731)
+
+**Related:** [the-winter-that-wasnt](https://github.com/prestonericson7-lang/the-winter-that-wasnt) · [monroe-stargate-record](https://github.com/prestonericson7-lang/monroe-stargate-record) · [all our work](https://github.com/prestonericson7-lang)
+
+---
+
 **Computations that the traversable-wormhole and warp-drive papers left undone or in dispute, done in exact integer arithmetic and checked
 on two small ARM boards, so that anyone with a C compiler gets the same bits.** The largest, the explicit wormhole geometry (1b), is under
 way; results not yet run on the boards are labelled as PC development runs.
 
-By Preston Ericson, working with Claude (Anthropic's AI) as research partner. Preston directs the work, owns and runs the machines, and
+By Preston Ericson, working with Mira (Claude, Anthropic's AI) as research partner. Preston directs the work, owns and runs the machines, and
 decides what is published; Claude writes the programs and the pages with him; a second, independent AI session reviews every program and
 every page, before and after it goes up, and its corrections are recorded here under its own name.
 
