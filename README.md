@@ -1,6 +1,6 @@
 # Wormhole math, exact
 
-[![Watch the video](https://img.shields.io/badge/Watch-the_video-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=4lfyN1AOj1o) [![YouTube channel](https://img.shields.io/badge/YouTube-%40LittlebrainsBigmess-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/@LittlebrainsBigmess) [![ORCID](https://img.shields.io/badge/ORCID-0009--0009--9123--2731-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0009-0009-9123-2731)
+[![Watch the video](https://img.shields.io/badge/Watch-the_video-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=4lfyN1AOj1o) [![Watch the companion video](https://img.shields.io/badge/Watch-the_companion_video-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=wmKaPpUYgok) [![YouTube channel](https://img.shields.io/badge/YouTube-%40LittlebrainsBigmess-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/@LittlebrainsBigmess) [![ORCID](https://img.shields.io/badge/ORCID-0009--0009--9123--2731-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0009-0009-9123-2731)
 
 **Related:** [the-winter-that-wasnt](https://github.com/prestonericson7-lang/the-winter-that-wasnt) · [monroe-stargate-record](https://github.com/prestonericson7-lang/monroe-stargate-record) · [all our work](https://github.com/prestonericson7-lang)
 
